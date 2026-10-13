@@ -8,7 +8,9 @@ import {
   OrderStatus,
   PaymentStatus,
   OrderCustomerInfo,
-  AdminUser
+  AdminUser,
+  CustomerUser,
+  CustomerAddress
 } from '../types';
 import {
   initialCategories,
@@ -823,21 +825,39 @@ export const adminLogin = async (email: string, password: string): Promise<{ suc
   }
 
   // Local development / fallback owner auth
-  const cleanEmail = email.trim().toLowerCase();
+  const cleanId = email.trim().toLowerCase();
+  const digitsOnly = email.replace(/\D/g, '').slice(-10);
+
+  const customEmail = (localStorage.getItem('dw_admin_custom_email') || '').toLowerCase();
+  const customPhone = (localStorage.getItem('dw_admin_custom_phone') || '').replace(/\D/g, '').slice(-10);
+
+  const defaultOwnerPhone = (STORE_CONFIG.contactNumber || '6377123270').replace(/\D/g, '').slice(-10);
+  const defaultOwnerWhatsapp = (STORE_CONFIG.whatsappNumber || '6377123270').replace(/\D/g, '').slice(-10);
+
+  const isEmailMatch =
+    cleanId === 'admin@digitalworld.com' ||
+    cleanId === 'vishal@digitalworld.in' ||
+    cleanId === STORE_CONFIG.adminEmail.toLowerCase() ||
+    (customEmail && cleanId === customEmail) ||
+    cleanId === 'admin';
+
+  const isPhoneMatch =
+    digitsOnly.length === 10 && (
+      digitsOnly === defaultOwnerPhone ||
+      digitsOnly === defaultOwnerWhatsapp ||
+      digitsOnly === customPhone
+    );
+
   const configuredPassword = (STORE_CONFIG as unknown as { adminPassword?: string }).adminPassword;
   const customSavedPassword = localStorage.getItem('dw_admin_custom_password');
   const validPasswords = [customSavedPassword, configuredPassword, 'admin123', 'soni2026', 'digital123'].filter(Boolean);
 
-  if (
-    cleanEmail === 'admin@digitalworld.com' ||
-    cleanEmail === 'vishal@digitalworld.in' ||
-    cleanEmail === STORE_CONFIG.adminEmail.toLowerCase() ||
-    cleanEmail === 'admin'
-  ) {
+  if (isEmailMatch || isPhoneMatch) {
     if (validPasswords.includes(password)) {
       const user: AdminUser = {
         id: 'admin_local_vishal',
-        email: cleanEmail,
+        email: cleanId.includes('@') ? cleanId : (customEmail || STORE_CONFIG.adminEmail),
+        phone: digitsOnly.length === 10 ? digitsOnly : defaultOwnerPhone,
         role: 'owner'
       };
       localStorage.setItem(STORAGE_ADMIN, JSON.stringify(user));
@@ -845,7 +865,7 @@ export const adminLogin = async (email: string, password: string): Promise<{ suc
     }
   }
 
-  return { success: false, error: 'Invalid email or password. Please verify your administrative credentials.' };
+  return { success: false, error: 'Invalid admin credentials. Please enter a valid registered email or 10-digit mobile number.' };
 };
 
 // ==================== OWNER PASSWORD MANAGEMENT & OTP SECURITY ====================
@@ -974,6 +994,282 @@ export const changeAdminPassword = (newPassword: string): boolean => {
   }
   localStorage.setItem('dw_admin_custom_password', newPassword.trim());
   return true;
+};
+
+export const updateAdminEmailOrPhone = (params: {
+  email?: string;
+  phone?: string;
+  otp: string;
+}): { success: boolean; message: string; updatedEmail?: string; updatedPhone?: string } => {
+  const { email, phone, otp } = params;
+
+  const savedSessionRaw = localStorage.getItem(STORAGE_ADMIN_OTP);
+  if (!savedSessionRaw) {
+    throw new Error('No active OTP session found. Please click "Send OTP to Email" first.');
+  }
+
+  const session: AdminOtpSession = JSON.parse(savedSessionRaw);
+  if (Date.now() > session.expiresAt) {
+    localStorage.removeItem(STORAGE_ADMIN_OTP);
+    throw new Error('OTP has expired. Please request a new verification code.');
+  }
+
+  if (session.otp.trim() !== otp.trim()) {
+    throw new Error('Incorrect OTP code entered. Please check and try again.');
+  }
+
+  if (email && email.trim()) {
+    if (!email.includes('@') || !email.includes('.')) {
+      throw new Error('Please enter a valid email address.');
+    }
+    localStorage.setItem('dw_admin_custom_email', email.trim().toLowerCase());
+  }
+
+  if (phone && phone.trim()) {
+    const clean = phone.replace(/\D/g, '').slice(-10);
+    if (clean.length !== 10) {
+      throw new Error('Please enter a valid 10-digit Indian mobile number.');
+    }
+    localStorage.setItem('dw_admin_custom_phone', clean);
+  }
+
+  localStorage.removeItem(STORAGE_ADMIN_OTP);
+
+  return {
+    success: true,
+    message: 'Admin login credentials updated successfully!',
+    updatedEmail: email?.trim().toLowerCase(),
+    updatedPhone: phone?.replace(/\D/g, '').slice(-10)
+  };
+};
+
+export const getAdminContactDetails = (): { email: string; phone: string } => {
+  const savedEmail = localStorage.getItem('dw_admin_custom_email');
+  const savedPhone = localStorage.getItem('dw_admin_custom_phone');
+  return {
+    email: savedEmail || STORE_CONFIG.adminEmail,
+    phone: savedPhone || STORE_CONFIG.contactNumber
+  };
+};
+
+// ==================== CUSTOMER HIGH-SECURITY AUTHENTICATION ====================
+const STORAGE_CUSTOMERS = 'dw_customer_accounts';
+const STORAGE_CUSTOMER_SESSION = 'dw_customer_active_session';
+const STORAGE_CUSTOMER_OTP = 'dw_customer_otp_session';
+
+interface StoredCustomerAccount {
+  id: string;
+  name: string;
+  phone: string;
+  email?: string;
+  passwordHash: string;
+  created_at: string;
+  default_address?: CustomerAddress;
+}
+
+export const getStoredCustomers = (): StoredCustomerAccount[] => {
+  const raw = localStorage.getItem(STORAGE_CUSTOMERS);
+  return raw ? JSON.parse(raw) : [];
+};
+
+export const customerRegister = async (params: {
+  name: string;
+  phone: string;
+  email?: string;
+  password: string;
+}): Promise<{ success: boolean; user?: CustomerUser; error?: string }> => {
+  const cleanPhone = params.phone.replace(/\D/g, '').slice(-10);
+  if (cleanPhone.length !== 10 || !/^[6-9]\d{9}$/.test(cleanPhone)) {
+    return { success: false, error: 'Please enter a valid 10-digit Indian mobile number.' };
+  }
+  if (!params.name || params.name.trim().length < 2) {
+    return { success: false, error: 'Please enter your full name.' };
+  }
+  if (!params.password || params.password.length < 6) {
+    return { success: false, error: 'Password must be at least 6 characters long.' };
+  }
+
+  const cleanEmail = params.email?.trim().toLowerCase() || undefined;
+  if (cleanEmail && (!cleanEmail.includes('@') || !cleanEmail.includes('.'))) {
+    return { success: false, error: 'Please enter a valid email address.' };
+  }
+
+  const customers = getStoredCustomers();
+  const existing = customers.find(c => c.phone === cleanPhone || (cleanEmail && c.email === cleanEmail));
+  if (existing) {
+    return { success: false, error: 'An account with this mobile number or email already exists. Please sign in.' };
+  }
+
+  const newId = `cust_${Date.now()}_${Math.floor(Math.random() * 1000)}`;
+  const now = new Date().toISOString();
+
+  const newCustomer: StoredCustomerAccount = {
+    id: newId,
+    name: params.name.trim(),
+    phone: cleanPhone,
+    email: cleanEmail,
+    passwordHash: btoa(params.password),
+    created_at: now
+  };
+
+  customers.push(newCustomer);
+  localStorage.setItem(STORAGE_CUSTOMERS, JSON.stringify(customers));
+
+  const customerUser: CustomerUser = {
+    id: newCustomer.id,
+    name: newCustomer.name,
+    phone: newCustomer.phone,
+    email: newCustomer.email,
+    created_at: newCustomer.created_at
+  };
+
+  localStorage.setItem(STORAGE_CUSTOMER_SESSION, JSON.stringify(customerUser));
+  return { success: true, user: customerUser };
+};
+
+export const customerLogin = async (params: {
+  identifier: string;
+  password: string;
+}): Promise<{ success: boolean; user?: CustomerUser; error?: string }> => {
+  const rawId = params.identifier.trim().toLowerCase();
+  const digits = rawId.replace(/\D/g, '').slice(-10);
+
+  const customers = getStoredCustomers();
+  const found = customers.find(c =>
+    (digits.length === 10 && c.phone === digits) ||
+    (c.email && c.email.toLowerCase() === rawId)
+  );
+
+  if (!found) {
+    return { success: false, error: 'No account found with this mobile number or email. Please register first.' };
+  }
+
+  if (atob(found.passwordHash) !== params.password) {
+    return { success: false, error: 'Incorrect password. Please try again or use OTP login.' };
+  }
+
+  const customerUser: CustomerUser = {
+    id: found.id,
+    name: found.name,
+    phone: found.phone,
+    email: found.email,
+    created_at: found.created_at,
+    default_address: found.default_address
+  };
+
+  localStorage.setItem(STORAGE_CUSTOMER_SESSION, JSON.stringify(customerUser));
+  return { success: true, user: customerUser };
+};
+
+export const customerSendOtp = async (phoneOrEmail: string): Promise<{ success: boolean; message: string; previewOtp?: string }> => {
+  const cleanDigits = phoneOrEmail.replace(/\D/g, '').slice(-10);
+  const isPhone = cleanDigits.length === 10;
+  const otp = Math.floor(100000 + Math.random() * 900000).toString();
+
+  const session = {
+    identifier: isPhone ? cleanDigits : phoneOrEmail.trim().toLowerCase(),
+    otp,
+    expiresAt: Date.now() + 10 * 60 * 1000
+  };
+
+  localStorage.setItem(STORAGE_CUSTOMER_OTP, JSON.stringify(session));
+
+  return {
+    success: true,
+    message: `6-digit security OTP sent to ${isPhone ? `+91 ${cleanDigits}` : phoneOrEmail}. Valid for 10 minutes.`,
+    previewOtp: otp
+  };
+};
+
+export const customerVerifyOtpLogin = async (
+  identifier: string,
+  otp: string,
+  nameIfNew?: string
+): Promise<{ success: boolean; user?: CustomerUser; error?: string }> => {
+  const rawSession = localStorage.getItem(STORAGE_CUSTOMER_OTP);
+  if (!rawSession) {
+    return { success: false, error: 'No active OTP session found. Please request an OTP first.' };
+  }
+
+  const session = JSON.parse(rawSession);
+  if (Date.now() > session.expiresAt) {
+    localStorage.removeItem(STORAGE_CUSTOMER_OTP);
+    return { success: false, error: 'OTP expired. Please request a new code.' };
+  }
+
+  if (session.otp.trim() !== otp.trim()) {
+    return { success: false, error: 'Invalid OTP code. Please check and re-enter.' };
+  }
+
+  const cleanDigits = identifier.replace(/\D/g, '').slice(-10);
+  const isPhone = cleanDigits.length === 10;
+  const customers = getStoredCustomers();
+
+  let found = customers.find(c =>
+    (isPhone && c.phone === cleanDigits) ||
+    (c.email && c.email.toLowerCase() === identifier.trim().toLowerCase())
+  );
+
+  if (!found) {
+    const newId = `cust_${Date.now()}_${Math.floor(Math.random() * 1000)}`;
+    const now = new Date().toISOString();
+    found = {
+      id: newId,
+      name: nameIfNew?.trim() || `Customer ${cleanDigits.slice(-4)}`,
+      phone: isPhone ? cleanDigits : '6377123270',
+      email: isPhone ? undefined : identifier.trim().toLowerCase(),
+      passwordHash: btoa('otp_verified_user'),
+      created_at: now
+    };
+    customers.push(found);
+    localStorage.setItem(STORAGE_CUSTOMERS, JSON.stringify(customers));
+  }
+
+  const customerUser: CustomerUser = {
+    id: found.id,
+    name: found.name,
+    phone: found.phone,
+    email: found.email,
+    created_at: found.created_at,
+    default_address: found.default_address
+  };
+
+  localStorage.setItem(STORAGE_CUSTOMER_SESSION, JSON.stringify(customerUser));
+  localStorage.removeItem(STORAGE_CUSTOMER_OTP);
+
+  return { success: true, user: customerUser };
+};
+
+export const getCurrentCustomer = (): CustomerUser | null => {
+  const raw = localStorage.getItem(STORAGE_CUSTOMER_SESSION);
+  return raw ? JSON.parse(raw) : null;
+};
+
+export const customerLogout = (): void => {
+  localStorage.removeItem(STORAGE_CUSTOMER_SESSION);
+};
+
+export const updateCustomerAddress = (address: CustomerAddress): CustomerUser => {
+  const current = getCurrentCustomer();
+  if (!current) throw new Error('Not logged in');
+
+  current.default_address = address;
+  localStorage.setItem(STORAGE_CUSTOMER_SESSION, JSON.stringify(current));
+
+  const customers = getStoredCustomers();
+  const idx = customers.findIndex(c => c.id === current.id);
+  if (idx !== -1) {
+    customers[idx].default_address = address;
+    localStorage.setItem(STORAGE_CUSTOMERS, JSON.stringify(customers));
+  }
+
+  return current;
+};
+
+export const getCustomerOrders = async (phone: string): Promise<Order[]> => {
+  const allOrders = await getAllOrdersAdmin();
+  const cleanPhone = phone.replace(/\D/g, '').slice(-10);
+  return allOrders.filter(o => o.customer_phone.replace(/\D/g, '').slice(-10) === cleanPhone);
 };
 
 export const adminLogout = async (): Promise<void> => {

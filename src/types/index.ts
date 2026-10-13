@@ -153,8 +153,25 @@ export interface StoreSettings {
   updated_at?: string;
 }
 
+export interface CustomerAddress {
+  address: string;
+  city: string;
+  state: string;
+  pincode: string;
+}
+
+export interface CustomerUser {
+  id: string;
+  name: string;
+  phone: string;
+  email?: string;
+  created_at: string;
+  default_address?: CustomerAddress;
+}
+
 export interface AdminUser {
   id: string;
   email: string;
+  phone?: string;
   role: 'owner' | 'manager' | 'staff';
 }

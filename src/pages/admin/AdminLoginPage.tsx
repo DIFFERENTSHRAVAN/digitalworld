@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import { adminLogin, getCurrentAdmin, requestAdminPasswordResetOtp, verifyOtpAndChangeAdminPassword } from '../../services/api';
 import { Logo } from '../../components/common/Logo';
-import { Lock, Mail, ShieldAlert, ArrowLeft, CheckCircle2, ShieldCheck, KeyRound } from 'lucide-react';
+import { Lock, Mail, ShieldAlert, ArrowLeft, CheckCircle2, ShieldCheck, KeyRound, Phone, User } from 'lucide-react';
 
 export const AdminLoginPage: React.FC = () => {
   const navigate = useNavigate();
@@ -149,7 +149,7 @@ export const AdminLoginPage: React.FC = () => {
           <form onSubmit={handleSubmit} className="space-y-4 text-xs">
             <div>
               <label className="block font-bold text-charcoal mb-1">
-                Admin Email / Username
+                Admin Email or 10-Digit Mobile Number
               </label>
               <div className="relative">
                 <input
@@ -157,10 +157,10 @@ export const AdminLoginPage: React.FC = () => {
                   value={email}
                   onChange={(e) => setEmail(e.target.value)}
                   required
-                  placeholder="admin@digitalworld.com"
+                  placeholder="admin@digitalworld.com or 6377123270"
                   className="w-full pl-9 pr-3 py-2.5 rounded-xl border border-slate-300 bg-surface-muted focus:bg-white focus:border-secondary"
                 />
-                <Mail className="w-4 h-4 text-slate-400 absolute left-3 top-3" />
+                <User className="w-4 h-4 text-slate-400 absolute left-3 top-3" />
               </div>
             </div>
 

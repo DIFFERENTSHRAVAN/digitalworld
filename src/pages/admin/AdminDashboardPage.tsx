@@ -27,7 +27,9 @@ import {
   generateCustomerWhatsAppUpdateUrl,
   changeAdminPassword,
   requestAdminPasswordResetOtp,
-  verifyOtpAndChangeAdminPassword
+  verifyOtpAndChangeAdminPassword,
+  updateAdminEmailOrPhone,
+  getAdminContactDetails
 } from '../../services/api';
 import { useStoreSettings } from '../../context/StoreSettingsContext';
 import { Logo } from '../../components/common/Logo';
@@ -58,7 +60,8 @@ import {
   Lock,
   Mail,
   KeyRound,
-  ShieldCheck
+  ShieldCheck,
+  Phone
 } from 'lucide-react';
 
 export const AdminDashboardPage: React.FC = () => {
@@ -99,9 +102,69 @@ export const AdminDashboardPage: React.FC = () => {
   const [passwordSuccess, setPasswordSuccess] = useState<string | null>(null);
   const [passwordError, setPasswordError] = useState<string | null>(null);
 
+  // Admin Contact/Login Identifiers update state
+  const [adminLoginEmail, setAdminLoginEmail] = useState(() => getAdminContactDetails().email);
+  const [adminLoginPhone, setAdminLoginPhone] = useState(() => getAdminContactDetails().phone);
+  const [credOtp, setCredOtp] = useState('');
+  const [credOtpSent, setCredOtpSent] = useState(false);
+  const [credOtpSending, setCredOtpSending] = useState(false);
+  const [credNotice, setCredNotice] = useState<string | null>(null);
+  const [credSuccess, setCredSuccess] = useState<string | null>(null);
+  const [credError, setCredError] = useState<string | null>(null);
+
   useEffect(() => {
     setSettingsForm(settings);
   }, [settings]);
+
+  const handleRequestCredOtp = async () => {
+    setCredError(null);
+    setCredSuccess(null);
+    if (!adminLoginEmail || !adminLoginEmail.includes('@')) {
+      setCredError('Please enter a valid email address.');
+      return;
+    }
+    const cleanP = adminLoginPhone.replace(/\D/g, '').slice(-10);
+    if (cleanP.length !== 10) {
+      setCredError('Please enter a valid 10-digit mobile number.');
+      return;
+    }
+    setCredOtpSending(true);
+    try {
+      const res = await requestAdminPasswordResetOtp(adminLoginEmail);
+      setCredOtpSent(true);
+      setCredNotice(res.message);
+      if (res.demoOtpNotice) {
+        showToast(`Security OTP: ${res.demoOtpNotice}`);
+      }
+    } catch (err: unknown) {
+      setCredError((err as Error).message || 'Failed to send OTP.');
+    } finally {
+      setCredOtpSending(false);
+    }
+  };
+
+  const handleUpdateCredentials = (e: React.FormEvent) => {
+    e.preventDefault();
+    setCredError(null);
+    setCredSuccess(null);
+    if (!credOtp || credOtp.length !== 6) {
+      setCredError('Please enter the 6-digit OTP code.');
+      return;
+    }
+    try {
+      const res = updateAdminEmailOrPhone({
+        email: adminLoginEmail,
+        phone: adminLoginPhone,
+        otp: credOtp
+      });
+      setCredSuccess(res.message);
+      setCredOtpSent(false);
+      setCredOtp('');
+      showToast('Admin login email & mobile updated successfully!');
+    } catch (err: unknown) {
+      setCredError((err as Error).message || 'Failed to update credentials.');
+    }
+  };
 
   const handleRequestOtp = async () => {
     setPasswordError(null);
@@ -1353,6 +1416,146 @@ export const AdminDashboardPage: React.FC = () => {
                   </button>
                 </div>
               </form>
+            </div>
+
+            {/* Owner Email & Mobile Login Identifiers Card */}
+            <div className="bg-white p-6 sm:p-8 rounded-3xl border border-slate-200 shadow-card space-y-5">
+              <div className="border-b border-slate-100 pb-3 flex items-center justify-between">
+                <div>
+                  <h3 className="text-base font-extrabold text-primary flex items-center gap-2">
+                    <Phone className="w-5 h-5 text-secondary" />
+                    <span>Admin Login Identifiers (Email & Mobile Number)</span>
+                  </h3>
+                  <p className="text-xs text-charcoal-muted mt-0.5">
+                    You can log in to the admin portal using either your Email OR your 10-digit mobile number.
+                  </p>
+                </div>
+              </div>
+
+              {credSuccess && (
+                <div className="p-3.5 bg-emerald-50 border border-emerald-200 rounded-xl text-emerald-800 text-xs flex items-center gap-2">
+                  <CheckCircle2 className="w-4 h-4 text-emerald-600 shrink-0" />
+                  <span className="font-semibold">{credSuccess}</span>
+                </div>
+              )}
+
+              {credError && (
+                <div className="p-3.5 bg-rose-50 border border-rose-200 rounded-xl text-rose-800 text-xs flex items-center gap-2">
+                  <AlertTriangle className="w-4 h-4 text-rose-600 shrink-0" />
+                  <span className="font-semibold">{credError}</span>
+                </div>
+              )}
+
+              {credNotice && (
+                <div className="p-3.5 bg-blue-50 border border-blue-200 rounded-xl text-blue-900 text-xs flex items-start gap-2.5">
+                  <Mail className="w-4 h-4 text-secondary shrink-0 mt-0.5" />
+                  <div>
+                    <p className="font-bold">Security Verification OTP</p>
+                    <p className="text-blue-800 mt-0.5">{credNotice}</p>
+                  </div>
+                </div>
+              )}
+
+              <div className="space-y-4 text-xs">
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                  <div>
+                    <label className="block font-bold text-charcoal mb-1">
+                      Admin Login Email Address
+                    </label>
+                    <div className="relative">
+                      <input
+                        type="email"
+                        value={adminLoginEmail}
+                        onChange={(e) => setAdminLoginEmail(e.target.value)}
+                        disabled={credOtpSent}
+                        placeholder="admin@digitalworld.com"
+                        className="w-full pl-9 pr-3 py-2.5 rounded-xl border border-slate-300 bg-surface-muted focus:bg-white focus:border-secondary disabled:opacity-60"
+                      />
+                      <Mail className="w-4 h-4 text-slate-400 absolute left-3 top-3" />
+                    </div>
+                  </div>
+
+                  <div>
+                    <label className="block font-bold text-charcoal mb-1">
+                      Admin Login Mobile Number (10 Digits)
+                    </label>
+                    <div className="relative">
+                      <span className="absolute left-3 top-2.5 font-bold text-charcoal-muted text-xs">+91</span>
+                      <input
+                        type="tel"
+                        maxLength={10}
+                        value={adminLoginPhone}
+                        onChange={(e) => setAdminLoginPhone(e.target.value.replace(/\D/g, ''))}
+                        disabled={credOtpSent}
+                        placeholder="6377123270"
+                        className="w-full pl-11 pr-3 py-2.5 rounded-xl border border-slate-300 bg-surface-muted focus:bg-white focus:border-secondary disabled:opacity-60"
+                      />
+                    </div>
+                  </div>
+                </div>
+
+                {!credOtpSent ? (
+                  <div className="flex justify-end pt-1">
+                    <button
+                      type="button"
+                      onClick={handleRequestCredOtp}
+                      disabled={credOtpSending}
+                      className="px-6 py-2.5 bg-secondary hover:bg-secondary-dark text-white font-bold text-xs rounded-xl flex items-center gap-2 shadow-xs cursor-pointer transition-all disabled:opacity-60"
+                    >
+                      <ShieldCheck className="w-3.5 h-3.5" />
+                      <span>{credOtpSending ? 'Sending OTP Code...' : 'Verify & Update Email / Mobile via OTP'}</span>
+                    </button>
+                  </div>
+                ) : (
+                  <form onSubmit={handleUpdateCredentials} className="p-4 bg-slate-50 rounded-2xl border border-slate-200 space-y-3">
+                    <div className="flex flex-col sm:flex-row items-stretch sm:items-end gap-3">
+                      <div className="flex-1">
+                        <label className="block font-bold text-charcoal mb-1">
+                          Enter 6-Digit OTP sent to {adminLoginEmail}
+                        </label>
+                        <input
+                          type="text"
+                          maxLength={6}
+                          value={credOtp}
+                          onChange={(e) => setCredOtp(e.target.value.replace(/\D/g, ''))}
+                          placeholder="123456"
+                          required
+                          className="w-full px-3.5 py-2.5 rounded-xl border border-slate-300 bg-white text-base tracking-widest font-mono text-center font-bold focus:border-secondary"
+                        />
+                      </div>
+                      <button
+                        type="submit"
+                        className="px-6 py-2.5 bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-xs rounded-xl flex items-center justify-center gap-2 shadow-xs cursor-pointer"
+                      >
+                        <CheckCircle2 className="w-4 h-4" />
+                        <span>Confirm Credentials Update</span>
+                      </button>
+                    </div>
+
+                    <div className="flex items-center justify-between text-[11px] text-charcoal-muted pt-1">
+                      <button
+                        type="button"
+                        onClick={handleRequestCredOtp}
+                        disabled={credOtpSending}
+                        className="text-secondary font-semibold hover:underline"
+                      >
+                        Resend OTP code
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() => {
+                          setCredOtpSent(false);
+                          setCredNotice(null);
+                          setCredOtp('');
+                        }}
+                        className="text-slate-400 hover:text-charcoal"
+                      >
+                        Cancel
+                      </button>
+                    </div>
+                  </form>
+                )}
+              </div>
             </div>
 
             {/* Owner Password & Security Card with Current Password & OTP */}
