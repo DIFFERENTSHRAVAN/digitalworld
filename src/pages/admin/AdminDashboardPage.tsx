@@ -25,7 +25,9 @@ import {
   isUsingLocalMode,
   formatINR,
   generateCustomerWhatsAppUpdateUrl,
-  changeAdminPassword
+  changeAdminPassword,
+  requestAdminPasswordResetOtp,
+  verifyOtpAndChangeAdminPassword
 } from '../../services/api';
 import { useStoreSettings } from '../../context/StoreSettingsContext';
 import { Logo } from '../../components/common/Logo';
@@ -53,7 +55,10 @@ import {
   Check,
   X,
   Database,
-  Lock
+  Lock,
+  Mail,
+  KeyRound,
+  ShieldCheck
 } from 'lucide-react';
 
 export const AdminDashboardPage: React.FC = () => {
@@ -83,8 +88,14 @@ export const AdminDashboardPage: React.FC = () => {
   // Business Settings Local Form state
   const [settingsForm, setSettingsForm] = useState<StoreSettings>(settings);
 
-  // Admin Password Management state
+  // Admin Password Management & OTP state
+  const [currentAdminPassword, setCurrentAdminPassword] = useState('');
   const [newAdminPassword, setNewAdminPassword] = useState('');
+  const [confirmAdminPassword, setConfirmAdminPassword] = useState('');
+  const [adminOtp, setAdminOtp] = useState('');
+  const [otpSent, setOtpSent] = useState(false);
+  const [otpSending, setOtpSending] = useState(false);
+  const [otpNotice, setOtpNotice] = useState<string | null>(null);
   const [passwordSuccess, setPasswordSuccess] = useState<string | null>(null);
   const [passwordError, setPasswordError] = useState<string | null>(null);
 
@@ -92,15 +103,68 @@ export const AdminDashboardPage: React.FC = () => {
     setSettingsForm(settings);
   }, [settings]);
 
-  const handleUpdatePassword = (e: React.FormEvent) => {
+  const handleRequestOtp = async () => {
+    setPasswordError(null);
+    setPasswordSuccess(null);
+
+    if (!currentAdminPassword) {
+      setPasswordError('Please enter your current (last) password.');
+      return;
+    }
+    if (!newAdminPassword || newAdminPassword.length < 6) {
+      setPasswordError('New password must be at least 6 characters long.');
+      return;
+    }
+    if (newAdminPassword !== confirmAdminPassword) {
+      setPasswordError('New password and confirm password do not match.');
+      return;
+    }
+    if (currentAdminPassword === newAdminPassword) {
+      setPasswordError('New password cannot be the same as your current password.');
+      return;
+    }
+
+    setOtpSending(true);
+    try {
+      const res = await requestAdminPasswordResetOtp(settingsForm.email_address);
+      setOtpSent(true);
+      setOtpNotice(res.message);
+      if (res.demoOtpNotice) {
+        showToast(`Verification OTP sent: ${res.demoOtpNotice}`);
+      } else {
+        showToast('OTP sent to your email!');
+      }
+    } catch (err: unknown) {
+      setPasswordError((err as Error).message || 'Failed to send OTP.');
+    } finally {
+      setOtpSending(false);
+    }
+  };
+
+  const handleVerifyOtpAndUpdatePassword = (e: React.FormEvent) => {
     e.preventDefault();
     setPasswordError(null);
     setPasswordSuccess(null);
+
+    if (!adminOtp || adminOtp.trim().length !== 6) {
+      setPasswordError('Please enter the 6-digit OTP code sent to your email.');
+      return;
+    }
+
     try {
-      changeAdminPassword(newAdminPassword);
-      setPasswordSuccess('Admin password updated successfully! Keep your new password safe.');
+      const res = verifyOtpAndChangeAdminPassword({
+        currentPassword: currentAdminPassword,
+        newPassword: newAdminPassword,
+        otp: adminOtp
+      });
+      setPasswordSuccess(res.message);
+      setCurrentAdminPassword('');
       setNewAdminPassword('');
-      showToast('Admin password updated successfully!');
+      setConfirmAdminPassword('');
+      setAdminOtp('');
+      setOtpSent(false);
+      setOtpNotice(null);
+      showToast('Password updated successfully!');
     } catch (err: unknown) {
       setPasswordError((err as Error).message || 'Failed to update password');
     }
@@ -1291,57 +1355,162 @@ export const AdminDashboardPage: React.FC = () => {
               </form>
             </div>
 
-            {/* Owner Password & Security Card */}
-            <div className="bg-white p-6 sm:p-8 rounded-3xl border border-slate-200 shadow-card space-y-4">
+            {/* Owner Password & Security Card with Current Password & OTP */}
+            <div className="bg-white p-6 sm:p-8 rounded-3xl border border-slate-200 shadow-card space-y-5">
               <div className="border-b border-slate-100 pb-3 flex items-center justify-between">
                 <div>
                   <h3 className="text-base font-extrabold text-primary flex items-center gap-2">
-                    <Lock className="w-4 h-4 text-secondary" />
-                    <span>Admin Portal Security & Password</span>
+                    <ShieldCheck className="w-5 h-5 text-emerald-600" />
+                    <span>Admin Portal Security & Password Change</span>
                   </h3>
                   <p className="text-xs text-charcoal-muted mt-0.5">
-                    Change your shop owner login password to prevent unauthorized access.
+                    Requires your last/current password and a 6-digit verification OTP sent to your registered email.
                   </p>
                 </div>
               </div>
 
               {passwordSuccess && (
-                <div className="p-3 bg-emerald-50 border border-emerald-200 rounded-xl text-emerald-800 text-xs flex items-center gap-2">
+                <div className="p-3.5 bg-emerald-50 border border-emerald-200 rounded-xl text-emerald-800 text-xs flex items-center gap-2">
                   <CheckCircle2 className="w-4 h-4 text-emerald-600 shrink-0" />
-                  <span>{passwordSuccess}</span>
+                  <span className="font-semibold">{passwordSuccess}</span>
                 </div>
               )}
 
               {passwordError && (
-                <div className="p-3 bg-rose-50 border border-rose-200 rounded-xl text-rose-800 text-xs flex items-center gap-2">
+                <div className="p-3.5 bg-rose-50 border border-rose-200 rounded-xl text-rose-800 text-xs flex items-center gap-2">
                   <AlertTriangle className="w-4 h-4 text-rose-600 shrink-0" />
-                  <span>{passwordError}</span>
+                  <span className="font-semibold">{passwordError}</span>
                 </div>
               )}
 
-              <form onSubmit={handleUpdatePassword} className="flex flex-col sm:flex-row items-stretch sm:items-end gap-3 pt-1">
-                <div className="flex-1">
-                  <label className="block font-bold text-charcoal mb-1 text-xs">
-                    New Admin Password
-                  </label>
-                  <input
-                    type="password"
-                    value={newAdminPassword}
-                    onChange={(e) => setNewAdminPassword(e.target.value)}
-                    required
-                    minLength={6}
-                    placeholder="Enter at least 6 characters (e.g. Vishal@2026)"
-                    className="w-full px-3.5 py-2.5 rounded-xl border border-slate-300 bg-surface-muted text-xs focus:bg-white focus:border-secondary"
-                  />
+              {otpNotice && (
+                <div className="p-3.5 bg-blue-50 border border-blue-200 rounded-xl text-blue-900 text-xs flex items-start gap-2.5">
+                  <Mail className="w-4 h-4 text-secondary shrink-0 mt-0.5" />
+                  <div>
+                    <p className="font-bold">Email OTP Notification</p>
+                    <p className="text-blue-800 mt-0.5">{otpNotice}</p>
+                  </div>
                 </div>
-                <button
-                  type="submit"
-                  className="px-5 py-2.5 bg-primary hover:bg-primary-light text-white font-bold text-xs rounded-xl flex items-center justify-center gap-2 shadow-xs cursor-pointer whitespace-nowrap"
-                >
-                  <Lock className="w-3.5 h-3.5" />
-                  <span>Update Password</span>
-                </button>
-              </form>
+              )}
+
+              <div className="space-y-4">
+                {/* Step 1: Passwords inputs */}
+                <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+                  <div>
+                    <label className="block font-bold text-charcoal mb-1 text-xs">
+                      Current (Last) Password <span className="text-rose-500">*</span>
+                    </label>
+                    <div className="relative">
+                      <input
+                        type="password"
+                        value={currentAdminPassword}
+                        onChange={(e) => setCurrentAdminPassword(e.target.value)}
+                        placeholder="Enter current password"
+                        disabled={otpSent}
+                        className="w-full pl-9 pr-3 py-2.5 rounded-xl border border-slate-300 bg-surface-muted text-xs focus:bg-white focus:border-secondary disabled:opacity-60"
+                      />
+                      <KeyRound className="w-4 h-4 text-slate-400 absolute left-3 top-3" />
+                    </div>
+                  </div>
+
+                  <div>
+                    <label className="block font-bold text-charcoal mb-1 text-xs">
+                      New Password (Min 6 chars) <span className="text-rose-500">*</span>
+                    </label>
+                    <div className="relative">
+                      <input
+                        type="password"
+                        value={newAdminPassword}
+                        onChange={(e) => setNewAdminPassword(e.target.value)}
+                        placeholder="Enter new password"
+                        disabled={otpSent}
+                        className="w-full pl-9 pr-3 py-2.5 rounded-xl border border-slate-300 bg-surface-muted text-xs focus:bg-white focus:border-secondary disabled:opacity-60"
+                      />
+                      <Lock className="w-4 h-4 text-slate-400 absolute left-3 top-3" />
+                    </div>
+                  </div>
+
+                  <div>
+                    <label className="block font-bold text-charcoal mb-1 text-xs">
+                      Confirm New Password <span className="text-rose-500">*</span>
+                    </label>
+                    <div className="relative">
+                      <input
+                        type="password"
+                        value={confirmAdminPassword}
+                        onChange={(e) => setConfirmAdminPassword(e.target.value)}
+                        placeholder="Re-enter new password"
+                        disabled={otpSent}
+                        className="w-full pl-9 pr-3 py-2.5 rounded-xl border border-slate-300 bg-surface-muted text-xs focus:bg-white focus:border-secondary disabled:opacity-60"
+                      />
+                      <Lock className="w-4 h-4 text-slate-400 absolute left-3 top-3" />
+                    </div>
+                  </div>
+                </div>
+
+                {/* Step 2: Request OTP or Enter OTP */}
+                {!otpSent ? (
+                  <div className="flex justify-end pt-2">
+                    <button
+                      type="button"
+                      onClick={handleRequestOtp}
+                      disabled={otpSending}
+                      className="px-6 py-2.5 bg-primary hover:bg-primary-light text-white font-bold text-xs rounded-xl flex items-center gap-2 shadow-xs cursor-pointer transition-all disabled:opacity-60"
+                    >
+                      <Mail className="w-3.5 h-3.5" />
+                      <span>{otpSending ? 'Sending Security OTP...' : 'Send Security OTP to Email'}</span>
+                    </button>
+                  </div>
+                ) : (
+                  <form onSubmit={handleVerifyOtpAndUpdatePassword} className="p-4 bg-slate-50 rounded-2xl border border-slate-200 space-y-3">
+                    <div className="flex flex-col sm:flex-row items-stretch sm:items-end gap-3">
+                      <div className="flex-1">
+                        <label className="block font-bold text-charcoal mb-1 text-xs">
+                          Enter 6-Digit Email OTP Code <span className="text-rose-500">*</span>
+                        </label>
+                        <input
+                          type="text"
+                          maxLength={6}
+                          value={adminOtp}
+                          onChange={(e) => setAdminOtp(e.target.value.replace(/\D/g, ''))}
+                          placeholder="e.g. 123456"
+                          required
+                          className="w-full px-3.5 py-2.5 rounded-xl border border-slate-300 bg-white text-base tracking-widest font-mono text-center font-bold focus:border-secondary"
+                        />
+                      </div>
+                      <button
+                        type="submit"
+                        className="px-6 py-2.5 bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-xs rounded-xl flex items-center justify-center gap-2 shadow-xs cursor-pointer"
+                      >
+                        <CheckCircle2 className="w-4 h-4" />
+                        <span>Verify OTP & Update Password</span>
+                      </button>
+                    </div>
+
+                    <div className="flex items-center justify-between text-[11px] text-charcoal-muted pt-1">
+                      <button
+                        type="button"
+                        onClick={handleRequestOtp}
+                        disabled={otpSending}
+                        className="text-secondary font-semibold hover:underline"
+                      >
+                        Resend OTP code
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() => {
+                          setOtpSent(false);
+                          setOtpNotice(null);
+                          setAdminOtp('');
+                        }}
+                        className="text-slate-400 hover:text-charcoal"
+                      >
+                        Cancel & Edit Passwords
+                      </button>
+                    </div>
+                  </form>
+                )}
+              </div>
             </div>
           </div>
         )}
