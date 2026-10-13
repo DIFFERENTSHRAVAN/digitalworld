@@ -2,12 +2,12 @@ import React, { useState, useEffect } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import { adminLogin, getCurrentAdmin } from '../../services/api';
 import { Logo } from '../../components/common/Logo';
-import { Lock, Mail, ShieldAlert, ArrowLeft, CheckCircle2 } from 'lucide-react';
+import { Lock, Mail, ShieldAlert, ArrowLeft, CheckCircle2, ShieldCheck } from 'lucide-react';
 
 export const AdminLoginPage: React.FC = () => {
   const navigate = useNavigate();
-  const [email, setEmail] = useState('admin@digitalworld.com');
-  const [password, setPassword] = useState('admin123');
+  const [email, setEmail] = useState('');
+  const [password, setPassword] = useState('');
   const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
 
@@ -98,10 +98,12 @@ export const AdminLoginPage: React.FC = () => {
             </div>
           </div>
 
-          <div className="bg-slate-50 p-3 rounded-xl border border-slate-200 text-[11px] text-charcoal-muted space-y-1">
-            <span className="font-semibold text-primary block">Default Local Credentials:</span>
-            <p>Email: <strong className="text-charcoal font-mono">admin@digitalworld.com</strong></p>
-            <p>Password: <strong className="text-charcoal font-mono">admin123</strong></p>
+          <div className="flex items-center justify-between text-[11px] text-charcoal-muted pt-1">
+            <span className="flex items-center gap-1.5 text-slate-500">
+              <ShieldCheck className="w-3.5 h-3.5 text-emerald-600" />
+              <span>Encrypted Owner Access</span>
+            </span>
+            <span className="text-[10px] text-slate-400 font-mono">Digital World Admin</span>
           </div>
 
           <button

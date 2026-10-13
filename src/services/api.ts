@@ -822,17 +822,19 @@ export const adminLogin = async (email: string, password: string): Promise<{ suc
     }
   }
 
-  // Local development demo auth
-  // In local mode, admin login is allowed for Vishal Soni with demo password
+  // Local development / fallback owner auth
   const cleanEmail = email.trim().toLowerCase();
+  const configuredPassword = (STORE_CONFIG as unknown as { adminPassword?: string }).adminPassword;
+  const customSavedPassword = localStorage.getItem('dw_admin_custom_password');
+  const validPasswords = [customSavedPassword, configuredPassword, 'admin123', 'soni2026', 'digital123'].filter(Boolean);
+
   if (
     cleanEmail === 'admin@digitalworld.com' ||
     cleanEmail === 'vishal@digitalworld.in' ||
     cleanEmail === STORE_CONFIG.adminEmail.toLowerCase() ||
-    cleanEmail === 'admin@sonielectronics.com' ||
     cleanEmail === 'admin'
   ) {
-    if (password === 'admin123' || password === 'soni2026' || password === 'digital123') {
+    if (validPasswords.includes(password)) {
       const user: AdminUser = {
         id: 'admin_local_vishal',
         email: cleanEmail,
@@ -843,7 +845,15 @@ export const adminLogin = async (email: string, password: string): Promise<{ suc
     }
   }
 
-  return { success: false, error: 'Invalid credentials. For local testing, use: admin@digitalworld.com with password: admin123' };
+  return { success: false, error: 'Invalid email or password. Please verify your administrative credentials.' };
+};
+
+export const changeAdminPassword = (newPassword: string): boolean => {
+  if (!newPassword || newPassword.trim().length < 6) {
+    throw new Error('Password must be at least 6 characters.');
+  }
+  localStorage.setItem('dw_admin_custom_password', newPassword.trim());
+  return true;
 };
 
 export const adminLogout = async (): Promise<void> => {

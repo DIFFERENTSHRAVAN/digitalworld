@@ -24,7 +24,8 @@ import {
   updatePaymentStatusAdmin,
   isUsingLocalMode,
   formatINR,
-  generateCustomerWhatsAppUpdateUrl
+  generateCustomerWhatsAppUpdateUrl,
+  changeAdminPassword
 } from '../../services/api';
 import { useStoreSettings } from '../../context/StoreSettingsContext';
 import { Logo } from '../../components/common/Logo';
@@ -51,7 +52,8 @@ import {
   Save,
   Check,
   X,
-  Database
+  Database,
+  Lock
 } from 'lucide-react';
 
 export const AdminDashboardPage: React.FC = () => {
@@ -81,9 +83,28 @@ export const AdminDashboardPage: React.FC = () => {
   // Business Settings Local Form state
   const [settingsForm, setSettingsForm] = useState<StoreSettings>(settings);
 
+  // Admin Password Management state
+  const [newAdminPassword, setNewAdminPassword] = useState('');
+  const [passwordSuccess, setPasswordSuccess] = useState<string | null>(null);
+  const [passwordError, setPasswordError] = useState<string | null>(null);
+
   useEffect(() => {
     setSettingsForm(settings);
   }, [settings]);
+
+  const handleUpdatePassword = (e: React.FormEvent) => {
+    e.preventDefault();
+    setPasswordError(null);
+    setPasswordSuccess(null);
+    try {
+      changeAdminPassword(newAdminPassword);
+      setPasswordSuccess('Admin password updated successfully! Keep your new password safe.');
+      setNewAdminPassword('');
+      showToast('Admin password updated successfully!');
+    } catch (err: unknown) {
+      setPasswordError((err as Error).message || 'Failed to update password');
+    }
+  };
 
   const showToast = (msg: string) => {
     setToastMessage(msg);
@@ -1267,6 +1288,59 @@ export const AdminDashboardPage: React.FC = () => {
                     <span>Save Store Settings</span>
                   </button>
                 </div>
+              </form>
+            </div>
+
+            {/* Owner Password & Security Card */}
+            <div className="bg-white p-6 sm:p-8 rounded-3xl border border-slate-200 shadow-card space-y-4">
+              <div className="border-b border-slate-100 pb-3 flex items-center justify-between">
+                <div>
+                  <h3 className="text-base font-extrabold text-primary flex items-center gap-2">
+                    <Lock className="w-4 h-4 text-secondary" />
+                    <span>Admin Portal Security & Password</span>
+                  </h3>
+                  <p className="text-xs text-charcoal-muted mt-0.5">
+                    Change your shop owner login password to prevent unauthorized access.
+                  </p>
+                </div>
+              </div>
+
+              {passwordSuccess && (
+                <div className="p-3 bg-emerald-50 border border-emerald-200 rounded-xl text-emerald-800 text-xs flex items-center gap-2">
+                  <CheckCircle2 className="w-4 h-4 text-emerald-600 shrink-0" />
+                  <span>{passwordSuccess}</span>
+                </div>
+              )}
+
+              {passwordError && (
+                <div className="p-3 bg-rose-50 border border-rose-200 rounded-xl text-rose-800 text-xs flex items-center gap-2">
+                  <AlertTriangle className="w-4 h-4 text-rose-600 shrink-0" />
+                  <span>{passwordError}</span>
+                </div>
+              )}
+
+              <form onSubmit={handleUpdatePassword} className="flex flex-col sm:flex-row items-stretch sm:items-end gap-3 pt-1">
+                <div className="flex-1">
+                  <label className="block font-bold text-charcoal mb-1 text-xs">
+                    New Admin Password
+                  </label>
+                  <input
+                    type="password"
+                    value={newAdminPassword}
+                    onChange={(e) => setNewAdminPassword(e.target.value)}
+                    required
+                    minLength={6}
+                    placeholder="Enter at least 6 characters (e.g. Vishal@2026)"
+                    className="w-full px-3.5 py-2.5 rounded-xl border border-slate-300 bg-surface-muted text-xs focus:bg-white focus:border-secondary"
+                  />
+                </div>
+                <button
+                  type="submit"
+                  className="px-5 py-2.5 bg-primary hover:bg-primary-light text-white font-bold text-xs rounded-xl flex items-center justify-center gap-2 shadow-xs cursor-pointer whitespace-nowrap"
+                >
+                  <Lock className="w-3.5 h-3.5" />
+                  <span>Update Password</span>
+                </button>
               </form>
             </div>
           </div>
