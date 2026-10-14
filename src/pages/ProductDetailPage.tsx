@@ -207,12 +207,32 @@ export const ProductDetailPage: React.FC = () => {
 
         {/* Right Column: Details, Specs & Buying Actions */}
         <div className="lg:col-span-6 space-y-6 text-left">
-          {/* Brand & Model */}
-          <div className="flex items-center justify-between text-xs font-semibold text-charcoal-muted">
+          {/* Brand, Model, PID & Item Code */}
+          <div className="flex flex-wrap items-center gap-2 text-xs font-semibold text-charcoal-muted">
             <span className="px-2.5 py-1 rounded-lg bg-slate-100 text-primary font-bold">
               {product.brand}
             </span>
             <span>Model: {product.model}</span>
+            {product.pid && (
+              <span className="px-2 py-0.5 rounded-md bg-amber-50 text-amber-900 border border-amber-300 font-mono font-bold text-[11px]">
+                PID: {product.pid}
+              </span>
+            )}
+            {product.item_code && (
+              <span className="px-2 py-0.5 rounded-md bg-slate-100 text-slate-800 border border-slate-300 font-mono font-bold text-[11px]">
+                Item CD: {product.item_code}
+              </span>
+            )}
+            {product.is_updated_product && (
+              <span className="px-2 py-0.5 rounded-md bg-amber-100 text-amber-900 font-bold text-[10px] uppercase">
+                Updated Product
+              </span>
+            )}
+            {product.is_new_arrival && (
+              <span className="px-2 py-0.5 rounded-md bg-emerald-100 text-emerald-900 font-bold text-[10px] uppercase">
+                New Arrival
+              </span>
+            )}
           </div>
 
           {/* Product Title */}

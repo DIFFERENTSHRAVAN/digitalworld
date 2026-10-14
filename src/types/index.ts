@@ -40,6 +40,13 @@ export interface Product {
   included_accessories?: string;
   is_reserved?: boolean;
 
+  // Product Identification & Collections (Images 4 & 5)
+  pid?: string;
+  item_code?: string;
+  is_updated_product?: boolean;
+  is_new_arrival?: boolean;
+  is_trending?: boolean;
+
   // Dealer / Wholesale Exclusive Fields
   dealer_price?: number;
   is_dealer_only?: boolean;
@@ -58,6 +65,7 @@ export interface Category {
   slug: string;
   description?: string;
   icon?: string;
+  image_url?: string;
   display_order: number;
   is_active: boolean;
 }
@@ -162,6 +170,16 @@ export interface StoreSettings {
   upi_id?: string;
   return_policy_text: string;
   warranty_policy_text: string;
+
+  // Exact Bank Details (Requirement 5)
+  bank_name?: string;
+  bank_account_name?: string;
+  bank_account_number?: string;
+  bank_ifsc?: string;
+  bank_branch?: string;
+  bank_payment_instructions?: string;
+  google_maps_url?: string;
+
   updated_at?: string;
 }
 

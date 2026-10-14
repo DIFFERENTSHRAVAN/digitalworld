@@ -57,13 +57,22 @@ export interface StoreConfigType {
   warrantyPolicyText: string;
   returnPolicyText: string;
 
-  // 7. Branding & Assets
+  // 7. Official Bank Details (Requirement 5)
+  bankName: string;
+  bankAccountName: string;
+  bankAccountNumber: string;
+  bankIfsc: string;
+  bankBranch: string;
+  bankPaymentInstructions: string;
+  googleMapsUrl: string;
+
+  // 8. Branding & Assets
   logoUrl?: string;
 
-  // 8. Demo Admin Credentials (For local offline testing)
+  // 9. Demo Admin Credentials (For local offline testing)
   adminEmail: string;
 
-  // 9. Config Cache Version
+  // 10. Config Cache Version
   version: string;
 }
 
@@ -84,12 +93,12 @@ export const STORE_CONFIG: StoreConfigType = {
   emailAddress: 'digitalworld0813@gmail.com',
 
   // ---------------------------------------------------------------------------
-  // 3. SHOP ADDRESS & OPENING HOURS
+  // 3. SHOP ADDRESS & OPENING HOURS (Requirement 4)
   // ---------------------------------------------------------------------------
-  businessAddress: 'Digital World, Main Market, Station Road, Rajasthan, India',
-  city: 'Jodhpur',
+  businessAddress: 'Near SBI Bank, Sabji Mandi Road, Purani Abadi, Sri Ganganagar, Rajasthan - 335001, India',
+  city: 'Sri Ganganagar',
   state: 'Rajasthan',
-  pincode: '342001',
+  pincode: '335001',
   openingHours: '10:00 AM - 08:30 PM (Monday to Saturday)',
   closedOn: 'Sunday',
 
@@ -119,19 +128,30 @@ export const STORE_CONFIG: StoreConfigType = {
   returnPolicyText: '7 Days replacement for defective accessories. 15 Days hardware replacement policy on certified refurbished laptops if technical issues arise.',
 
   // ---------------------------------------------------------------------------
-  // 7. BRANDING LOGO (Optional image URL, leave blank to use typography logo)
+  // 7. EXACT OFFICIAL BANK DETAILS (Requirement 5)
+  // ---------------------------------------------------------------------------
+  bankName: 'INDIAN BANK',
+  bankAccountName: 'Digital World',
+  bankAccountNumber: '8062314869',
+  bankIfsc: 'IDIB000S761',
+  bankBranch: 'Sri Ganganagar',
+  bankPaymentInstructions: 'Transfer order amount via NEFT / IMPS / RTGS to our Indian Bank account. After transferring, please share the UTR reference number or payment receipt to our WhatsApp (+91 8384957548) for instant order verification & dispatch.',
+  googleMapsUrl: 'https://www.google.com/maps/search/?api=1&query=Digital+World+Near+SBI+Bank+Sabji+Mandi+Road+Purani+Abadi+Sri+Ganganagar+Rajasthan+335001',
+
+  // ---------------------------------------------------------------------------
+  // 8. BRANDING LOGO (Optional image URL, leave blank to use typography logo)
   // ---------------------------------------------------------------------------
   logoUrl: '',
 
   // ---------------------------------------------------------------------------
-  // 8. ADMIN LOGIN EMAIL (For Vishal Soni)
+  // 9. ADMIN LOGIN EMAIL (For Vishal Soni)
   // ---------------------------------------------------------------------------
   adminEmail: 'digitalworld0813@gmail.com',
 
   // ---------------------------------------------------------------------------
-  // 9. CONFIG VERSION (Change this number whenever you update this file!)
+  // 10. CONFIG VERSION (Change this number whenever you update this file!)
   // ---------------------------------------------------------------------------
-  version: '1.4.0'
+  version: '2.0.0'
 };
 
 /**

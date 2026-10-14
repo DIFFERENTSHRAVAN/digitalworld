@@ -136,13 +136,13 @@ export const Navbar: React.FC = () => {
               type="text"
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
-              placeholder={t('searchPlaceholder')}
-              className="w-full pl-10 pr-24 py-2 bg-surface-muted border border-slate-300 rounded-xl text-sm focus:bg-white focus:border-secondary focus:ring-2 focus:ring-secondary/20 transition-all text-charcoal placeholder:text-charcoal-light"
+              placeholder="Search laptops, RAM, SSD, monitors, CCTV..."
+              className="w-full pl-10 pr-24 py-2.5 bg-surface-muted border border-slate-300 rounded-xl text-sm focus:bg-white focus:border-amber-500 focus:ring-2 focus:ring-amber-500/20 transition-all text-charcoal placeholder:text-charcoal-light"
             />
             <Search className="w-4 h-4 text-charcoal-light absolute left-3.5 pointer-events-none" />
             <button
               type="submit"
-              className="absolute right-1.5 px-3 py-1 bg-primary text-white text-xs font-semibold rounded-lg hover:bg-primary-light transition-colors"
+              className="absolute right-1.5 px-4 py-1.5 bg-gradient-to-r from-amber-500 to-amber-600 hover:from-amber-400 hover:to-amber-500 text-slate-950 font-extrabold text-xs rounded-lg shadow-xs transition-all cursor-pointer"
             >
               Search
             </button>
@@ -260,50 +260,44 @@ export const Navbar: React.FC = () => {
             {t('navAllProducts')}
           </Link>
           <Link
-            to="/category/refurbished-laptops"
-            className="px-3 py-1.5 rounded-lg text-secondary font-bold bg-blue-50/80 hover:bg-blue-100/80 transition-colors flex items-center gap-1.5 shrink-0"
+            to="/category/second-hand-laptops"
+            className="px-3 py-1.5 rounded-lg text-amber-900 font-extrabold bg-amber-100 hover:bg-amber-200 transition-colors flex items-center gap-1.5 shrink-0 border border-amber-300"
           >
-            <Laptop className="w-3.5 h-3.5" />
-            <span>{t('navUsedLaptops')}</span>
-            <span className="bg-secondary text-white text-[9px] px-1.5 py-0.2 rounded font-extrabold uppercase">
+            <Laptop className="w-3.5 h-3.5 text-amber-700" />
+            <span>2nd-Hand Laptops</span>
+            <span className="bg-amber-600 text-white text-[9px] px-1.5 py-0.2 rounded font-extrabold uppercase">
               Tested
             </span>
           </Link>
           <Link
-            to="/category/new-laptops"
+            to="/category/ram-and-ssd"
+            className="px-3 py-1.5 rounded-lg text-charcoal hover:text-amber-700 hover:bg-white transition-colors shrink-0 font-bold"
+          >
+            RAM & SSD
+          </Link>
+          <Link
+            to="/category/desktop-computers"
             className="px-3 py-1.5 rounded-lg text-charcoal hover:text-secondary hover:bg-white transition-colors shrink-0"
           >
-            {t('navNewLaptops')}
+            Desktops
+          </Link>
+          <Link
+            to="/category/cctv-and-security"
+            className="px-3 py-1.5 rounded-lg text-charcoal hover:text-secondary hover:bg-white transition-colors shrink-0"
+          >
+            CCTV & Security
           </Link>
           <Link
             to="/category/computer-accessories"
             className="px-3 py-1.5 rounded-lg text-charcoal hover:text-secondary hover:bg-white transition-colors shrink-0"
           >
-            {t('navAccessories')}
+            Accessories
           </Link>
           <Link
-            to="/category/storage-devices"
-            className="px-3 py-1.5 rounded-lg text-charcoal hover:text-secondary hover:bg-white transition-colors shrink-0"
+            to="/contact"
+            className="px-3 py-1.5 rounded-lg text-amber-800 hover:text-amber-950 font-bold hover:bg-amber-50 transition-colors shrink-0 flex items-center gap-1"
           >
-            SSDs & Storage
-          </Link>
-          <Link
-            to="/category/keyboards-and-mice"
-            className="px-3 py-1.5 rounded-lg text-charcoal hover:text-secondary hover:bg-white transition-colors shrink-0"
-          >
-            Keyboards & Mice
-          </Link>
-          <Link
-            to="/category/monitors-and-displays"
-            className="px-3 py-1.5 rounded-lg text-charcoal hover:text-secondary hover:bg-white transition-colors shrink-0"
-          >
-            Monitors
-          </Link>
-          <Link
-            to="/category/networking-devices"
-            className="px-3 py-1.5 rounded-lg text-charcoal hover:text-secondary hover:bg-white transition-colors shrink-0"
-          >
-            Networking
+            <span>Bank & Address</span>
           </Link>
 
           {/* Dealer Wholesale B2B Shortcut */}

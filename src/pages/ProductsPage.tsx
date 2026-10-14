@@ -130,10 +130,21 @@ export const ProductsPage: React.FC = () => {
         const matchesModel = product.model.toLowerCase().includes(query);
         const matchesCpu = product.processor?.toLowerCase().includes(query);
         const matchesDesc = product.description.toLowerCase().includes(query);
+        const matchesPid = product.pid?.toLowerCase().includes(query);
+        const matchesItemCode = product.item_code?.toLowerCase().includes(query);
 
-        if (!matchesName && !matchesBrand && !matchesModel && !matchesCpu && !matchesDesc) {
+        if (!matchesName && !matchesBrand && !matchesModel && !matchesCpu && !matchesDesc && !matchesPid && !matchesItemCode) {
           return false;
         }
+      }
+
+      // 7. URL collection filter
+      const collectionFilter = searchParams.get('filter');
+      if (collectionFilter === 'updated' && !product.is_updated_product) {
+        return false;
+      }
+      if (collectionFilter === 'new_arrival' && !product.is_new_arrival) {
+        return false;
       }
 
       return true;

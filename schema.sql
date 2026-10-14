@@ -30,8 +30,24 @@ CREATE TABLE IF NOT EXISTS public.store_settings (
     upi_id TEXT DEFAULT '6377123270@upi',
     return_policy_text TEXT DEFAULT '7-day replacement for defective accessories. 15-day testing warranty on certified refurbished laptops with free repair or replacement.',
     warranty_policy_text TEXT DEFAULT 'All new products carry standard brand manufacturer warranty. Refurbished laptops come with our 30-Day In-Shop Testing Warranty certified by Vishal Soni.',
+    google_maps_url TEXT DEFAULT 'https://www.google.com/maps/search/?api=1&query=Near+SBI+Bank,+Sabji+Mandi+Road,+Purani+Abadi,+Sri+Ganganagar,+Rajasthan+335001',
+    bank_name TEXT DEFAULT 'INDIAN BANK',
+    bank_account_name TEXT DEFAULT 'Digital World',
+    bank_account_number TEXT DEFAULT '8062314869',
+    bank_ifsc TEXT DEFAULT 'IDIB000S761',
+    bank_branch TEXT DEFAULT 'Sri Ganganagar',
+    bank_payment_instructions TEXT DEFAULT 'For NEFT/IMPS/UPI Bank Transfer: After payment, please share transaction screenshot & Order ID on WhatsApp (+91 8384957548) for prompt order dispatch.',
     updated_at TIMESTAMPTZ DEFAULT NOW()
 );
+
+-- Safe migration columns for existing store_settings
+ALTER TABLE public.store_settings ADD COLUMN IF NOT EXISTS google_maps_url TEXT;
+ALTER TABLE public.store_settings ADD COLUMN IF NOT EXISTS bank_name TEXT DEFAULT 'INDIAN BANK';
+ALTER TABLE public.store_settings ADD COLUMN IF NOT EXISTS bank_account_name TEXT DEFAULT 'Digital World';
+ALTER TABLE public.store_settings ADD COLUMN IF NOT EXISTS bank_account_number TEXT DEFAULT '8062314869';
+ALTER TABLE public.store_settings ADD COLUMN IF NOT EXISTS bank_ifsc TEXT DEFAULT 'IDIB000S761';
+ALTER TABLE public.store_settings ADD COLUMN IF NOT EXISTS bank_branch TEXT DEFAULT 'Sri Ganganagar';
+ALTER TABLE public.store_settings ADD COLUMN IF NOT EXISTS bank_payment_instructions TEXT;
 
 -- 3. CATEGORIES TABLE
 CREATE TABLE IF NOT EXISTS public.categories (
@@ -100,6 +116,11 @@ CREATE TABLE IF NOT EXISTS public.products (
 ALTER TABLE public.products ADD COLUMN IF NOT EXISTS dealer_price NUMERIC(10, 2);
 ALTER TABLE public.products ADD COLUMN IF NOT EXISTS is_dealer_only BOOLEAN NOT NULL DEFAULT false;
 ALTER TABLE public.products ADD COLUMN IF NOT EXISTS min_dealer_qty INT NOT NULL DEFAULT 1;
+ALTER TABLE public.products ADD COLUMN IF NOT EXISTS pid TEXT;
+ALTER TABLE public.products ADD COLUMN IF NOT EXISTS item_code TEXT;
+ALTER TABLE public.products ADD COLUMN IF NOT EXISTS is_updated_product BOOLEAN NOT NULL DEFAULT false;
+ALTER TABLE public.products ADD COLUMN IF NOT EXISTS is_new_arrival BOOLEAN NOT NULL DEFAULT false;
+ALTER TABLE public.products ADD COLUMN IF NOT EXISTS is_trending BOOLEAN NOT NULL DEFAULT false;
 
 CREATE INDEX IF NOT EXISTS idx_products_category ON public.products(category_id);
 CREATE INDEX IF NOT EXISTS idx_products_published ON public.products(is_published);

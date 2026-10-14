@@ -19,6 +19,7 @@ import { CheckoutPage } from './pages/CheckoutPage';
 import { OrderConfirmationPage } from './pages/OrderConfirmationPage';
 import { OrderLookupPage } from './pages/OrderLookupPage';
 import { PoliciesPage } from './pages/PoliciesPage';
+import { ContactPage } from './pages/ContactPage';
 import { CustomerAuthPage } from './pages/customer/CustomerAuthPage';
 import { CustomerAccountPage } from './pages/customer/CustomerAccountPage';
 import { DealerLoginPage } from './pages/dealer/DealerLoginPage';
@@ -63,6 +64,7 @@ export const App: React.FC = () => {
                     <Route path="/order-confirmation/:id" element={<OrderConfirmationPage />} />
                     <Route path="/order-lookup" element={<OrderLookupPage />} />
                     <Route path="/policies" element={<PoliciesPage />} />
+                    <Route path="/contact" element={<ContactPage />} />
 
                     {/* Customer Account & Authentication */}
                     <Route path="/customer/login" element={<CustomerAuthPage />} />

@@ -1416,14 +1416,111 @@ export const AdminDashboardPage: React.FC = () => {
                       />
                     </div>
 
+                    <div className="space-y-3">
+                      <div>
+                        <label className="block font-bold text-charcoal mb-1">Opening Hours</label>
+                        <input
+                          type="text"
+                          value={settingsForm.opening_hours}
+                          onChange={(e) => setSettingsForm({ ...settingsForm, opening_hours: e.target.value })}
+                          placeholder="10:00 AM - 08:30 PM (Mon-Sat)"
+                          className="w-full px-3.5 py-2.5 rounded-xl border border-slate-300 bg-surface-muted focus:bg-white focus:border-secondary"
+                        />
+                      </div>
+                      <div>
+                        <label className="block font-bold text-charcoal mb-1">Google Maps Directions URL</label>
+                        <input
+                          type="url"
+                          value={settingsForm.google_maps_url || ''}
+                          onChange={(e) => setSettingsForm({ ...settingsForm, google_maps_url: e.target.value })}
+                          placeholder="https://maps.google.com/..."
+                          className="w-full px-3.5 py-2.5 rounded-xl border border-slate-300 bg-surface-muted focus:bg-white focus:border-secondary"
+                        />
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* Official Bank Account Details (Images 3 & 4) */}
+                  <div className="p-4 bg-amber-50/70 border-2 border-amber-300 rounded-2xl space-y-3">
+                    <div className="flex items-center gap-2">
+                      <Building2 className="w-5 h-5 text-amber-700" />
+                      <div>
+                        <h4 className="font-extrabold text-sm text-amber-950">
+                          Official Store Bank Details (Visible in Footer & Contact Us)
+                        </h4>
+                        <p className="text-[11px] text-amber-800">
+                          Used for customer direct bank transfers (NEFT / IMPS / RTGS). Copy buttons will copy these exact values.
+                        </p>
+                      </div>
+                    </div>
+
+                    <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+                      <div>
+                        <label className="block font-bold text-amber-950 mb-1 text-xs">Bank Name *</label>
+                        <input
+                          type="text"
+                          value={settingsForm.bank_name || ''}
+                          onChange={(e) => setSettingsForm({ ...settingsForm, bank_name: e.target.value })}
+                          placeholder="INDIAN BANK"
+                          className="w-full px-3 py-2 rounded-xl border border-amber-300 bg-white font-bold"
+                        />
+                      </div>
+
+                      <div>
+                        <label className="block font-bold text-amber-950 mb-1 text-xs">Account Holder Name *</label>
+                        <input
+                          type="text"
+                          value={settingsForm.bank_account_name || ''}
+                          onChange={(e) => setSettingsForm({ ...settingsForm, bank_account_name: e.target.value })}
+                          placeholder="Digital World"
+                          className="w-full px-3 py-2 rounded-xl border border-amber-300 bg-white font-bold"
+                        />
+                      </div>
+
+                      <div>
+                        <label className="block font-bold text-amber-950 mb-1 text-xs">Account Number *</label>
+                        <input
+                          type="text"
+                          value={settingsForm.bank_account_number || ''}
+                          onChange={(e) => setSettingsForm({ ...settingsForm, bank_account_number: e.target.value })}
+                          placeholder="8062314869"
+                          className="w-full px-3 py-2 rounded-xl border border-amber-300 bg-white font-mono font-bold"
+                        />
+                      </div>
+                    </div>
+
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                      <div>
+                        <label className="block font-bold text-amber-950 mb-1 text-xs">IFSC Code *</label>
+                        <input
+                          type="text"
+                          value={settingsForm.bank_ifsc || ''}
+                          onChange={(e) => setSettingsForm({ ...settingsForm, bank_ifsc: e.target.value.toUpperCase() })}
+                          placeholder="IDIB000S761"
+                          className="w-full px-3 py-2 rounded-xl border border-amber-300 bg-white font-mono font-bold uppercase"
+                        />
+                      </div>
+
+                      <div>
+                        <label className="block font-bold text-amber-950 mb-1 text-xs">Branch Name</label>
+                        <input
+                          type="text"
+                          value={settingsForm.bank_branch || ''}
+                          onChange={(e) => setSettingsForm({ ...settingsForm, bank_branch: e.target.value })}
+                          placeholder="Sri Ganganagar"
+                          className="w-full px-3 py-2 rounded-xl border border-amber-300 bg-white"
+                        />
+                      </div>
+                    </div>
+
                     <div>
-                      <label className="block font-bold text-charcoal mb-1">Opening Hours</label>
+                      <label className="block font-bold text-amber-950 mb-1 text-xs">Bank Transfer Instructions for Customers</label>
                       <input
                         type="text"
-                        value={settingsForm.opening_hours}
-                        onChange={(e) => setSettingsForm({ ...settingsForm, opening_hours: e.target.value })}
-                        placeholder="10:00 AM - 08:30 PM (Mon-Sat)"
-                        className="w-full px-3.5 py-2.5 rounded-xl border border-slate-300 bg-surface-muted focus:bg-white focus:border-secondary"
+                        value={settingsForm.bank_payment_instructions || ''}
+                        onChange={(e) => setSettingsForm({ ...settingsForm, bank_payment_instructions: e.target.value })}
+                        placeholder="For IMPS/NEFT transfer: Please share payment confirmation screenshot on WhatsApp..."
+                        className="w-full px-3 py-2 rounded-xl border border-amber-300 bg-white text-xs"
                       />
                     </div>
                   </div>
@@ -2349,6 +2446,12 @@ export const AdminDashboardPage: React.FC = () => {
                   is_special_offer: formData.get('is_special_offer') === 'on',
                   offer_badge_text: (formData.get('offer_badge_text') as string) || undefined,
                   warranty_info: formData.get('warranty_info') as string,
+                  // Product ID and Item Code (Image 4 & 5)
+                  pid: (formData.get('pid') as string) || undefined,
+                  item_code: (formData.get('item_code') as string) || undefined,
+                  is_updated_product: formData.get('is_updated_product') === 'on',
+                  is_new_arrival: formData.get('is_new_arrival') === 'on',
+                  is_trending: formData.get('is_trending') === 'on',
                   // Laptop specific fields
                   processor: (formData.get('processor') as string) || undefined,
                   ram: (formData.get('ram') as string) || undefined,
@@ -2402,6 +2505,33 @@ export const AdminDashboardPage: React.FC = () => {
                       <option key={c.id} value={c.id}>{c.name}</option>
                     ))}
                   </select>
+                </div>
+              </div>
+
+              {/* Product ID and Item Code (Image 4 & 5) */}
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 p-3 bg-amber-50/50 rounded-2xl border border-amber-200/80">
+                <div>
+                  <label className="block font-bold text-amber-900 mb-1">Product ID / PID (Optional)</label>
+                  <input
+                    type="text"
+                    name="pid"
+                    defaultValue={editingProduct?.pid || ''}
+                    placeholder="e.g. A1988, B4021"
+                    className="w-full px-3 py-2 rounded-xl border border-amber-300 bg-white font-mono font-bold"
+                  />
+                  <span className="text-[10px] text-amber-700">Displayed on product card as PID badge</span>
+                </div>
+
+                <div>
+                  <label className="block font-bold text-amber-900 mb-1">Item Code / Item CD (Optional)</label>
+                  <input
+                    type="text"
+                    name="item_code"
+                    defaultValue={editingProduct?.item_code || ''}
+                    placeholder="e.g. 1AM9EKG, 16H0VCE"
+                    className="w-full px-3 py-2 rounded-xl border border-amber-300 bg-white font-mono font-bold"
+                  />
+                  <span className="text-[10px] text-amber-700">Used for inventory tracking & WhatsApp order lookups</span>
                 </div>
               </div>
 
@@ -2617,8 +2747,8 @@ export const AdminDashboardPage: React.FC = () => {
                 />
               </div>
 
-              <div className="flex items-center gap-6 pt-2">
-                <label className="flex items-center gap-2 cursor-pointer font-semibold">
+              <div className="grid grid-cols-2 sm:grid-cols-3 gap-3 pt-2 text-xs">
+                <label className="flex items-center gap-2 cursor-pointer font-semibold p-2.5 rounded-xl border border-slate-200 bg-slate-50">
                   <input
                     type="checkbox"
                     name="is_featured"
@@ -2628,14 +2758,44 @@ export const AdminDashboardPage: React.FC = () => {
                   <span>Feature on Homepage</span>
                 </label>
 
-                <label className="flex items-center gap-2 cursor-pointer font-semibold">
+                <label className="flex items-center gap-2 cursor-pointer font-semibold p-2.5 rounded-xl border border-slate-200 bg-slate-50">
                   <input
                     type="checkbox"
                     name="is_special_offer"
                     defaultChecked={editingProduct?.is_special_offer}
                     className="rounded text-secondary"
                   />
-                  <span>Mark as Special Offer</span>
+                  <span>Special Offer</span>
+                </label>
+
+                <label className="flex items-center gap-2 cursor-pointer font-semibold p-2.5 rounded-xl border border-amber-200 bg-amber-50/60">
+                  <input
+                    type="checkbox"
+                    name="is_updated_product"
+                    defaultChecked={editingProduct?.is_updated_product}
+                    className="rounded text-amber-600"
+                  />
+                  <span className="font-bold text-amber-900">Updated Product (Image 4/5)</span>
+                </label>
+
+                <label className="flex items-center gap-2 cursor-pointer font-semibold p-2.5 rounded-xl border border-emerald-200 bg-emerald-50/60">
+                  <input
+                    type="checkbox"
+                    name="is_new_arrival"
+                    defaultChecked={editingProduct?.is_new_arrival}
+                    className="rounded text-emerald-600"
+                  />
+                  <span className="font-bold text-emerald-900">New Arrival (Image 4/5)</span>
+                </label>
+
+                <label className="flex items-center gap-2 cursor-pointer font-semibold p-2.5 rounded-xl border border-rose-200 bg-rose-50/60">
+                  <input
+                    type="checkbox"
+                    name="is_trending"
+                    defaultChecked={editingProduct?.is_trending}
+                    className="rounded text-rose-600"
+                  />
+                  <span className="font-bold text-rose-900">Trending Deal</span>
                 </label>
               </div>
 
