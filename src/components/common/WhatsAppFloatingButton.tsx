@@ -27,17 +27,17 @@ export const WhatsAppFloatingButton: React.FC = () => {
   };
 
   return (
-    <div className="fixed bottom-6 right-6 z-40 flex flex-col items-end no-print">
-      {/* Tooltip speech bubble */}
+    <div className="fixed bottom-4 right-4 sm:bottom-6 sm:right-6 z-40 flex flex-col items-end no-print">
+      {/* Tooltip speech bubble - Desktop only to keep mobile clean */}
       {!tooltipDismissed && (
-        <div className="mb-2 bg-white text-charcoal border border-slate-200 px-3 py-2 rounded-2xl shadow-xl max-w-xs text-xs flex items-start gap-2 animate-bounce-subtle">
+        <div className="hidden sm:flex mb-2 bg-white text-charcoal border border-slate-200 px-3 py-2 rounded-2xl shadow-xl max-w-xs text-xs items-start gap-2 animate-bounce-subtle">
           <div>
             <p className="font-semibold text-primary">Chat with Vishal Soni</p>
             <p className="text-[11px] text-charcoal-muted">Ask questions about laptops, stock or parts!</p>
           </div>
           <button
             onClick={() => setTooltipDismissed(true)}
-            className="text-slate-400 hover:text-charcoal p-0.5"
+            className="text-slate-400 hover:text-charcoal p-0.5 cursor-pointer"
             aria-label="Close tooltip"
           >
             <X className="w-3.5 h-3.5" />

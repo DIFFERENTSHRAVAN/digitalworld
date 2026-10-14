@@ -3,9 +3,27 @@ import { Link } from 'react-router-dom';
 import { Product, Category } from '../types';
 import { getProducts, getCategories } from '../services/api';
 import { ProductCard } from '../components/product/ProductCard';
+import { BrandCarousel } from '../components/common/BrandCarousel';
 import { useLanguage } from '../context/LanguageContext';
 import { useStoreSettings } from '../context/StoreSettingsContext';
 import { STORE_CONFIG } from '../config/storeConfig';
+
+const CATEGORY_HARDWARE_IMAGES: Record<string, string> = {
+  'desktop-computers': 'https://images.unsplash.com/photo-1587831990711-23ca6441447b?w=400&auto=format&fit=crop&q=80',
+  'laptops': 'https://images.unsplash.com/photo-1496181133206-80ce9b88a853?w=400&auto=format&fit=crop&q=80',
+  'second-hand-laptops': 'https://images.unsplash.com/photo-1541807084-5c52b6b3adef?w=400&auto=format&fit=crop&q=80',
+  'storage-devices': 'https://images.unsplash.com/photo-1597872200969-2b65d56bd16b?w=400&auto=format&fit=crop&q=80',
+  'ram-and-ssd': 'https://images.unsplash.com/photo-1591799264318-7e6ef8ddb7ea?w=400&auto=format&fit=crop&q=80',
+  'computer-accessories': 'https://images.unsplash.com/photo-1527864550417-7fd91fc51a46?w=400&auto=format&fit=crop&q=80',
+  'keyboards-and-mice': 'https://images.unsplash.com/photo-1587829741301-dc798b83add3?w=400&auto=format&fit=crop&q=80',
+  'printers-and-scanners': 'https://images.unsplash.com/photo-1612815154858-60aa4c59eaa6?w=400&auto=format&fit=crop&q=80',
+  'monitors-and-displays': 'https://images.unsplash.com/photo-1527443224154-c4a3942d3acf?w=400&auto=format&fit=crop&q=80',
+  'cctv-and-security': 'https://images.unsplash.com/photo-1557597774-9d273605dfa9?w=400&auto=format&fit=crop&q=80',
+  'networking-devices': 'https://images.unsplash.com/photo-1544197150-b99a580bb7a8?w=400&auto=format&fit=crop&q=80',
+  'speakers-and-headphones': 'https://images.unsplash.com/photo-1505740420928-5e560c06d30e?w=400&auto=format&fit=crop&q=80',
+  'mobile-accessories': 'https://images.unsplash.com/photo-1584438784894-089d6a62b8fa?w=400&auto=format&fit=crop&q=80',
+  'other-electronics': 'https://images.unsplash.com/photo-1550009158-9ebf69173e03?w=400&auto=format&fit=crop&q=80'
+};
 import {
   Laptop,
   Sparkles,
@@ -149,10 +167,10 @@ export const HomePage: React.FC = () => {
   return (
     <div className="space-y-12 sm:space-y-16 pb-16">
       {/* 1. Hero Promotional Banner (Inspired by Reference Image 1) */}
-      <section className="container mx-auto px-4 pt-4">
-        <div className="grid grid-cols-1 lg:grid-cols-12 gap-5 items-stretch">
+      <section className="container mx-auto px-4 pt-3 sm:pt-4">
+        <div className="grid grid-cols-1 lg:grid-cols-12 gap-4 sm:gap-5 items-stretch">
           {/* Main Hero Slider (8 cols) */}
-          <div className="lg:col-span-8 relative rounded-3xl overflow-hidden shadow-2xl bg-slate-950 text-white min-h-[420px] sm:min-h-[460px] flex items-center">
+          <div className="lg:col-span-8 relative rounded-2xl sm:rounded-3xl overflow-hidden shadow-xl sm:shadow-2xl bg-slate-950 text-white min-h-[220px] sm:min-h-[340px] lg:min-h-[420px] flex items-center">
             {heroSlides.map((slide, idx) => (
               <div
                 key={idx}
@@ -172,32 +190,32 @@ export const HomePage: React.FC = () => {
                 </div>
 
                 {/* Content Box */}
-                <div className="relative z-20 p-6 sm:p-12 max-w-xl space-y-4 text-left">
-                  <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-amber-400 text-slate-950 text-[10px] sm:text-xs font-black tracking-widest uppercase">
-                    <Sparkles className="w-3.5 h-3.5" />
+                <div className="relative z-20 p-4 sm:p-8 lg:p-12 max-w-xl space-y-2 sm:space-y-4 text-left">
+                  <div className="inline-flex items-center gap-1.5 sm:gap-2 px-2.5 py-0.5 sm:px-3 sm:py-1 rounded-full bg-amber-400 text-slate-950 text-[9px] sm:text-xs font-black tracking-widest uppercase">
+                    <Sparkles className="w-3 h-3 sm:w-3.5 sm:h-3.5" />
                     <span>{slide.badge}</span>
                   </div>
 
-                  <h1 className="text-2xl sm:text-4xl lg:text-5xl font-black text-white tracking-tight leading-tight">
+                  <h1 className="text-lg sm:text-3xl lg:text-5xl font-black text-white tracking-tight leading-tight">
                     {slide.title}
                   </h1>
 
-                  <p className="text-xs sm:text-sm text-slate-300 leading-relaxed line-clamp-2 sm:line-clamp-3">
+                  <p className="text-[11px] sm:text-sm text-slate-300 leading-relaxed line-clamp-1 sm:line-clamp-3">
                     {slide.subtitle}
                   </p>
 
-                  <div className="pt-2 flex flex-wrap items-center gap-4">
+                  <div className="pt-1 sm:pt-2 flex flex-wrap items-center gap-3 sm:gap-4">
                     <Link
                       to={slide.link}
-                      className="px-7 py-3.5 rounded-xl bg-gradient-to-r from-amber-500 to-amber-600 hover:from-amber-400 hover:to-amber-500 text-slate-950 font-black text-xs sm:text-sm tracking-wider uppercase shadow-lg shadow-amber-500/25 flex items-center gap-2 transition-all transform hover:scale-105 cursor-pointer"
+                      className="px-4 py-2 sm:px-7 sm:py-3.5 rounded-xl bg-gradient-to-r from-amber-500 to-amber-600 hover:from-amber-400 hover:to-amber-500 text-slate-950 font-black text-xs sm:text-sm tracking-wider uppercase shadow-lg shadow-amber-500/25 flex items-center gap-1.5 sm:gap-2 transition-all transform hover:scale-105 cursor-pointer"
                     >
                       <span>{slide.ctaText}</span>
-                      <ArrowRight className="w-4 h-4" />
+                      <ArrowRight className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
                     </Link>
 
                     <div className="text-xs">
-                      <span className="text-slate-400 block text-[10px] uppercase font-bold">Starts from</span>
-                      <span className="text-amber-400 font-extrabold text-lg sm:text-xl">
+                      <span className="text-slate-400 block text-[9px] sm:text-[10px] uppercase font-bold">Starts from</span>
+                      <span className="text-amber-400 font-extrabold text-sm sm:text-xl">
                         {slide.startingPrice}
                       </span>
                     </div>
@@ -207,14 +225,14 @@ export const HomePage: React.FC = () => {
             ))}
 
             {/* Slider Dots */}
-            <div className="absolute bottom-4 left-6 sm:left-12 z-30 flex items-center gap-2">
+            <div className="absolute bottom-3 left-4 sm:bottom-4 sm:left-12 z-30 flex items-center gap-1.5 sm:gap-2">
               {heroSlides.map((_, idx) => (
                 <button
                   key={idx}
                   type="button"
                   onClick={() => setCurrentSlide(idx)}
-                  className={`h-2.5 rounded-full transition-all cursor-pointer ${
-                    idx === currentSlide ? 'w-8 bg-amber-400' : 'w-2.5 bg-white/40 hover:bg-white/70'
+                  className={`h-2 sm:h-2.5 rounded-full transition-all cursor-pointer ${
+                    idx === currentSlide ? 'w-6 sm:w-8 bg-amber-400' : 'w-2 sm:w-2.5 bg-white/40 hover:bg-white/70'
                   }`}
                   aria-label={`Go to slide ${idx + 1}`}
                 />
@@ -241,30 +259,30 @@ export const HomePage: React.FC = () => {
           </div>
 
           {/* Right Mini Promotional Promo Cards (4 cols) - Inspired by Image 1 */}
-          <div className="lg:col-span-4 flex flex-col sm:flex-row lg:flex-col gap-4 justify-between">
+          <div className="lg:col-span-4 flex flex-col sm:flex-row lg:flex-col gap-3 sm:gap-4 justify-between">
             {/* Promo Card 1: RAM & SSD */}
             <Link
               to="/category/ram-and-ssd"
-              className="group relative flex-1 rounded-3xl overflow-hidden bg-gradient-to-br from-slate-900 to-blue-950 p-6 text-white border border-amber-500/20 shadow-lg flex flex-col justify-between hover:border-amber-400/50 transition-all"
+              className="group relative flex-1 rounded-2xl sm:rounded-3xl overflow-hidden bg-gradient-to-br from-slate-900 to-blue-950 p-4 sm:p-6 text-white border border-amber-500/20 shadow-lg flex flex-col justify-between hover:border-amber-400/50 transition-all"
             >
-              <div className="relative z-10 space-y-2">
-                <span className="text-[10px] font-black uppercase tracking-widest text-amber-400 bg-amber-500/20 px-2.5 py-1 rounded-full border border-amber-500/30 inline-block">
+              <div className="relative z-10 space-y-1.5 sm:space-y-2">
+                <span className="text-[9px] sm:text-[10px] font-black uppercase tracking-widest text-amber-400 bg-amber-500/20 px-2 py-0.5 rounded-full border border-amber-500/30 inline-block">
                   PC Upgrade Hub
                 </span>
-                <h3 className="text-lg sm:text-xl font-black text-white group-hover:text-amber-300 transition-colors">
+                <h3 className="text-base sm:text-xl font-black text-white group-hover:text-amber-300 transition-colors">
                   RAM & NVMe SSD
                 </h3>
-                <p className="text-xs text-slate-300">
+                <p className="text-[11px] sm:text-xs text-slate-300">
                   DDR3, DDR4, Gen3 & Gen4 NVMe. Speed up your PC instantly.
                 </p>
               </div>
 
-              <div className="relative z-10 pt-4 flex items-center justify-between">
+              <div className="relative z-10 pt-3 sm:pt-4 flex items-center justify-between">
                 <span className="text-xs font-bold text-amber-400 group-hover:underline flex items-center gap-1">
                   <span>Shop Memory</span>
                   <ArrowRight className="w-3.5 h-3.5 transition-transform group-hover:translate-x-1" />
                 </span>
-                <span className="text-xs font-black text-white bg-slate-800/80 px-2.5 py-1 rounded-lg border border-slate-700">
+                <span className="text-xs font-black text-white bg-slate-800/80 px-2 py-0.5 rounded-lg border border-slate-700">
                   From ₹850
                 </span>
               </div>
@@ -273,29 +291,29 @@ export const HomePage: React.FC = () => {
             {/* Promo Card 2: B2B Dealer Wholesale */}
             <Link
               to="/dealer/login"
-              className="group relative flex-1 rounded-3xl overflow-hidden bg-gradient-to-br from-amber-950 via-slate-950 to-slate-900 p-6 text-white border-2 border-amber-500/40 shadow-lg flex flex-col justify-between hover:border-amber-400 transition-all"
+              className="group relative flex-1 rounded-2xl sm:rounded-3xl overflow-hidden bg-gradient-to-br from-amber-950 via-slate-950 to-slate-900 p-4 sm:p-6 text-white border-2 border-amber-500/40 shadow-lg flex flex-col justify-between hover:border-amber-400 transition-all"
             >
-              <div className="relative z-10 space-y-2">
+              <div className="relative z-10 space-y-1.5 sm:space-y-2">
                 <div className="flex items-center gap-1.5">
-                  <Building className="w-4 h-4 text-amber-400" />
-                  <span className="text-[10px] font-black uppercase tracking-widest text-amber-400">
+                  <Building className="w-3.5 h-3.5 text-amber-400" />
+                  <span className="text-[9px] sm:text-[10px] font-black uppercase tracking-widest text-amber-400">
                     B2B Wholesale Portal
                   </span>
                 </div>
-                <h3 className="text-lg sm:text-xl font-black text-white group-hover:text-amber-300 transition-colors">
+                <h3 className="text-base sm:text-xl font-black text-white group-hover:text-amber-300 transition-colors">
                   Bulk Dealer Pricing
                 </h3>
-                <p className="text-xs text-slate-300">
+                <p className="text-[11px] sm:text-xs text-slate-300">
                   Exclusive wholesale prices on laptops, RAM, and electronics for verified dealers.
                 </p>
               </div>
 
-              <div className="relative z-10 pt-4 flex items-center justify-between">
+              <div className="relative z-10 pt-3 sm:pt-4 flex items-center justify-between">
                 <span className="text-xs font-bold text-amber-400 group-hover:underline flex items-center gap-1">
                   <span>Dealer Login / Register</span>
                   <ArrowRight className="w-3.5 h-3.5 transition-transform group-hover:translate-x-1" />
                 </span>
-                <span className="text-[10px] font-extrabold uppercase px-2 py-0.5 rounded-full bg-amber-400 text-slate-950">
+                <span className="text-[9px] sm:text-[10px] font-extrabold uppercase px-2 py-0.5 rounded-full bg-amber-400 text-slate-950">
                   Special Rates
                 </span>
               </div>
@@ -304,62 +322,22 @@ export const HomePage: React.FC = () => {
         </div>
       </section>
 
-      {/* 2. Trust Badges Strip (Reference Image 2) */}
+      {/* 2. Top Brands Strip (Reference Image 5) */}
       <section className="container mx-auto px-4">
-        <div className="grid grid-cols-2 md:grid-cols-4 gap-3 sm:gap-4 p-4 sm:p-6 bg-surface-muted rounded-2xl sm:rounded-3xl border border-slate-200">
-          <div className="flex items-center gap-3 p-2">
-            <div className="p-2.5 rounded-2xl bg-amber-500/10 text-amber-700 shrink-0">
-              <CheckCircle2 className="w-6 h-6" />
-            </div>
-            <div>
-              <h4 className="font-extrabold text-xs sm:text-sm text-primary">100% Genuine</h4>
-              <p className="text-[11px] text-charcoal-muted">Verified OEM hardware</p>
-            </div>
-          </div>
-
-          <div className="flex items-center gap-3 p-2">
-            <div className="p-2.5 rounded-2xl bg-emerald-500/10 text-emerald-700 shrink-0">
-              <ShieldCheck className="w-6 h-6" />
-            </div>
-            <div>
-              <h4 className="font-extrabold text-xs sm:text-sm text-primary">Testing Warranty</h4>
-              <p className="text-[11px] text-charcoal-muted">30-day in-shop support</p>
-            </div>
-          </div>
-
-          <div className="flex items-center gap-3 p-2">
-            <div className="p-2.5 rounded-2xl bg-blue-500/10 text-blue-700 shrink-0">
-              <Truck className="w-6 h-6" />
-            </div>
-            <div>
-              <h4 className="font-extrabold text-xs sm:text-sm text-primary">Safe Delivery</h4>
-              <p className="text-[11px] text-charcoal-muted">Multi-layer bubble pack</p>
-            </div>
-          </div>
-
-          <div className="flex items-center gap-3 p-2">
-            <div className="p-2.5 rounded-2xl bg-purple-500/10 text-purple-700 shrink-0">
-              <RotateCcw className="w-6 h-6" />
-            </div>
-            <div>
-              <h4 className="font-extrabold text-xs sm:text-sm text-primary">Easy Replacement</h4>
-              <p className="text-[11px] text-charcoal-muted">Fair replacement policy</p>
-            </div>
-          </div>
-        </div>
+        <BrandCarousel />
       </section>
 
-      {/* 3. Product Categories Section (Reference Images 1 & 5) */}
+      {/* 3. Product Categories Section (Reference Image 5 - 4 Columns on Mobile) */}
       <section className="container mx-auto px-4">
         {/* Section Header with Golden Accent */}
-        <div className="flex items-end justify-between mb-6 pb-2 border-b border-slate-200">
+        <div className="flex items-end justify-between mb-4 pb-2 border-b border-slate-200">
           <div>
-            <div className="flex items-center gap-2 text-xs font-bold uppercase tracking-wider text-amber-700 mb-1">
-              <Layers className="w-4 h-4" />
+            <div className="flex items-center gap-2 text-xs font-bold uppercase tracking-wider text-amber-700 mb-0.5">
+              <Layers className="w-3.5 h-3.5" />
               <span>Explore Categories</span>
             </div>
-            <h2 className="text-2xl sm:text-3xl font-black text-primary tracking-tight">
-              Electronics & Computer Hardware
+            <h2 className="text-xl sm:text-3xl font-black text-primary tracking-tight">
+              Electronics & Hardware
             </h2>
           </div>
           <Link
@@ -371,33 +349,78 @@ export const HomePage: React.FC = () => {
           </Link>
         </div>
 
-        {/* Category Cards Grid (Images 1 & 5) */}
-        <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-7 gap-3 sm:gap-4">
+        {/* Category Cards Grid (4 columns on mobile - Reference Image 5) */}
+        <div className="grid grid-cols-4 sm:grid-cols-4 md:grid-cols-7 lg:grid-cols-7 gap-2 sm:gap-3">
           {categories.map((category) => (
             <Link
               key={category.id}
               to={`/category/${category.slug}`}
-              className="group bg-white hover:bg-amber-50/40 rounded-2xl p-3 border border-slate-200 hover:border-amber-400 hover:shadow-card transition-all flex flex-col items-center text-center space-y-2 cursor-pointer"
+              className="group bg-white hover:bg-amber-50/60 rounded-xl sm:rounded-2xl p-1.5 sm:p-2.5 border border-slate-200/90 hover:border-amber-400 hover:shadow-xs transition-all flex flex-col items-center text-center cursor-pointer"
             >
               {/* Category Image Circle / Thumbnail */}
-              <div className="w-16 h-16 sm:w-20 sm:h-20 rounded-2xl overflow-hidden bg-slate-50 border border-slate-200 group-hover:border-amber-400 group-hover:scale-105 transition-all p-1 flex items-center justify-center">
-                {category.image_url ? (
-                  <img
-                    src={category.image_url}
-                    alt={category.name}
-                    className="w-full h-full object-contain"
-                  />
-                ) : (
-                  <Laptop className="w-8 h-8 text-secondary" />
-                )}
+              <div className="w-12 h-12 sm:w-16 sm:h-16 rounded-xl overflow-hidden bg-white border border-slate-100 group-hover:border-amber-300 group-hover:scale-105 transition-all p-1 flex items-center justify-center shadow-2xs">
+                <img
+                  src={category.image_url || CATEGORY_HARDWARE_IMAGES[category.slug] || 'https://images.unsplash.com/photo-1587831990711-23ca6441447b?w=400&auto=format&fit=crop&q=80'}
+                  alt={category.name}
+                  loading="lazy"
+                  className="w-full h-full object-contain"
+                  onError={(e) => {
+                    (e.target as HTMLImageElement).src = CATEGORY_HARDWARE_IMAGES[category.slug] || 'https://images.unsplash.com/photo-1587831990711-23ca6441447b?w=400&auto=format&fit=crop&q=80';
+                  }}
+                />
               </div>
 
               {/* Category Name */}
-              <h3 className="text-xs font-extrabold text-charcoal group-hover:text-primary transition-colors line-clamp-2 leading-tight">
+              <h3 className="mt-1 text-[10px] sm:text-xs font-bold text-slate-800 group-hover:text-[#881337] transition-colors line-clamp-1 leading-tight">
                 {category.name}
               </h3>
             </Link>
           ))}
+        </div>
+      </section>
+
+      {/* 4. Trust Badges Strip (Reference Image 2) */}
+      <section className="container mx-auto px-4">
+        <div className="grid grid-cols-2 md:grid-cols-4 gap-2.5 sm:gap-4 p-3.5 sm:p-6 bg-surface-muted rounded-2xl sm:rounded-3xl border border-slate-200">
+          <div className="flex items-center gap-2.5 sm:gap-3 p-1.5">
+            <div className="p-2 sm:p-2.5 rounded-xl sm:rounded-2xl bg-amber-500/10 text-amber-700 shrink-0">
+              <CheckCircle2 className="w-5 h-5 sm:w-6 sm:h-6" />
+            </div>
+            <div>
+              <h4 className="font-extrabold text-xs sm:text-sm text-primary">100% Genuine</h4>
+              <p className="text-[10px] sm:text-[11px] text-charcoal-muted">Verified OEM hardware</p>
+            </div>
+          </div>
+
+          <div className="flex items-center gap-2.5 sm:gap-3 p-1.5">
+            <div className="p-2 sm:p-2.5 rounded-xl sm:rounded-2xl bg-emerald-500/10 text-emerald-700 shrink-0">
+              <ShieldCheck className="w-5 h-5 sm:w-6 sm:h-6" />
+            </div>
+            <div>
+              <h4 className="font-extrabold text-xs sm:text-sm text-primary">Testing Warranty</h4>
+              <p className="text-[10px] sm:text-[11px] text-charcoal-muted">30-day shop support</p>
+            </div>
+          </div>
+
+          <div className="flex items-center gap-2.5 sm:gap-3 p-1.5">
+            <div className="p-2 sm:p-2.5 rounded-xl sm:rounded-2xl bg-blue-500/10 text-blue-700 shrink-0">
+              <Truck className="w-5 h-5 sm:w-6 sm:h-6" />
+            </div>
+            <div>
+              <h4 className="font-extrabold text-xs sm:text-sm text-primary">Safe Delivery</h4>
+              <p className="text-[10px] sm:text-[11px] text-charcoal-muted">Multi-layer bubble pack</p>
+            </div>
+          </div>
+
+          <div className="flex items-center gap-2.5 sm:gap-3 p-1.5">
+            <div className="p-2 sm:p-2.5 rounded-xl sm:rounded-2xl bg-purple-500/10 text-purple-700 shrink-0">
+              <RotateCcw className="w-5 h-5 sm:w-6 sm:h-6" />
+            </div>
+            <div>
+              <h4 className="font-extrabold text-xs sm:text-sm text-primary">Replacement</h4>
+              <p className="text-[10px] sm:text-[11px] text-charcoal-muted">Easy shop replacement</p>
+            </div>
+          </div>
         </div>
       </section>
 
@@ -450,33 +473,25 @@ export const HomePage: React.FC = () => {
 
       {/* 5. Updated Products Section (Reference Images 4 & 5) */}
       <section className="container mx-auto px-4">
-        <div className="flex items-end justify-between mb-6 pb-2 border-b border-slate-200">
-          <div>
-            <div className="flex items-center gap-2 text-xs font-black uppercase tracking-wider text-amber-600 mb-1">
-              <Sparkles className="w-4 h-4 text-amber-500" />
-              <span>Catalog Refresh</span>
-            </div>
-            <h2 className="text-2xl sm:text-3xl font-black text-primary tracking-tight">
-              Updated Products
-            </h2>
+        {/* Festive Center Decorative Ribbon Header (Reference Image 5) */}
+        <div className="flex items-center justify-center my-5 sm:my-7">
+          <div className="h-px bg-gradient-to-r from-transparent via-amber-400 to-amber-500 flex-1" />
+          <div className="px-3 sm:px-5 flex items-center gap-1.5 sm:gap-2 text-[#7b0c1e] font-black text-sm sm:text-xl tracking-tight uppercase">
+            <span className="text-amber-500 text-xs sm:text-sm">🪔</span>
+            <span>Updated Products</span>
+            <span className="text-amber-600 text-xs font-serif">──♦──</span>
           </div>
-          <Link
-            to="/products?filter=updated"
-            className="text-xs font-bold text-amber-700 hover:text-amber-800 hover:underline flex items-center gap-1"
-          >
-            <span>View All</span>
-            <ArrowRight className="w-3.5 h-3.5" />
-          </Link>
+          <div className="h-px bg-gradient-to-l from-transparent via-amber-400 to-amber-500 flex-1" />
         </div>
 
         {loading ? (
-          <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-4 sm:gap-5">
+          <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-2.5 sm:gap-4 lg:gap-5">
             {[1, 2, 3, 4, 5, 6, 7, 8].map((n) => (
-              <div key={n} className="bg-slate-100 rounded-2xl h-80 animate-pulse" />
+              <div key={n} className="bg-slate-100 rounded-xl h-64 animate-pulse" />
             ))}
           </div>
         ) : (
-          <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-4 sm:gap-5">
+          <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-2.5 sm:gap-4 lg:gap-5">
             {updatedProducts.map((product) => (
               <ProductCard key={product.id} product={product} />
             ))}
@@ -486,13 +501,13 @@ export const HomePage: React.FC = () => {
 
       {/* 6. New Arrivals Section (Reference Images 4 & 5) */}
       <section className="container mx-auto px-4">
-        <div className="flex items-end justify-between mb-6 pb-2 border-b border-slate-200">
+        <div className="flex items-end justify-between mb-4 sm:mb-6 pb-2 border-b border-slate-200">
           <div>
-            <div className="flex items-center gap-2 text-xs font-black uppercase tracking-wider text-emerald-600 mb-1">
-              <Award className="w-4 h-4 text-emerald-500" />
+            <div className="flex items-center gap-1.5 text-xs font-black uppercase tracking-wider text-emerald-600 mb-0.5">
+              <Award className="w-3.5 h-3.5 text-emerald-500" />
               <span>Just Added To Store</span>
             </div>
-            <h2 className="text-2xl sm:text-3xl font-black text-primary tracking-tight">
+            <h2 className="text-xl sm:text-3xl font-black text-primary tracking-tight">
               New Arrivals
             </h2>
           </div>
@@ -505,7 +520,7 @@ export const HomePage: React.FC = () => {
           </Link>
         </div>
 
-        <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-4 sm:gap-5">
+        <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-2.5 sm:gap-4 lg:gap-5">
           {newArrivals.map((product) => (
             <ProductCard key={product.id} product={product} />
           ))}
@@ -515,30 +530,30 @@ export const HomePage: React.FC = () => {
       {/* 7. Certified Second-Hand Laptops (Tested by Vishal Soni) */}
       {usedLaptops.length > 0 && (
         <section className="container mx-auto px-4">
-          <div className="bg-gradient-to-br from-amber-50/80 via-white to-amber-50/30 rounded-3xl p-6 sm:p-8 border border-amber-200/80 shadow-sm space-y-6">
-            <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 pb-4 border-b border-amber-200/60">
+          <div className="bg-gradient-to-br from-amber-50/80 via-white to-amber-50/30 rounded-2xl sm:rounded-3xl p-4 sm:p-8 border border-amber-200/80 shadow-sm space-y-4 sm:space-y-6">
+            <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 sm:gap-4 pb-3 sm:pb-4 border-b border-amber-200/60">
               <div>
-                <span className="text-[10px] font-black uppercase tracking-widest text-amber-800 bg-amber-200/60 px-2.5 py-1 rounded-full inline-block mb-1.5">
+                <span className="text-[9px] sm:text-[10px] font-black uppercase tracking-widest text-amber-800 bg-amber-200/60 px-2 py-0.5 rounded-full inline-block mb-1">
                   28-Point Benchmarked
                 </span>
-                <h2 className="text-2xl sm:text-3xl font-black text-primary">
+                <h2 className="text-xl sm:text-3xl font-black text-primary">
                   Certified Second-Hand Laptops
                 </h2>
-                <p className="text-xs text-charcoal-muted mt-1">
+                <p className="text-[11px] sm:text-xs text-charcoal-muted mt-0.5">
                   Personally inspected motherboards, pristine displays, fresh thermal paste, and 30-day testing warranty.
                 </p>
               </div>
 
               <Link
                 to="/category/second-hand-laptops"
-                className="px-5 py-2.5 rounded-xl bg-primary hover:bg-primary-light text-white font-bold text-xs shadow-xs transition-all flex items-center gap-1.5 shrink-0"
+                className="px-4 py-2 sm:px-5 sm:py-2.5 rounded-xl bg-primary hover:bg-primary-light text-white font-bold text-xs shadow-xs transition-all flex items-center gap-1.5 shrink-0"
               >
                 <span>Browse All Laptops</span>
                 <ArrowRight className="w-3.5 h-3.5" />
               </Link>
             </div>
 
-            <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-4 sm:gap-5">
+            <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-2.5 sm:gap-4 lg:gap-5">
               {usedLaptops.map((product) => (
                 <ProductCard key={product.id} product={product} />
               ))}
@@ -549,13 +564,13 @@ export const HomePage: React.FC = () => {
 
       {/* 8. Best-Sellers Collection */}
       <section className="container mx-auto px-4">
-        <div className="flex items-end justify-between mb-6 pb-2 border-b border-slate-200">
+        <div className="flex items-end justify-between mb-4 sm:mb-6 pb-2 border-b border-slate-200">
           <div>
-            <div className="flex items-center gap-2 text-xs font-black uppercase tracking-wider text-blue-600 mb-1">
-              <Flame className="w-4 h-4 text-blue-500" />
+            <div className="flex items-center gap-1.5 text-xs font-black uppercase tracking-wider text-blue-600 mb-0.5">
+              <Flame className="w-3.5 h-3.5 text-blue-500" />
               <span>Customer Favorites</span>
             </div>
-            <h2 className="text-2xl sm:text-3xl font-black text-primary tracking-tight">
+            <h2 className="text-xl sm:text-3xl font-black text-primary tracking-tight">
               Best Sellers
             </h2>
           </div>
@@ -568,7 +583,7 @@ export const HomePage: React.FC = () => {
           </Link>
         </div>
 
-        <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-4 sm:gap-5">
+        <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-2.5 sm:gap-4 lg:gap-5">
           {bestSellers.map((product) => (
             <ProductCard key={product.id} product={product} />
           ))}

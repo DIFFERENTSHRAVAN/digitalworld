@@ -5,25 +5,37 @@ import { Database, X, ExternalLink, CheckCircle2 } from 'lucide-react';
 export const LocalModeNotice: React.FC = () => {
   const isLocal = isUsingLocalMode();
   const [showModal, setShowModal] = useState(false);
+  const [isDismissed, setIsDismissed] = useState(false);
 
-  if (!isLocal) return null;
+  if (!isLocal || isDismissed) return null;
 
   return (
     <>
-      <div className="bg-amber-500/10 border-b border-amber-200 px-4 py-1.5 text-xs text-amber-900 flex items-center justify-between no-print">
-        <div className="container mx-auto flex items-center justify-between flex-wrap gap-2">
-          <div className="flex items-center gap-2">
-            <span className="flex h-2 w-2 rounded-full bg-amber-500 animate-pulse" />
-            <span className="font-semibold">Local Development Mode Active:</span>
-            <span>Running with simulated database & instant local order placement.</span>
+      <div className="bg-amber-500/10 border-b border-amber-200 px-3 py-1 text-[11px] sm:text-xs text-amber-900 flex items-center justify-between no-print">
+        <div className="container mx-auto flex items-center justify-between gap-2">
+          <div className="flex items-center gap-1.5 truncate">
+            <span className="flex h-2 w-2 rounded-full bg-amber-500 animate-pulse shrink-0" />
+            <span className="font-semibold truncate">Local Development Mode Active:</span>
+            <span className="hidden md:inline truncate">Running with simulated database & instant local order placement.</span>
           </div>
-          <button
-            onClick={() => setShowModal(true)}
-            className="font-medium underline hover:text-amber-950 flex items-center gap-1 cursor-pointer"
-          >
-            How to connect Supabase live DB
-            <ExternalLink className="w-3 h-3" />
-          </button>
+          <div className="flex items-center gap-3 shrink-0">
+            <button
+              onClick={() => setShowModal(true)}
+              className="font-medium underline hover:text-amber-950 flex items-center gap-1 cursor-pointer text-[10px] sm:text-xs"
+            >
+              <span className="hidden sm:inline">How to connect Supabase</span>
+              <span className="sm:hidden">Setup DB</span>
+              <ExternalLink className="w-2.5 h-2.5" />
+            </button>
+            <button
+              onClick={() => setIsDismissed(true)}
+              className="text-amber-800 hover:text-amber-950 p-0.5 rounded cursor-pointer"
+              title="Dismiss banner"
+              aria-label="Dismiss banner"
+            >
+              <X className="w-3.5 h-3.5" />
+            </button>
+          </div>
         </div>
       </div>
 

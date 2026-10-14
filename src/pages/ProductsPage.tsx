@@ -381,9 +381,9 @@ export const ProductsPage: React.FC = () => {
         {/* PRODUCTS GRID */}
         <main className="md:col-span-3 lg:col-span-4 space-y-6">
           {loading ? (
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5">
+            <div className="grid grid-cols-2 sm:grid-cols-2 lg:grid-cols-3 gap-2.5 sm:gap-5">
               {[1, 2, 3, 4, 5, 6].map((i) => (
-                <div key={i} className="bg-slate-100 rounded-2xl h-80 animate-pulse" />
+                <div key={i} className="bg-slate-100 rounded-xl h-64 animate-pulse" />
               ))}
             </div>
           ) : filteredProducts.length === 0 ? (
@@ -404,7 +404,7 @@ export const ProductsPage: React.FC = () => {
             </div>
           ) : (
             <>
-              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5">
+              <div className="grid grid-cols-2 sm:grid-cols-2 lg:grid-cols-3 gap-2.5 sm:gap-5">
                 {filteredProducts.slice(0, visibleCount).map((product) => (
                   <ProductCard key={product.id} product={product} />
                 ))}

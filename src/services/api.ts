@@ -122,6 +122,21 @@ const getLocalCategories = (): Category[] => {
   try {
     const cats: Category[] = JSON.parse(data);
     let updated = false;
+
+    // Merge new categories and update image_url from initialCategories
+    initialCategories.forEach(initCat => {
+      const match = cats.find(c => c.id === initCat.id || c.slug === initCat.slug);
+      if (!match) {
+        cats.push(initCat);
+        updated = true;
+      } else {
+        if (!match.image_url || match.image_url !== initCat.image_url) {
+          match.image_url = initCat.image_url;
+          updated = true;
+        }
+      }
+    });
+
     cats.forEach(c => {
       if (c.name === 'Second-Hand Laptops' || c.slug === 'second-hand-laptops') {
         c.name = 'Refurbished Laptops';
@@ -130,6 +145,7 @@ const getLocalCategories = (): Category[] => {
         updated = true;
       }
     });
+
     if (updated) {
       localStorage.setItem(STORAGE_CATEGORIES, JSON.stringify(cats));
     }
@@ -149,13 +165,33 @@ const getLocalProducts = (): Product[] => {
     const prods: Product[] = JSON.parse(data);
     let updated = false;
 
-    // Auto-sync any new initialProducts (e.g. wholesale lots, wholesale prices)
+    // Auto-sync initialProducts fields (images, PIDs, item codes, tags)
     initialProducts.forEach(initP => {
       const existing = prods.find(p => p.id === initP.id);
       if (!existing) {
         prods.push(initP);
         updated = true;
       } else {
+        if (!existing.primary_image || existing.primary_image !== initP.primary_image) {
+          existing.primary_image = initP.primary_image;
+          updated = true;
+        }
+        if (!existing.pid && initP.pid) {
+          existing.pid = initP.pid;
+          updated = true;
+        }
+        if (!existing.item_code && initP.item_code) {
+          existing.item_code = initP.item_code;
+          updated = true;
+        }
+        if (initP.is_updated_product && !existing.is_updated_product) {
+          existing.is_updated_product = true;
+          updated = true;
+        }
+        if (initP.is_new_arrival && !existing.is_new_arrival) {
+          existing.is_new_arrival = true;
+          updated = true;
+        }
         if (existing.dealer_price === undefined && initP.dealer_price !== undefined) {
           existing.dealer_price = initP.dealer_price;
           existing.min_dealer_qty = initP.min_dealer_qty;
