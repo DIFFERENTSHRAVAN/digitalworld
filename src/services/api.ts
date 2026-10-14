@@ -1554,7 +1554,7 @@ export const dealerLogin = async (
     return {
       success: false,
       status: 'suspended',
-      error: 'Your dealer account is temporarily SUSPENDED. Please contact Digital World management (+91 6377123270) to resolve this.'
+      error: `Your dealer account is temporarily SUSPENDED. Please contact Digital World management (${STORE_CONFIG.whatsappNumber || '+91 8384957548'}) to resolve this.`
     };
   }
 

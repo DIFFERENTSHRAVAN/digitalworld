@@ -79,9 +79,9 @@ export const STORE_CONFIG: StoreConfigType = {
   // ---------------------------------------------------------------------------
   // 2. CONTACT DETAILS (WhatsApp & Calling Numbers)
   // ---------------------------------------------------------------------------
-  whatsappNumber: '+916377123270', // Primary WhatsApp for Customer Chats & Orders
-  contactNumber: '+916377123270',  // Shop Calling Number
-  emailAddress: 'vishal@digitalworld.in',
+  whatsappNumber: '+918384957548', // Primary WhatsApp for Customer Chats & Orders
+  contactNumber: '+918384957548',  // Shop Calling Number
+  emailAddress: 'digitalworld0813@gmail.com',
 
   // ---------------------------------------------------------------------------
   // 3. SHOP ADDRESS & OPENING HOURS
@@ -110,7 +110,7 @@ export const STORE_CONFIG: StoreConfigType = {
   payOnDeliveryEnabled: true,    // Pay on Delivery (UPI QR / Cash at door)
   onlinePaymentEnabled: false,   // Set to true after connecting Razorpay/Cashfree
   storePickupEnabled: true,      // Allow customer to collect order in-shop
-  upiId: '6377123270@upi',        // Shop UPI ID for receiving customer payments
+  upiId: 'vishalsoni.0813@axl',        // Shop UPI ID for receiving customer payments
 
   // ---------------------------------------------------------------------------
   // 6. RETURN & WARRANTY POLICIES
@@ -126,7 +126,7 @@ export const STORE_CONFIG: StoreConfigType = {
   // ---------------------------------------------------------------------------
   // 8. ADMIN LOGIN EMAIL (For Vishal Soni)
   // ---------------------------------------------------------------------------
-  adminEmail: 'admin@digitalworld.com',
+  adminEmail: 'digitalworld0813@gmail.com',
 
   // ---------------------------------------------------------------------------
   // 9. CONFIG VERSION (Change this number whenever you update this file!)
