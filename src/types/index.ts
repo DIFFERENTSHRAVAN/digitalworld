@@ -40,6 +40,11 @@ export interface Product {
   included_accessories?: string;
   is_reserved?: boolean;
 
+  // Dealer / Wholesale Exclusive Fields
+  dealer_price?: number;
+  is_dealer_only?: boolean;
+  min_dealer_qty?: number;
+
   // Demo status
   is_demo_product?: boolean;
 
@@ -127,6 +132,13 @@ export interface Order {
   updated_at?: string;
   items?: OrderItem[];
   status_history?: OrderStatusHistoryItem[];
+
+  // Dealer / Wholesale Order Details
+  order_type?: 'retail' | 'dealer';
+  dealer_id?: string;
+  dealer_code?: string;
+  dealer_business_name?: string;
+  gst_number?: string;
 }
 
 export interface StoreSettings {
@@ -167,6 +179,27 @@ export interface CustomerUser {
   email?: string;
   created_at: string;
   default_address?: CustomerAddress;
+}
+
+export type DealerStatus = 'pending' | 'approved' | 'rejected' | 'suspended';
+
+export interface DealerUser {
+  id: string;
+  dealer_code: string;
+  business_name: string;
+  contact_person: string;
+  phone: string;
+  email: string;
+  gst_number?: string;
+  business_type?: string;
+  address: string;
+  city: string;
+  state: string;
+  pincode: string;
+  status: DealerStatus;
+  created_at: string;
+  approved_at?: string;
+  admin_notes?: string;
 }
 
 export interface AdminUser {

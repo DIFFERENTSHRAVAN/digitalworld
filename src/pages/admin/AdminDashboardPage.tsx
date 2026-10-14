@@ -7,7 +7,9 @@ import {
   Order,
   OrderStatus,
   PaymentStatus,
-  StoreSettings
+  StoreSettings,
+  DealerUser,
+  DealerStatus
 } from '../../types';
 import {
   getCurrentAdmin,
@@ -29,7 +31,12 @@ import {
   requestAdminPasswordResetOtp,
   verifyOtpAndChangeAdminPassword,
   updateAdminEmailOrPhone,
-  getAdminContactDetails
+  getAdminContactDetails,
+  getDealersAdmin,
+  updateDealerStatusAdmin,
+  createDealerAdmin,
+  resetDealerPasswordAdmin,
+  generateDealerApprovalWhatsAppUrl
 } from '../../services/api';
 import { useStoreSettings } from '../../context/StoreSettingsContext';
 import { Logo } from '../../components/common/Logo';
@@ -61,7 +68,13 @@ import {
   Mail,
   KeyRound,
   ShieldCheck,
-  Phone
+  Phone,
+  Briefcase,
+  UserCheck,
+  UserX,
+  Building2,
+  Tag,
+  TrendingDown
 } from 'lucide-react';
 
 export const AdminDashboardPage: React.FC = () => {
@@ -69,13 +82,36 @@ export const AdminDashboardPage: React.FC = () => {
   const { settings, updateSettings, refreshSettings } = useStoreSettings();
 
   const [adminUser, setAdminUser] = useState<AdminUser | null>(null);
-  const [activeTab, setActiveTab] = useState<'overview' | 'products' | 'laptops' | 'orders' | 'settings'>('overview');
+  const [activeTab, setActiveTab] = useState<'overview' | 'products' | 'laptops' | 'orders' | 'dealers' | 'settings'>('overview');
   const [loading, setLoading] = useState(true);
 
   // Core Data
   const [products, setProducts] = useState<Product[]>([]);
   const [categories, setCategories] = useState<Category[]>([]);
   const [orders, setOrders] = useState<Order[]>([]);
+  const [dealers, setDealers] = useState<DealerUser[]>([]);
+
+  // Dealer Management State
+  const [dealerFilterStatus, setDealerFilterStatus] = useState<string>('all');
+  const [dealerSearch, setDealerSearch] = useState('');
+  const [dealerSubView, setDealerSubView] = useState<'dealers' | 'wholesale_pricing' | 'dealer_orders'>('dealers');
+  const [newDealerModalOpen, setNewDealerModalOpen] = useState(false);
+  const [resetPasswordDealer, setResetPasswordDealer] = useState<DealerUser | null>(null);
+  const [resetNewPasswordInput, setResetNewPasswordInput] = useState('');
+  const [newDealerForm, setNewDealerForm] = useState({
+    business_name: '',
+    contact_person: '',
+    phone: '',
+    email: '',
+    gst_number: '',
+    business_type: 'Computer Hardware Retailer',
+    address: '',
+    city: '',
+    state: 'Rajasthan',
+    pincode: '',
+    password: 'dealer123',
+    dealer_code: ''
+  });
 
   // Modals & Forms
   const [productModalOpen, setProductModalOpen] = useState(false);
@@ -248,15 +284,17 @@ export const AdminDashboardPage: React.FC = () => {
       }
       setAdminUser(user);
 
-      const [prods, cats, ords] = await Promise.all([
+      const [prods, cats, ords, dlrs] = await Promise.all([
         getAllProductsAdmin(),
         getCategories(),
-        getAllOrdersAdmin()
+        getAllOrdersAdmin(),
+        getDealersAdmin()
       ]);
 
       setProducts(prods);
       setCategories(cats);
       setOrders(ords);
+      setDealers(dlrs);
     } catch (err) {
       console.error('Failed to load admin data', err);
     } finally {
@@ -273,6 +311,90 @@ export const AdminDashboardPage: React.FC = () => {
     navigate('/admin/login');
   };
 
+  // Dealer Action Handlers
+  const handleApproveDealer = async (dealerId: string) => {
+    try {
+      const updated = await updateDealerStatusAdmin(dealerId, 'approved');
+      setDealers(dealers.map(d => d.id === dealerId ? updated : d));
+      showToast(`Dealer ${updated.dealer_code} (${updated.business_name}) APPROVED!`);
+    } catch (err: unknown) {
+      alert((err as Error).message);
+    }
+  };
+
+  const handleRejectDealer = async (dealerId: string) => {
+    if (window.confirm('Are you sure you want to decline this dealer application?')) {
+      try {
+        const updated = await updateDealerStatusAdmin(dealerId, 'rejected');
+        setDealers(dealers.map(d => d.id === dealerId ? updated : d));
+        showToast(`Dealer ${updated.dealer_code} marked as rejected.`);
+      } catch (err: unknown) {
+        alert((err as Error).message);
+      }
+    }
+  };
+
+  const handleSuspendDealer = async (dealerId: string) => {
+    if (window.confirm('Suspend this dealer account? They will lose access to wholesale rates.')) {
+      try {
+        const updated = await updateDealerStatusAdmin(dealerId, 'suspended');
+        setDealers(dealers.map(d => d.id === dealerId ? updated : d));
+        showToast(`Dealer ${updated.dealer_code} suspended.`);
+      } catch (err: unknown) {
+        alert((err as Error).message);
+      }
+    }
+  };
+
+  const handleReactivateDealer = async (dealerId: string) => {
+    try {
+      const updated = await updateDealerStatusAdmin(dealerId, 'approved');
+      setDealers(dealers.map(d => d.id === dealerId ? updated : d));
+      showToast(`Dealer ${updated.dealer_code} reactivated!`);
+    } catch (err: unknown) {
+      alert((err as Error).message);
+    }
+  };
+
+  const handleResetDealerPassword = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!resetPasswordDealer) return;
+    try {
+      const res = await resetDealerPasswordAdmin(resetPasswordDealer.id, resetNewPasswordInput);
+      showToast(res.message);
+      setResetPasswordDealer(null);
+      setResetNewPasswordInput('');
+    } catch (err: unknown) {
+      alert((err as Error).message);
+    }
+  };
+
+  const handleCreateDealerAdmin = async (e: React.FormEvent) => {
+    e.preventDefault();
+    try {
+      const created = await createDealerAdmin(newDealerForm);
+      setDealers([created, ...dealers]);
+      setNewDealerModalOpen(false);
+      setNewDealerForm({
+        business_name: '',
+        contact_person: '',
+        phone: '',
+        email: '',
+        gst_number: '',
+        business_type: 'Computer Hardware Retailer',
+        address: '',
+        city: '',
+        state: 'Rajasthan',
+        pincode: '',
+        password: 'dealer123',
+        dealer_code: ''
+      });
+      showToast(`Dealer ${created.dealer_code} created successfully!`);
+    } catch (err: unknown) {
+      alert((err as Error).message);
+    }
+  };
+
   // Metrics calculations
   const metrics = useMemo(() => {
     const totalOrders = orders.length;
@@ -286,13 +408,16 @@ export const AdminDashboardPage: React.FC = () => {
     const delivered = orders.filter(o => o.order_status === 'delivered').length;
     const cancelled = orders.filter(o => o.order_status === 'cancelled').length;
 
-    // Revenue calculation: Sum of completed and confirmed active orders
     const totalRevenue = orders
       .filter(o => o.order_status !== 'cancelled')
       .reduce((sum, o) => sum + o.total_amount, 0);
 
     const lowStockProducts = products.filter(p => p.stock_quantity <= 3 || p.is_sold_out);
     const usedLaptopsCount = products.filter(p => p.condition === 'second_hand').length;
+
+    const pendingDealersCount = dealers.filter(d => d.status === 'pending').length;
+    const approvedDealersCount = dealers.filter(d => d.status === 'approved').length;
+    const dealerOrdersCount = orders.filter(o => o.order_type === 'dealer').length;
 
     return {
       totalOrders,
@@ -305,9 +430,12 @@ export const AdminDashboardPage: React.FC = () => {
       cancelled,
       totalRevenue,
       lowStockProducts,
-      usedLaptopsCount
+      usedLaptopsCount,
+      pendingDealersCount,
+      approvedDealersCount,
+      dealerOrdersCount
     };
-  }, [orders, products]);
+  }, [orders, products, dealers]);
 
   // Handle Order Status Update
   const handleUpdateOrderStatus = async (orderId: string, newStatus: OrderStatus) => {
@@ -564,6 +692,23 @@ export const AdminDashboardPage: React.FC = () => {
           >
             <Laptop className="w-4 h-4" />
             <span>Used Laptops Specialist ({metrics.usedLaptopsCount})</span>
+          </button>
+
+          <button
+            onClick={() => setActiveTab('dealers')}
+            className={`px-4 py-2.5 text-xs font-bold border-b-2 flex items-center gap-2 transition-colors cursor-pointer shrink-0 relative ${
+              activeTab === 'dealers'
+                ? 'border-secondary text-secondary'
+                : 'border-transparent text-charcoal-muted hover:text-charcoal'
+            }`}
+          >
+            <Briefcase className="w-4 h-4" />
+            <span>Dealers & B2B Portal</span>
+            {metrics.pendingDealersCount > 0 && (
+              <span className="px-1.5 py-0.2 bg-amber-500 text-white rounded-full text-[10px]">
+                {metrics.pendingDealersCount}
+              </span>
+            )}
           </button>
 
           <button
@@ -1717,6 +1862,440 @@ export const AdminDashboardPage: React.FC = () => {
             </div>
           </div>
         )}
+
+        {/* ===================== TAB: DEALERS & B2B PORTAL ===================== */}
+        {activeTab === 'dealers' && (
+          <div className="space-y-6 animate-fade-in text-left">
+            {/* Dealer Header & Metric Cards */}
+            <div className="grid grid-cols-2 sm:grid-cols-4 gap-3.5">
+              <div className="bg-white p-4 rounded-2xl border border-slate-200 shadow-xs space-y-1">
+                <span className="text-[11px] font-bold text-charcoal-muted">Total Dealers</span>
+                <p className="text-2xl font-extrabold text-primary">{dealers.length}</p>
+                <span className="text-[10px] text-slate-500">Registered B2B partners</span>
+              </div>
+
+              <div className="bg-white p-4 rounded-2xl border border-amber-200 bg-amber-50/40 shadow-xs space-y-1">
+                <span className="text-[11px] font-bold text-amber-800">Pending Approvals</span>
+                <p className="text-2xl font-extrabold text-amber-700">{metrics.pendingDealersCount}</p>
+                <span className="text-[10px] text-amber-800">Requires verification</span>
+              </div>
+
+              <div className="bg-white p-4 rounded-2xl border border-emerald-200 bg-emerald-50/40 shadow-xs space-y-1">
+                <span className="text-[11px] font-bold text-emerald-800">Active Approved</span>
+                <p className="text-2xl font-extrabold text-emerald-700">{metrics.approvedDealersCount}</p>
+                <span className="text-[10px] text-emerald-700">Can view wholesale rates</span>
+              </div>
+
+              <div className="bg-white p-4 rounded-2xl border border-blue-200 bg-blue-50/40 shadow-xs space-y-1">
+                <span className="text-[11px] font-bold text-blue-800">Wholesale Orders</span>
+                <p className="text-2xl font-extrabold text-secondary">{metrics.dealerOrdersCount}</p>
+                <span className="text-[10px] text-blue-700">Total B2B shipments</span>
+              </div>
+            </div>
+
+            {/* Sub-view switcher bar */}
+            <div className="bg-white p-3.5 rounded-2xl border border-slate-200 shadow-xs flex flex-wrap items-center justify-between gap-3">
+              <div className="flex items-center gap-2 overflow-x-auto text-xs font-bold">
+                <button
+                  onClick={() => setDealerSubView('dealers')}
+                  className={`px-3.5 py-2 rounded-xl transition-all cursor-pointer flex items-center gap-1.5 ${
+                    dealerSubView === 'dealers'
+                      ? 'bg-primary text-white shadow-sm'
+                      : 'bg-slate-100 text-charcoal hover:bg-slate-200'
+                  }`}
+                >
+                  <Briefcase className="w-3.5 h-3.5" />
+                  <span>Dealer Accounts ({dealers.length})</span>
+                </button>
+
+                <button
+                  onClick={() => setDealerSubView('wholesale_pricing')}
+                  className={`px-3.5 py-2 rounded-xl transition-all cursor-pointer flex items-center gap-1.5 ${
+                    dealerSubView === 'wholesale_pricing'
+                      ? 'bg-primary text-white shadow-sm'
+                      : 'bg-slate-100 text-charcoal hover:bg-slate-200'
+                  }`}
+                >
+                  <Tag className="w-3.5 h-3.5" />
+                  <span>Wholesale Pricing & Lots ({products.length})</span>
+                </button>
+
+                <button
+                  onClick={() => setDealerSubView('dealer_orders')}
+                  className={`px-3.5 py-2 rounded-xl transition-all cursor-pointer flex items-center gap-1.5 ${
+                    dealerSubView === 'dealer_orders'
+                      ? 'bg-primary text-white shadow-sm'
+                      : 'bg-slate-100 text-charcoal hover:bg-slate-200'
+                  }`}
+                >
+                  <ShoppingBag className="w-3.5 h-3.5" />
+                  <span>Dealer Orders ({orders.filter(o => o.order_type === 'dealer').length})</span>
+                </button>
+              </div>
+
+              {dealerSubView === 'dealers' && (
+                <button
+                  onClick={() => setNewDealerModalOpen(true)}
+                  className="px-4 py-2 bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-xs rounded-xl flex items-center gap-1.5 shadow-sm cursor-pointer ml-auto"
+                >
+                  <Plus className="w-4 h-4" />
+                  <span>Add New Dealer</span>
+                </button>
+              )}
+
+              {dealerSubView === 'wholesale_pricing' && (
+                <button
+                  onClick={() => {
+                    setEditingProduct(null);
+                    setProductModalOpen(true);
+                  }}
+                  className="px-4 py-2 bg-primary hover:bg-primary-light text-white font-bold text-xs rounded-xl flex items-center gap-1.5 shadow-sm cursor-pointer ml-auto"
+                >
+                  <Plus className="w-4 h-4" />
+                  <span>Create Wholesale Lot / Product</span>
+                </button>
+              )}
+            </div>
+
+            {/* SUB-VIEW 1: DEALER ACCOUNTS TABLE */}
+            {dealerSubView === 'dealers' && (
+              <div className="bg-white rounded-3xl border border-slate-200 shadow-card overflow-hidden space-y-4 p-5">
+                {/* Search & Filter Controls */}
+                <div className="flex flex-col sm:flex-row gap-3 items-center justify-between pb-3 border-b border-slate-100">
+                  <div className="relative w-full sm:w-72">
+                    <input
+                      type="text"
+                      value={dealerSearch}
+                      onChange={(e) => setDealerSearch(e.target.value)}
+                      placeholder="Search dealer code, name, phone, city..."
+                      className="w-full pl-9 pr-3 py-2 bg-slate-50 border border-slate-300 rounded-xl text-xs focus:bg-white focus:border-secondary"
+                    />
+                    <Search className="w-3.5 h-3.5 text-slate-400 absolute left-3 top-2.5 pointer-events-none" />
+                  </div>
+
+                  <div className="flex items-center gap-1.5 overflow-x-auto w-full sm:w-auto text-xs">
+                    {['all', 'pending', 'approved', 'suspended', 'rejected'].map((st) => (
+                      <button
+                        key={st}
+                        onClick={() => setDealerFilterStatus(st)}
+                        className={`px-3 py-1.5 rounded-xl font-bold capitalize transition-all cursor-pointer ${
+                          dealerFilterStatus === st
+                            ? 'bg-slate-900 text-white'
+                            : 'bg-slate-100 text-slate-600 hover:bg-slate-200'
+                        }`}
+                      >
+                        {st}
+                        {st === 'pending' && metrics.pendingDealersCount > 0 && (
+                          <span className="ml-1.5 px-1.5 py-0.2 bg-amber-500 text-white rounded-full text-[10px]">
+                            {metrics.pendingDealersCount}
+                          </span>
+                        )}
+                      </button>
+                    ))}
+                  </div>
+                </div>
+
+                {/* Dealers Table */}
+                <div className="overflow-x-auto">
+                  <table className="w-full text-xs text-left">
+                    <thead className="bg-slate-50 border-b border-slate-200 text-charcoal-muted uppercase text-[10px] tracking-wider font-extrabold">
+                      <tr>
+                        <th className="py-3 px-3">Dealer Code</th>
+                        <th className="py-3 px-3">Business & Owner</th>
+                        <th className="py-3 px-3">Contact (Phone / Email)</th>
+                        <th className="py-3 px-3">GSTIN & Location</th>
+                        <th className="py-3 px-3">Status</th>
+                        <th className="py-3 px-3 text-right">Actions</th>
+                      </tr>
+                    </thead>
+                    <tbody className="divide-y divide-slate-100">
+                      {dealers
+                        .filter(d => {
+                          if (dealerFilterStatus !== 'all' && d.status !== dealerFilterStatus) return false;
+                          if (dealerSearch.trim()) {
+                            const q = dealerSearch.toLowerCase();
+                            return (
+                              d.dealer_code.toLowerCase().includes(q) ||
+                              d.business_name.toLowerCase().includes(q) ||
+                              d.contact_person.toLowerCase().includes(q) ||
+                              d.phone.includes(q) ||
+                              d.city.toLowerCase().includes(q)
+                            );
+                          }
+                          return true;
+                        })
+                        .map((dlr) => {
+                          const statusBadges: Record<DealerStatus, string> = {
+                            pending: 'bg-amber-100 text-amber-800 border-amber-300',
+                            approved: 'bg-emerald-100 text-emerald-800 border-emerald-300',
+                            suspended: 'bg-rose-100 text-rose-800 border-rose-300',
+                            rejected: 'bg-slate-100 text-slate-700 border-slate-300'
+                          };
+
+                          return (
+                            <tr key={dlr.id} className="hover:bg-slate-50/80 transition-colors">
+                              <td className="py-3.5 px-3 font-mono font-bold text-primary">
+                                {dlr.dealer_code}
+                              </td>
+
+                              <td className="py-3.5 px-3">
+                                <div className="font-bold text-charcoal">{dlr.business_name}</div>
+                                <div className="text-slate-500 text-[11px]">{dlr.contact_person} • {dlr.business_type}</div>
+                              </td>
+
+                              <td className="py-3.5 px-3">
+                                <div className="font-semibold text-slate-900">+91 {dlr.phone}</div>
+                                <div className="text-slate-400 text-[11px]">{dlr.email}</div>
+                              </td>
+
+                              <td className="py-3.5 px-3">
+                                <div className="font-mono text-slate-800">{dlr.gst_number || 'No GST (Retailer)'}</div>
+                                <div className="text-slate-500 text-[11px]">{dlr.city}, {dlr.state} ({dlr.pincode})</div>
+                              </td>
+
+                              <td className="py-3.5 px-3">
+                                <span className={`px-2.5 py-0.5 rounded-full text-[10px] font-black uppercase tracking-wider border ${statusBadges[dlr.status]}`}>
+                                  {dlr.status}
+                                </span>
+                              </td>
+
+                              <td className="py-3.5 px-3 text-right">
+                                <div className="flex items-center justify-end gap-1.5">
+                                  {dlr.status === 'pending' && (
+                                    <>
+                                      <button
+                                        onClick={() => handleApproveDealer(dlr.id)}
+                                        className="px-2.5 py-1 bg-emerald-600 hover:bg-emerald-700 text-white rounded-lg text-[11px] font-bold flex items-center gap-1 cursor-pointer shadow-xs"
+                                        title="Approve Dealer Account"
+                                      >
+                                        <Check className="w-3.5 h-3.5" />
+                                        <span>Approve</span>
+                                      </button>
+                                      <button
+                                        onClick={() => handleRejectDealer(dlr.id)}
+                                        className="px-2 py-1 bg-rose-50 hover:bg-rose-100 text-rose-700 border border-rose-200 rounded-lg text-[11px] font-bold cursor-pointer"
+                                        title="Decline Application"
+                                      >
+                                        <X className="w-3.5 h-3.5" />
+                                      </button>
+                                    </>
+                                  )}
+
+                                  {dlr.status === 'approved' && (
+                                    <>
+                                      <a
+                                        href={generateDealerApprovalWhatsAppUrl(dlr)}
+                                        target="_blank"
+                                        rel="noopener noreferrer"
+                                        className="p-1.5 bg-emerald-50 hover:bg-emerald-100 text-emerald-700 border border-emerald-300 rounded-lg cursor-pointer"
+                                        title="Send Approval WhatsApp Message"
+                                      >
+                                        <MessageCircle className="w-3.5 h-3.5" />
+                                      </a>
+
+                                      <button
+                                        onClick={() => {
+                                          setResetPasswordDealer(dlr);
+                                          setResetNewPasswordInput('');
+                                        }}
+                                        className="p-1.5 bg-blue-50 hover:bg-blue-100 text-secondary border border-blue-200 rounded-lg cursor-pointer"
+                                        title="Reset Password"
+                                      >
+                                        <KeyRound className="w-3.5 h-3.5" />
+                                      </button>
+
+                                      <button
+                                        onClick={() => handleSuspendDealer(dlr.id)}
+                                        className="px-2 py-1 bg-slate-100 hover:bg-rose-50 text-slate-600 hover:text-rose-700 rounded-lg text-[11px] font-semibold cursor-pointer"
+                                        title="Suspend Access"
+                                      >
+                                        Suspend
+                                      </button>
+                                    </>
+                                  )}
+
+                                  {dlr.status === 'suspended' && (
+                                    <button
+                                      onClick={() => handleReactivateDealer(dlr.id)}
+                                      className="px-2.5 py-1 bg-emerald-600 hover:bg-emerald-700 text-white rounded-lg text-[11px] font-bold cursor-pointer"
+                                    >
+                                      Reactivate
+                                    </button>
+                                  )}
+                                </div>
+                              </td>
+                            </tr>
+                          );
+                        })}
+                    </tbody>
+                  </table>
+                </div>
+              </div>
+            )}
+
+            {/* SUB-VIEW 2: WHOLESALE PRICING & LOTS */}
+            {dealerSubView === 'wholesale_pricing' && (
+              <div className="bg-white rounded-3xl border border-slate-200 shadow-card overflow-hidden p-5 space-y-4">
+                <div className="flex items-center justify-between pb-3 border-b border-slate-100">
+                  <div>
+                    <h3 className="font-bold text-sm text-primary">Wholesale Pricing Catalog</h3>
+                    <p className="text-xs text-slate-500">
+                      Manage wholesale rates, margins, minimum bulk quantities, and dealer-exclusive lots
+                    </p>
+                  </div>
+                </div>
+
+                <div className="overflow-x-auto">
+                  <table className="w-full text-xs text-left">
+                    <thead className="bg-slate-50 border-b border-slate-200 text-charcoal-muted uppercase text-[10px] tracking-wider font-extrabold">
+                      <tr>
+                        <th className="py-3 px-3">Product Name</th>
+                        <th className="py-3 px-3">Condition</th>
+                        <th className="py-3 px-3">Retail Price</th>
+                        <th className="py-3 px-3">Wholesale Price</th>
+                        <th className="py-3 px-3">Dealer Margin</th>
+                        <th className="py-3 px-3">Min Order Qty</th>
+                        <th className="py-3 px-3">Channel Access</th>
+                        <th className="py-3 px-3 text-right">Action</th>
+                      </tr>
+                    </thead>
+                    <tbody className="divide-y divide-slate-100">
+                      {products.map((p) => {
+                        const wholesalePrice = p.dealer_price || Math.round(p.price * 0.85);
+                        const savings = p.price - wholesalePrice;
+                        const marginPct = p.price > 0 ? Math.round((savings / p.price) * 100) : 0;
+
+                        return (
+                          <tr key={p.id} className="hover:bg-slate-50/80 transition-colors">
+                            <td className="py-3 px-3 font-semibold text-charcoal max-w-xs truncate">
+                              {p.name}
+                            </td>
+                            <td className="py-3 px-3">
+                              <span className="capitalize">{p.condition === 'second_hand' ? 'Refurbished' : 'New'}</span>
+                            </td>
+                            <td className="py-3 px-3 font-medium text-slate-600">
+                              {formatINR(p.price)}
+                            </td>
+                            <td className="py-3 px-3 font-black text-emerald-700">
+                              {formatINR(wholesalePrice)}
+                            </td>
+                            <td className="py-3 px-3 text-emerald-600 font-bold">
+                              +{formatINR(savings)} ({marginPct}%)
+                            </td>
+                            <td className="py-3 px-3 font-bold text-primary">
+                              {p.min_dealer_qty || 1} units
+                            </td>
+                            <td className="py-3 px-3">
+                              {p.is_dealer_only ? (
+                                <span className="px-2 py-0.5 bg-amber-100 text-amber-900 border border-amber-300 rounded text-[10px] font-bold">
+                                  Dealer Exclusive
+                                </span>
+                              ) : (
+                                <span className="px-2 py-0.5 bg-slate-100 text-slate-700 rounded text-[10px]">
+                                  Public + Wholesale
+                                </span>
+                              )}
+                            </td>
+                            <td className="py-3 px-3 text-right">
+                              <button
+                                onClick={() => {
+                                  setEditingProduct(p);
+                                  setProductModalOpen(true);
+                                }}
+                                className="px-2.5 py-1 bg-slate-100 hover:bg-slate-200 text-charcoal font-semibold rounded-lg text-[11px] cursor-pointer"
+                              >
+                                Edit Rates
+                              </button>
+                            </td>
+                          </tr>
+                        );
+                      })}
+                    </tbody>
+                  </table>
+                </div>
+              </div>
+            )}
+
+            {/* SUB-VIEW 3: DEALER WHOLESALE ORDERS */}
+            {dealerSubView === 'dealer_orders' && (
+              <div className="bg-white rounded-3xl border border-slate-200 shadow-card overflow-hidden p-5 space-y-4">
+                <div className="flex items-center justify-between pb-3 border-b border-slate-100">
+                  <div>
+                    <h3 className="font-bold text-sm text-primary">B2B Dealer Wholesale Orders</h3>
+                    <p className="text-xs text-slate-500">
+                      Wholesale order tracking, fulfillment status, and WhatsApp dispatch notifications
+                    </p>
+                  </div>
+                </div>
+
+                <div className="overflow-x-auto">
+                  <table className="w-full text-xs text-left">
+                    <thead className="bg-slate-50 border-b border-slate-200 text-charcoal-muted uppercase text-[10px] tracking-wider font-extrabold">
+                      <tr>
+                        <th className="py-3 px-3">Order Number</th>
+                        <th className="py-3 px-3">Dealer / Firm</th>
+                        <th className="py-3 px-3">Items Summary</th>
+                        <th className="py-3 px-3">Wholesale Total</th>
+                        <th className="py-3 px-3">Payment</th>
+                        <th className="py-3 px-3">Status</th>
+                        <th className="py-3 px-3 text-right">Update Status</th>
+                      </tr>
+                    </thead>
+                    <tbody className="divide-y divide-slate-100">
+                      {orders
+                        .filter(o => o.order_type === 'dealer')
+                        .map((o) => (
+                          <tr key={o.id} className="hover:bg-slate-50/80 transition-colors">
+                            <td className="py-3 px-3 font-mono font-bold text-primary">
+                              {o.order_number}
+                            </td>
+
+                            <td className="py-3 px-3">
+                              <div className="font-bold text-charcoal">{o.customer_name}</div>
+                              <div className="text-[11px] text-slate-500">{o.dealer_code} • {o.city}</div>
+                            </td>
+
+                            <td className="py-3 px-3 text-slate-600 max-w-xs truncate">
+                              {(o.items || []).map(i => `${i.product_name} (x${i.quantity})`).join(', ')}
+                            </td>
+
+                            <td className="py-3 px-3 font-black text-emerald-800">
+                              {formatINR(o.total_amount)}
+                            </td>
+
+                            <td className="py-3 px-3">
+                              <span className="capitalize">{o.payment_method}</span> ({o.payment_status})
+                            </td>
+
+                            <td className="py-3 px-3">
+                              <span className="px-2 py-0.5 rounded-full text-[10px] font-bold uppercase tracking-wider bg-slate-100 text-slate-700">
+                                {o.order_status}
+                              </span>
+                            </td>
+
+                            <td className="py-3 px-3 text-right">
+                              <select
+                                value={o.order_status}
+                                onChange={(e) => handleUpdateOrderStatus(o.id, e.target.value as OrderStatus)}
+                                className="px-2 py-1 bg-slate-50 border border-slate-300 rounded-lg text-xs font-semibold cursor-pointer"
+                              >
+                                <option value="pending">Pending</option>
+                                <option value="confirmed">Confirmed</option>
+                                <option value="processing">Processing</option>
+                                <option value="shipped">Shipped</option>
+                                <option value="delivered">Delivered</option>
+                                <option value="cancelled">Cancelled</option>
+                              </select>
+                            </td>
+                          </tr>
+                        ))}
+                    </tbody>
+                  </table>
+                </div>
+              </div>
+            )}
+          </div>
+        )}
       </main>
 
       {/* ===================== ADD / EDIT PRODUCT MODAL ===================== */}
@@ -1778,7 +2357,11 @@ export const AdminDashboardPage: React.FC = () => {
                   battery_health: (formData.get('battery_health') as string) || undefined,
                   physical_condition_grade: (formData.get('physical_condition_grade') as string) || undefined,
                   known_defects: (formData.get('known_defects') as string) || undefined,
-                  included_accessories: (formData.get('included_accessories') as string) || undefined
+                  included_accessories: (formData.get('included_accessories') as string) || undefined,
+                  // Dealer B2B Wholesale Exclusive Fields
+                  dealer_price: formData.get('dealer_price') ? parseFloat(formData.get('dealer_price') as string) : undefined,
+                  is_dealer_only: formData.get('is_dealer_only') === 'on',
+                  min_dealer_qty: formData.get('min_dealer_qty') ? parseInt(formData.get('min_dealer_qty') as string, 10) : 1
                 };
 
                 if (editingProduct?.id) {
@@ -1893,6 +2476,60 @@ export const AdminDashboardPage: React.FC = () => {
                     defaultValue={editingProduct ? editingProduct.stock_quantity : 1}
                     className="w-full px-3 py-2 rounded-xl border border-slate-300"
                   />
+                </div>
+              </div>
+
+              {/* B2B Wholesale Pricing & Dealer Access */}
+              <div className="p-3.5 bg-blue-50/80 border border-blue-200 rounded-2xl space-y-3">
+                <div className="flex flex-wrap items-center justify-between gap-2">
+                  <span className="font-extrabold text-primary flex items-center gap-1.5 text-xs">
+                    <Briefcase className="w-3.5 h-3.5 text-secondary" />
+                    <span>B2B Wholesale / Dealer Pricing Configuration</span>
+                  </span>
+                  <label className="flex items-center gap-1.5 cursor-pointer font-bold text-primary text-xs">
+                    <input
+                      type="checkbox"
+                      name="is_dealer_only"
+                      defaultChecked={editingProduct?.is_dealer_only || false}
+                      className="rounded text-secondary w-4 h-4"
+                    />
+                    <span>Dealer-Only Product (Hidden from regular retail customers)</span>
+                  </label>
+                </div>
+
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                  <div>
+                    <label className="block font-bold text-charcoal mb-1">
+                      Dealer Wholesale Price (₹)
+                    </label>
+                    <input
+                      type="number"
+                      name="dealer_price"
+                      defaultValue={editingProduct?.dealer_price || ''}
+                      placeholder="e.g. 18500 (lower than retail price)"
+                      className="w-full px-3 py-2 bg-white rounded-xl border border-blue-300 font-bold text-emerald-800"
+                    />
+                    <p className="text-[10px] text-slate-500 mt-0.5">
+                      Only visible to authenticated and approved dealers.
+                    </p>
+                  </div>
+
+                  <div>
+                    <label className="block font-bold text-charcoal mb-1">
+                      Min Dealer Order Quantity
+                    </label>
+                    <input
+                      type="number"
+                      name="min_dealer_qty"
+                      min={1}
+                      defaultValue={editingProduct?.min_dealer_qty || 1}
+                      placeholder="1"
+                      className="w-full px-3 py-2 bg-white rounded-xl border border-blue-300 font-semibold"
+                    />
+                    <p className="text-[10px] text-slate-500 mt-0.5">
+                      Minimum order units required for wholesale orders.
+                    </p>
+                  </div>
                 </div>
               </div>
 
@@ -2115,6 +2752,270 @@ export const AdminDashboardPage: React.FC = () => {
                 Close
               </button>
             </div>
+          </div>
+        </div>
+      )}
+
+      {/* ===================== ADD NEW DEALER MODAL ===================== */}
+      {newDealerModalOpen && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-xs overflow-y-auto">
+          <div className="bg-white rounded-3xl max-w-xl w-full max-h-[90vh] overflow-y-auto p-6 sm:p-8 shadow-2xl border border-slate-200 text-left space-y-5">
+            <div className="flex items-center justify-between pb-3 border-b border-slate-200">
+              <div>
+                <h3 className="font-extrabold text-base text-primary flex items-center gap-2">
+                  <Briefcase className="w-5 h-5 text-secondary" />
+                  <span>Provision New B2B Dealer Account</span>
+                </h3>
+                <p className="text-xs text-slate-500 mt-0.5">
+                  Create an approved dealer account with customized dealer code and temporary password.
+                </p>
+              </div>
+              <button
+                onClick={() => setNewDealerModalOpen(false)}
+                className="p-1 rounded-lg text-slate-400 hover:text-charcoal cursor-pointer"
+              >
+                <X className="w-5 h-5" />
+              </button>
+            </div>
+
+            <form onSubmit={handleCreateDealerAdmin} className="space-y-4 text-xs">
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                <div>
+                  <label className="block font-bold text-charcoal mb-1">Business / Firm Name *</label>
+                  <input
+                    type="text"
+                    required
+                    value={newDealerForm.business_name}
+                    onChange={(e) => setNewDealerForm({ ...newDealerForm, business_name: e.target.value })}
+                    placeholder="e.g. Jaipur Tech Solutions"
+                    className="w-full px-3 py-2 rounded-xl border border-slate-300"
+                  />
+                </div>
+
+                <div>
+                  <label className="block font-bold text-charcoal mb-1">Contact Person Name *</label>
+                  <input
+                    type="text"
+                    required
+                    value={newDealerForm.contact_person}
+                    onChange={(e) => setNewDealerForm({ ...newDealerForm, contact_person: e.target.value })}
+                    placeholder="Owner / Proprietor"
+                    className="w-full px-3 py-2 rounded-xl border border-slate-300"
+                  />
+                </div>
+              </div>
+
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                <div>
+                  <label className="block font-bold text-charcoal mb-1">10-Digit Mobile Number *</label>
+                  <input
+                    type="tel"
+                    required
+                    maxLength={10}
+                    value={newDealerForm.phone}
+                    onChange={(e) => setNewDealerForm({ ...newDealerForm, phone: e.target.value.replace(/\D/g, '') })}
+                    placeholder="9829012345"
+                    className="w-full px-3 py-2 rounded-xl border border-slate-300"
+                  />
+                </div>
+
+                <div>
+                  <label className="block font-bold text-charcoal mb-1">Business Email *</label>
+                  <input
+                    type="email"
+                    required
+                    value={newDealerForm.email}
+                    onChange={(e) => setNewDealerForm({ ...newDealerForm, email: e.target.value })}
+                    placeholder="dealer@example.com"
+                    className="w-full px-3 py-2 rounded-xl border border-slate-300"
+                  />
+                </div>
+              </div>
+
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                <div>
+                  <label className="block font-bold text-charcoal mb-1">GSTIN (Optional)</label>
+                  <input
+                    type="text"
+                    value={newDealerForm.gst_number}
+                    onChange={(e) => setNewDealerForm({ ...newDealerForm, gst_number: e.target.value.toUpperCase() })}
+                    placeholder="e.g. 08AAAAA0000A1Z5"
+                    className="w-full px-3 py-2 rounded-xl border border-slate-300 uppercase font-mono"
+                  />
+                </div>
+
+                <div>
+                  <label className="block font-bold text-charcoal mb-1">Business Type</label>
+                  <input
+                    type="text"
+                    value={newDealerForm.business_type}
+                    onChange={(e) => setNewDealerForm({ ...newDealerForm, business_type: e.target.value })}
+                    placeholder="e.g. Computer Hardware Retailer"
+                    className="w-full px-3 py-2 rounded-xl border border-slate-300"
+                  />
+                </div>
+              </div>
+
+              <div>
+                <label className="block font-bold text-charcoal mb-1">Shop / Warehouse Address *</label>
+                <input
+                  type="text"
+                  required
+                  value={newDealerForm.address}
+                  onChange={(e) => setNewDealerForm({ ...newDealerForm, address: e.target.value })}
+                  placeholder="Plot/Shop No, Street, Landmark"
+                  className="w-full px-3 py-2 rounded-xl border border-slate-300"
+                />
+              </div>
+
+              <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+                <div>
+                  <label className="block font-bold text-charcoal mb-1">City *</label>
+                  <input
+                    type="text"
+                    required
+                    value={newDealerForm.city}
+                    onChange={(e) => setNewDealerForm({ ...newDealerForm, city: e.target.value })}
+                    placeholder="Jaipur"
+                    className="w-full px-3 py-2 rounded-xl border border-slate-300"
+                  />
+                </div>
+
+                <div>
+                  <label className="block font-bold text-charcoal mb-1">State *</label>
+                  <input
+                    type="text"
+                    required
+                    value={newDealerForm.state}
+                    onChange={(e) => setNewDealerForm({ ...newDealerForm, state: e.target.value })}
+                    placeholder="Rajasthan"
+                    className="w-full px-3 py-2 rounded-xl border border-slate-300"
+                  />
+                </div>
+
+                <div>
+                  <label className="block font-bold text-charcoal mb-1">Pincode *</label>
+                  <input
+                    type="text"
+                    required
+                    maxLength={6}
+                    value={newDealerForm.pincode}
+                    onChange={(e) => setNewDealerForm({ ...newDealerForm, pincode: e.target.value.replace(/\D/g, '') })}
+                    placeholder="302001"
+                    className="w-full px-3 py-2 rounded-xl border border-slate-300"
+                  />
+                </div>
+              </div>
+
+              <div className="p-3 bg-slate-50 border border-slate-200 rounded-2xl grid grid-cols-1 sm:grid-cols-2 gap-3">
+                <div>
+                  <label className="block font-bold text-charcoal mb-1">Assigned Dealer Code (Optional)</label>
+                  <input
+                    type="text"
+                    value={newDealerForm.dealer_code}
+                    onChange={(e) => setNewDealerForm({ ...newDealerForm, dealer_code: e.target.value.toUpperCase() })}
+                    placeholder="Auto-generated (e.g. DLR-1003)"
+                    className="w-full px-3 py-2 rounded-xl border border-slate-300 font-mono font-bold"
+                  />
+                </div>
+
+                <div>
+                  <label className="block font-bold text-charcoal mb-1">Initial Password *</label>
+                  <input
+                    type="text"
+                    required
+                    value={newDealerForm.password}
+                    onChange={(e) => setNewDealerForm({ ...newDealerForm, password: e.target.value })}
+                    placeholder="dealer123"
+                    className="w-full px-3 py-2 rounded-xl border border-slate-300 font-mono"
+                  />
+                </div>
+              </div>
+
+              <div className="pt-3 border-t border-slate-200 flex justify-end gap-2">
+                <button
+                  type="button"
+                  onClick={() => setNewDealerModalOpen(false)}
+                  className="px-4 py-2 border border-slate-300 rounded-xl font-bold cursor-pointer"
+                >
+                  Cancel
+                </button>
+                <button
+                  type="submit"
+                  className="px-6 py-2 bg-emerald-600 hover:bg-emerald-700 text-white rounded-xl font-bold cursor-pointer shadow-sm"
+                >
+                  Create & Activate Dealer
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
+
+      {/* ===================== RESET DEALER PASSWORD MODAL ===================== */}
+      {resetPasswordDealer && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-xs overflow-y-auto">
+          <div className="bg-white rounded-3xl max-w-md w-full p-6 shadow-2xl border border-slate-200 text-left space-y-4">
+            <div className="flex items-center justify-between pb-3 border-b border-slate-200">
+              <h3 className="font-extrabold text-base text-primary flex items-center gap-2">
+                <KeyRound className="w-4 h-4 text-secondary" />
+                <span>Reset Dealer Password</span>
+              </h3>
+              <button
+                onClick={() => setResetPasswordDealer(null)}
+                className="p-1 rounded-lg text-slate-400 hover:text-charcoal cursor-pointer"
+              >
+                <X className="w-5 h-5" />
+              </button>
+            </div>
+
+            <div className="p-3 bg-slate-50 border border-slate-200 rounded-2xl text-xs space-y-1">
+              <div><strong>Dealer:</strong> {resetPasswordDealer.dealer_code} ({resetPasswordDealer.business_name})</div>
+              <div><strong>Phone:</strong> +91 {resetPasswordDealer.phone}</div>
+            </div>
+
+            <form onSubmit={handleResetDealerPassword} className="space-y-4 text-xs">
+              <div>
+                <label className="block font-bold text-charcoal mb-1">Enter New Temporary Password *</label>
+                <input
+                  type="text"
+                  required
+                  minLength={6}
+                  value={resetNewPasswordInput}
+                  onChange={(e) => setResetNewPasswordInput(e.target.value)}
+                  placeholder="e.g. newPass2026"
+                  className="w-full px-3 py-2.5 rounded-xl border border-slate-300 font-mono text-sm"
+                />
+              </div>
+
+              <div className="pt-2 flex justify-between gap-2">
+                <a
+                  href={generateDealerApprovalWhatsAppUrl(resetPasswordDealer, resetNewPasswordInput || 'dealer123')}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="px-3 py-2 bg-emerald-50 hover:bg-emerald-100 text-emerald-800 border border-emerald-300 rounded-xl font-bold flex items-center gap-1.5"
+                >
+                  <MessageCircle className="w-3.5 h-3.5" />
+                  <span>Send WhatsApp</span>
+                </a>
+
+                <div className="flex gap-2">
+                  <button
+                    type="button"
+                    onClick={() => setResetPasswordDealer(null)}
+                    className="px-3 py-2 border border-slate-300 rounded-xl font-bold cursor-pointer"
+                  >
+                    Cancel
+                  </button>
+                  <button
+                    type="submit"
+                    className="px-4 py-2 bg-primary hover:bg-primary-light text-white font-bold rounded-xl cursor-pointer"
+                  >
+                    Save New Password
+                  </button>
+                </div>
+              </div>
+            </form>
           </div>
         </div>
       )}

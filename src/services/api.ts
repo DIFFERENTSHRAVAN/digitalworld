@@ -7,10 +7,13 @@ import {
   OrderItem,
   OrderStatus,
   PaymentStatus,
+  PaymentMethod,
   OrderCustomerInfo,
   AdminUser,
   CustomerUser,
-  CustomerAddress
+  CustomerAddress,
+  DealerUser,
+  DealerStatus
 } from '../types';
 import {
   initialCategories,
@@ -145,6 +148,23 @@ const getLocalProducts = (): Product[] => {
   try {
     const prods: Product[] = JSON.parse(data);
     let updated = false;
+
+    // Auto-sync any new initialProducts (e.g. wholesale lots, wholesale prices)
+    initialProducts.forEach(initP => {
+      const existing = prods.find(p => p.id === initP.id);
+      if (!existing) {
+        prods.push(initP);
+        updated = true;
+      } else {
+        if (existing.dealer_price === undefined && initP.dealer_price !== undefined) {
+          existing.dealer_price = initP.dealer_price;
+          existing.min_dealer_qty = initP.min_dealer_qty;
+          existing.is_dealer_only = initP.is_dealer_only;
+          updated = true;
+        }
+      }
+    });
+
     prods.forEach(p => {
       if (p.category_name === 'Second-Hand Laptops') {
         p.category_name = 'Refurbished Laptops';
@@ -166,7 +186,17 @@ const getLocalOrders = (): Order[] => {
     localStorage.setItem(STORAGE_ORDERS, JSON.stringify(initialOrders));
     return initialOrders;
   }
-  return JSON.parse(data);
+  try {
+    const parsed: Order[] = JSON.parse(data);
+    // If empty or missing initial orders, ensure demo orders exist
+    if (parsed.length === 0) {
+      localStorage.setItem(STORAGE_ORDERS, JSON.stringify(initialOrders));
+      return initialOrders;
+    }
+    return parsed;
+  } catch {
+    return initialOrders;
+  }
 };
 
 // ==================== STORE SETTINGS ====================
@@ -234,6 +264,7 @@ export interface ProductFilters {
   featuredOnly?: boolean;
   specialOffersOnly?: boolean;
   isUsedLaptopOnly?: boolean;
+  allowDealerProducts?: boolean;
 }
 
 export const getProducts = async (filters: ProductFilters = {}): Promise<Product[]> => {
@@ -292,6 +323,11 @@ export const getProducts = async (filters: ProductFilters = {}): Promise<Product
     products = getLocalProducts().filter(p => p.is_published);
   }
 
+  // Retail isolation: Never show dealer-only products to regular retail browsing
+  if (!filters.allowDealerProducts) {
+    products = products.filter(p => !p.is_dealer_only);
+  }
+
   // Apply filters locally (works both for local mode and refinement)
   if (filters.search && filters.search.trim() !== '') {
     const q = filters.search.toLowerCase().trim();
@@ -348,10 +384,22 @@ export const getProducts = async (filters: ProductFilters = {}): Promise<Product
     products.sort((a, b) => new Date(b.created_at || 0).getTime() - new Date(a.created_at || 0).getTime());
   }
 
+  // Strip dealer_price for any user who is not an authenticated, approved dealer
+  const activeDealer = getCurrentDealer();
+  const isApprovedDealer = activeDealer && activeDealer.status === 'approved';
+  if (!isApprovedDealer) {
+    products = products.map(p => {
+      const sanitized = { ...p };
+      delete sanitized.dealer_price;
+      return sanitized;
+    });
+  }
+
   return products;
 };
 
 export const getProductByIdOrSlug = async (idOrSlug: string): Promise<Product | null> => {
+  let prod: Product | null = null;
   if (isSupabaseConfigured() && supabase) {
     try {
       const { data, error } = await supabase
@@ -360,7 +408,7 @@ export const getProductByIdOrSlug = async (idOrSlug: string): Promise<Product | 
         .or(`id.eq.${idOrSlug},slug.eq.${idOrSlug}`)
         .single();
       if (!error && data) {
-        return {
+        prod = {
           ...data,
           category_name: (data.categories as Record<string, unknown>)?.name as string || ''
         } as Product;
@@ -370,8 +418,29 @@ export const getProductByIdOrSlug = async (idOrSlug: string): Promise<Product | 
     }
   }
 
-  const products = getLocalProducts();
-  return products.find(p => p.id === idOrSlug || p.slug === idOrSlug) || null;
+  if (!prod) {
+    const products = getLocalProducts();
+    prod = products.find(p => p.id === idOrSlug || p.slug === idOrSlug) || null;
+  }
+
+  if (!prod) return null;
+
+  const activeDealer = getCurrentDealer();
+  const isApprovedDealer = activeDealer && activeDealer.status === 'approved';
+
+  // Retail isolation: block direct access to dealer-only exclusive products
+  if (prod.is_dealer_only && !isApprovedDealer) {
+    return null;
+  }
+
+  // Hide wholesale price from regular shoppers
+  if (!isApprovedDealer) {
+    const sanitized = { ...prod };
+    delete sanitized.dealer_price;
+    return sanitized;
+  }
+
+  return prod;
 };
 
 // ==================== ORDER CREATION & ATOMIC VALIDATION ====================
@@ -1270,6 +1339,543 @@ export const getCustomerOrders = async (phone: string): Promise<Order[]> => {
   const allOrders = await getAllOrdersAdmin();
   const cleanPhone = phone.replace(/\D/g, '').slice(-10);
   return allOrders.filter(o => o.customer_phone.replace(/\D/g, '').slice(-10) === cleanPhone);
+};
+
+// ==================== DEALER (B2B WHOLESALE) PORTAL ====================
+const STORAGE_DEALERS = 'dw_dealer_accounts';
+const STORAGE_DEALER_SESSION = 'dw_dealer_active_session';
+
+export interface StoredDealerAccount extends DealerUser {
+  passwordHash: string;
+}
+
+const initialDealers: StoredDealerAccount[] = [
+  {
+    id: 'dlr_1001',
+    dealer_code: 'DLR-1001',
+    business_name: 'Jaipur IT Solutions',
+    contact_person: 'Sunil Sharma',
+    phone: '9829012345',
+    email: 'sunil@jaipurit.com',
+    gst_number: '08AAAAA0000A1Z5',
+    business_type: 'Computer Hardware Retailer',
+    address: 'Plot 42, MI Road, Near Raj Mandir',
+    city: 'Jaipur',
+    state: 'Rajasthan',
+    pincode: '302001',
+    status: 'approved',
+    passwordHash: btoa('dealer123'),
+    created_at: new Date(Date.now() - 86400000 * 30).toISOString(),
+    approved_at: new Date(Date.now() - 86400000 * 29).toISOString(),
+    admin_notes: 'Verified wholesale partner with physical showroom in Jaipur.'
+  },
+  {
+    id: 'dlr_1002',
+    dealer_code: 'DLR-1002',
+    business_name: 'Marwar Electronics & Laptop Care',
+    contact_person: 'Rahul Jain',
+    phone: '9414056789',
+    email: 'rahul@marwarelectronics.com',
+    gst_number: '08BBBBB1111B1Z6',
+    business_type: 'Laptop Repair & Resale',
+    address: 'Shop 12, Station Road',
+    city: 'Jodhpur',
+    state: 'Rajasthan',
+    pincode: '342001',
+    status: 'pending',
+    passwordHash: btoa('dealer123'),
+    created_at: new Date(Date.now() - 86400000 * 2).toISOString(),
+    admin_notes: 'New dealer application submitted online. Verification pending.'
+  }
+];
+
+export const getStoredDealers = (): StoredDealerAccount[] => {
+  const raw = localStorage.getItem(STORAGE_DEALERS);
+  if (!raw) {
+    localStorage.setItem(STORAGE_DEALERS, JSON.stringify(initialDealers));
+    return initialDealers;
+  }
+  try {
+    return JSON.parse(raw);
+  } catch {
+    return initialDealers;
+  }
+};
+
+export const saveStoredDealers = (dealers: StoredDealerAccount[]): void => {
+  localStorage.setItem(STORAGE_DEALERS, JSON.stringify(dealers));
+};
+
+export function getCurrentDealer(): DealerUser | null {
+  const raw = localStorage.getItem(STORAGE_DEALER_SESSION);
+  if (!raw) return null;
+  try {
+    return JSON.parse(raw);
+  } catch {
+    return null;
+  }
+}
+
+export const dealerLogout = (): void => {
+  localStorage.removeItem(STORAGE_DEALER_SESSION);
+};
+
+export const dealerRegister = async (params: {
+  business_name: string;
+  contact_person: string;
+  phone: string;
+  email: string;
+  password: string;
+  gst_number?: string;
+  business_type?: string;
+  address: string;
+  city: string;
+  state: string;
+  pincode: string;
+}): Promise<{ success: boolean; dealer?: DealerUser; message?: string; error?: string }> => {
+  const cleanPhone = params.phone.replace(/\D/g, '').slice(-10);
+  if (cleanPhone.length !== 10 || !/^[6-9]\d{9}$/.test(cleanPhone)) {
+    return { success: false, error: 'Please enter a valid 10-digit Indian mobile number.' };
+  }
+  if (!params.business_name || params.business_name.trim().length < 3) {
+    return { success: false, error: 'Please enter your registered Business / Firm Name.' };
+  }
+  if (!params.contact_person || params.contact_person.trim().length < 2) {
+    return { success: false, error: 'Please enter the Contact Person name.' };
+  }
+  if (!params.email || !params.email.includes('@') || !params.email.includes('.')) {
+    return { success: false, error: 'Please enter a valid business email address.' };
+  }
+  if (!params.password || params.password.length < 6) {
+    return { success: false, error: 'Password must be at least 6 characters long.' };
+  }
+  if (!params.address || params.address.trim().length < 5) {
+    return { success: false, error: 'Please enter your complete shop / business address.' };
+  }
+
+  const dealers = getStoredDealers();
+  const cleanEmail = params.email.trim().toLowerCase();
+
+  const existing = dealers.find(d => d.phone === cleanPhone || d.email.toLowerCase() === cleanEmail);
+  if (existing) {
+    if (existing.status === 'pending') {
+      return { success: false, error: 'An application with this phone or email is already pending admin approval.' };
+    }
+    return { success: false, error: 'A dealer account with this phone or email already exists. Please log in.' };
+  }
+
+  const nextNum = 1000 + dealers.length + 1;
+  const dealerCode = `DLR-${nextNum}`;
+  const newId = `dlr_${Date.now()}_${Math.floor(Math.random() * 1000)}`;
+  const now = new Date().toISOString();
+
+  const newDealer: StoredDealerAccount = {
+    id: newId,
+    dealer_code: dealerCode,
+    business_name: params.business_name.trim(),
+    contact_person: params.contact_person.trim(),
+    phone: cleanPhone,
+    email: cleanEmail,
+    gst_number: params.gst_number?.trim().toUpperCase() || undefined,
+    business_type: params.business_type?.trim() || 'Electronics Retailer',
+    address: params.address.trim(),
+    city: params.city.trim(),
+    state: params.state.trim() || 'Rajasthan',
+    pincode: params.pincode.trim(),
+    status: 'pending',
+    passwordHash: btoa(params.password),
+    created_at: now
+  };
+
+  dealers.push(newDealer);
+  saveStoredDealers(dealers);
+
+  const publicDealer: DealerUser = {
+    id: newDealer.id,
+    dealer_code: newDealer.dealer_code,
+    business_name: newDealer.business_name,
+    contact_person: newDealer.contact_person,
+    phone: newDealer.phone,
+    email: newDealer.email,
+    gst_number: newDealer.gst_number,
+    business_type: newDealer.business_type,
+    address: newDealer.address,
+    city: newDealer.city,
+    state: newDealer.state,
+    pincode: newDealer.pincode,
+    status: 'pending',
+    created_at: newDealer.created_at
+  };
+
+  return {
+    success: true,
+    dealer: publicDealer,
+    message: `Your B2B registration request has been submitted successfully with reference ID ${dealerCode}. Our proprietor Vishal Soni will review and approve your account shortly.`
+  };
+};
+
+export const dealerLogin = async (
+  identifier: string,
+  password: string
+): Promise<{ success: boolean; dealer?: DealerUser; error?: string; status?: DealerStatus }> => {
+  const rawId = identifier.trim().toLowerCase();
+  const digits = rawId.replace(/\D/g, '').slice(-10);
+
+  const dealers = getStoredDealers();
+  const found = dealers.find(d =>
+    d.dealer_code.toLowerCase() === rawId ||
+    (digits.length === 10 && d.phone === digits) ||
+    d.email.toLowerCase() === rawId
+  );
+
+  if (!found) {
+    return {
+      success: false,
+      error: 'No dealer account found with this Dealer Code, Email, or Mobile Number. Please check your credentials or apply for registration.'
+    };
+  }
+
+  if (atob(found.passwordHash) !== password) {
+    return {
+      success: false,
+      error: 'Incorrect password for dealer portal. Please check and try again.'
+    };
+  }
+
+  if (found.status === 'pending') {
+    return {
+      success: false,
+      status: 'pending',
+      error: 'Your dealer registration is currently PENDING approval from store admin Vishal Soni. You will be notified on WhatsApp/Phone as soon as your account is approved.'
+    };
+  }
+
+  if (found.status === 'suspended') {
+    return {
+      success: false,
+      status: 'suspended',
+      error: 'Your dealer account is temporarily SUSPENDED. Please contact Digital World management (+91 6377123270) to resolve this.'
+    };
+  }
+
+  if (found.status === 'rejected') {
+    return {
+      success: false,
+      status: 'rejected',
+      error: 'Your dealer account application was DECLINED. Please reach out to Vishal Soni on WhatsApp for more details.'
+    };
+  }
+
+  const publicDealer: DealerUser = {
+    id: found.id,
+    dealer_code: found.dealer_code,
+    business_name: found.business_name,
+    contact_person: found.contact_person,
+    phone: found.phone,
+    email: found.email,
+    gst_number: found.gst_number,
+    business_type: found.business_type,
+    address: found.address,
+    city: found.city,
+    state: found.state,
+    pincode: found.pincode,
+    status: found.status,
+    created_at: found.created_at,
+    approved_at: found.approved_at,
+    admin_notes: found.admin_notes
+  };
+
+  localStorage.setItem(STORAGE_DEALER_SESSION, JSON.stringify(publicDealer));
+  return { success: true, dealer: publicDealer };
+};
+
+export const getDealerProducts = async (): Promise<Product[]> => {
+  const current = getCurrentDealer();
+  if (!current || current.status !== 'approved') {
+    throw new Error('Unauthorized: Only approved dealers can view wholesale pricing.');
+  }
+
+  const allProducts = getLocalProducts().filter(p => p.is_published);
+
+  return allProducts.map(p => {
+    const wholesalePrice = p.dealer_price || Math.round(p.price * 0.85);
+    return {
+      ...p,
+      dealer_price: wholesalePrice,
+      min_dealer_qty: p.min_dealer_qty || 1
+    };
+  });
+};
+
+export const createDealerOrder = async (params: {
+  dealerId: string;
+  items: { product: Product; quantity: number }[];
+  deliveryType: 'home_delivery' | 'store_pickup';
+  deliveryAddress: string;
+  city: string;
+  state: string;
+  pincode: string;
+  paymentMethod: PaymentMethod;
+  orderNotes?: string;
+}): Promise<{ success: boolean; order: Order; message?: string }> => {
+  const current = getCurrentDealer();
+  if (!current || current.id !== params.dealerId || current.status !== 'approved') {
+    throw new Error('Unauthorized dealer session. Please log in.');
+  }
+
+  if (params.items.length === 0) {
+    throw new Error('Cannot place an empty wholesale order.');
+  }
+
+  const allProducts = getLocalProducts();
+  const orderItems: OrderItem[] = [];
+  let subtotal = 0;
+
+  for (const item of params.items) {
+    const fresh = allProducts.find(p => p.id === item.product.id);
+    if (!fresh) {
+      throw new Error(`Product ${item.product.name} not found in inventory.`);
+    }
+
+    const minQty = fresh.min_dealer_qty || 1;
+    if (item.quantity < minQty) {
+      throw new Error(`Minimum wholesale order quantity for "${fresh.name}" is ${minQty} units.`);
+    }
+
+    if (fresh.stock_quantity < item.quantity) {
+      throw new Error(`Insufficient wholesale stock for "${fresh.name}". Only ${fresh.stock_quantity} available.`);
+    }
+
+    const wholesaleUnitPrice = fresh.dealer_price || Math.round(fresh.price * 0.85);
+    const lineTotal = wholesaleUnitPrice * item.quantity;
+    subtotal += lineTotal;
+
+    orderItems.push({
+      product_id: fresh.id,
+      product_name: fresh.name,
+      product_brand: fresh.brand,
+      product_model: fresh.model,
+      product_image: fresh.primary_image,
+      condition: fresh.condition,
+      unit_price: wholesaleUnitPrice,
+      quantity: item.quantity,
+      total_price: lineTotal
+    });
+
+    fresh.stock_quantity -= item.quantity;
+    if (fresh.stock_quantity <= 0) {
+      fresh.is_sold_out = true;
+    }
+  }
+
+  localStorage.setItem(STORAGE_PRODUCTS, JSON.stringify(allProducts));
+
+  const orderNum = `B2B-${Date.now().toString().slice(-4)}`;
+  const now = new Date().toISOString();
+
+  const newOrder: Order = {
+    id: `ord_b2b_${Date.now()}`,
+    order_number: orderNum,
+    order_type: 'dealer',
+    dealer_id: current.id,
+    dealer_code: current.dealer_code,
+    dealer_business_name: current.business_name,
+    gst_number: current.gst_number,
+    customer_name: `${current.contact_person} (${current.business_name})`,
+    customer_phone: current.phone,
+    customer_whatsapp: current.phone,
+    customer_email: current.email,
+    delivery_type: params.deliveryType,
+    delivery_address: params.deliveryAddress,
+    city: params.city,
+    state: params.state,
+    pincode: params.pincode,
+    order_notes: params.orderNotes,
+    subtotal,
+    delivery_charge: 0,
+    total_amount: subtotal,
+    payment_method: params.paymentMethod,
+    payment_status: 'pending',
+    order_status: 'pending',
+    created_at: now,
+    items: orderItems,
+    status_history: [
+      {
+        order_id: `ord_b2b_${Date.now()}`,
+        status: 'pending',
+        note: `Wholesale order placed via Dealer Portal by ${current.contact_person}`,
+        created_at: now,
+        updated_by: current.dealer_code
+      }
+    ]
+  };
+
+  const orders = getLocalOrders();
+  orders.unshift(newOrder);
+  localStorage.setItem(STORAGE_ORDERS, JSON.stringify(orders));
+
+  return { success: true, order: newOrder, message: 'Wholesale order submitted successfully!' };
+};
+
+export const getDealerOrders = async (dealerId: string): Promise<Order[]> => {
+  const allOrders = await getAllOrdersAdmin();
+  return allOrders.filter(o => o.order_type === 'dealer' && o.dealer_id === dealerId);
+};
+
+// ==================== ADMIN DEALER MANAGEMENT ====================
+export const getDealersAdmin = async (): Promise<DealerUser[]> => {
+  const dealers = getStoredDealers();
+  return dealers.map(({ passwordHash, ...rest }) => rest);
+};
+
+export const updateDealerStatusAdmin = async (
+  dealerId: string,
+  status: DealerStatus,
+  adminNotes?: string
+): Promise<DealerUser> => {
+  const dealers = getStoredDealers();
+  const idx = dealers.findIndex(d => d.id === dealerId);
+  if (idx === -1) throw new Error('Dealer not found');
+
+  dealers[idx].status = status;
+  if (status === 'approved' && !dealers[idx].approved_at) {
+    dealers[idx].approved_at = new Date().toISOString();
+  }
+  if (adminNotes !== undefined) {
+    dealers[idx].admin_notes = adminNotes;
+  }
+
+  saveStoredDealers(dealers);
+  const { passwordHash, ...publicDealer } = dealers[idx];
+  return publicDealer;
+};
+
+export const createDealerAdmin = async (params: {
+  business_name: string;
+  contact_person: string;
+  phone: string;
+  email: string;
+  password?: string;
+  dealer_code?: string;
+  gst_number?: string;
+  business_type?: string;
+  address: string;
+  city: string;
+  state: string;
+  pincode: string;
+  status?: DealerStatus;
+}): Promise<DealerUser> => {
+  const cleanPhone = params.phone.replace(/\D/g, '').slice(-10);
+  const cleanEmail = params.email.trim().toLowerCase();
+  const dealers = getStoredDealers();
+
+  const assignedCode = params.dealer_code?.trim() || `DLR-${1000 + dealers.length + 1}`;
+  const assignedPassword = params.password || 'dealer123';
+  const newId = `dlr_${Date.now()}_${Math.floor(Math.random() * 1000)}`;
+  const now = new Date().toISOString();
+
+  const newDealer: StoredDealerAccount = {
+    id: newId,
+    dealer_code: assignedCode,
+    business_name: params.business_name.trim(),
+    contact_person: params.contact_person.trim(),
+    phone: cleanPhone,
+    email: cleanEmail,
+    gst_number: params.gst_number?.trim().toUpperCase(),
+    business_type: params.business_type?.trim() || 'Electronics Dealer',
+    address: params.address.trim(),
+    city: params.city.trim(),
+    state: params.state.trim() || 'Rajasthan',
+    pincode: params.pincode.trim(),
+    status: params.status || 'approved',
+    passwordHash: btoa(assignedPassword),
+    created_at: now,
+    approved_at: params.status !== 'pending' ? now : undefined
+  };
+
+  dealers.push(newDealer);
+  saveStoredDealers(dealers);
+
+  const { passwordHash, ...publicDealer } = newDealer;
+  return publicDealer;
+};
+
+export const resetDealerPasswordAdmin = async (
+  dealerId: string,
+  newPassword: string
+): Promise<{ success: boolean; message: string }> => {
+  if (!newPassword || newPassword.length < 6) {
+    throw new Error('New password must be at least 6 characters long.');
+  }
+
+  const dealers = getStoredDealers();
+  const dealer = dealers.find(d => d.id === dealerId);
+  if (!dealer) throw new Error('Dealer account not found.');
+
+  dealer.passwordHash = btoa(newPassword);
+  saveStoredDealers(dealers);
+
+  return {
+    success: true,
+    message: `Password for dealer ${dealer.dealer_code} (${dealer.business_name}) has been reset successfully.`
+  };
+};
+
+export const generateDealerApprovalWhatsAppUrl = (
+  dealer: DealerUser,
+  tempPassword?: string
+): string => {
+  const cleanPhone = dealer.phone.replace(/\D/g, '');
+  const targetPhone = cleanPhone.startsWith('91') ? cleanPhone : `91${cleanPhone}`;
+
+  let message = `*🎉 DEALER ACCOUNT APPROVED - ${STORE_CONFIG.shopName}*\n\n`;
+  message += `Namaste *${dealer.contact_person}*ji,\n\n`;
+  message += `Congratulations! Your B2B Dealer registration for *${dealer.business_name}* has been verified and APPROVED by Vishal Soni.\n\n`;
+  message += `*Your B2B Login Details:*\n`;
+  message += `• *Dealer Code:* ${dealer.dealer_code}\n`;
+  message += `• *Registered Phone:* +91 ${dealer.phone}\n`;
+  if (tempPassword) {
+    message += `• *Temporary Password:* ${tempPassword}\n`;
+  }
+  message += `• *Wholesale Portal:* ${window.location.origin}/dealer/login\n\n`;
+  message += `You can now log in to view special wholesale pricing, dealer-only refurbished laptop lots, and place bulk orders.\n\n`;
+  message += `For any wholesale inquiry or bulk quotations, feel free to reply directly to Vishal Soni here.\n\n`;
+  message += `Warm regards,\n*Digital World B2B Team*`;
+
+  return `https://wa.me/${targetPhone}?text=${encodeURIComponent(message)}`;
+};
+
+export const generateDealerOrderWhatsAppUrl = (
+  order: Order,
+  dealer: DealerUser
+): string => {
+  const targetNumber = STORE_CONFIG.whatsappNumber;
+  const cleanNumber = targetNumber ? targetNumber.replace(/\D/g, '') : '';
+
+  let message = `*📦 NEW B2B WHOLESALE ORDER - ${STORE_CONFIG.shopName}*\n\n`;
+  message += `*Order ID:* ${order.order_number}\n`;
+  message += `*Dealer Code:* ${dealer.dealer_code}\n`;
+  message += `*Firm Name:* ${dealer.business_name}\n`;
+  message += `*Contact Person:* ${dealer.contact_person} (+91 ${dealer.phone})\n`;
+  if (dealer.gst_number) {
+    message += `*GSTIN:* ${dealer.gst_number}\n`;
+  }
+  message += `*Delivery Type:* ${order.delivery_type === 'store_pickup' ? 'Store Pickup' : 'Dispatch to Address'}\n`;
+  message += `*Address:* ${order.delivery_address}, ${order.city}, ${order.state} - ${order.pincode}\n`;
+  message += `*Payment:* ${order.payment_method.toUpperCase()} (${order.payment_status})\n\n`;
+  message += `*Wholesale Items:*\n`;
+
+  (order.items || []).forEach((item, index) => {
+    message += `${index + 1}. ${item.product_name} (x${item.quantity}) - ${formatINR(item.total_price)}\n`;
+  });
+
+  message += `\n*Wholesale Total:* ${formatINR(order.total_amount)}\n`;
+  if (order.order_notes) {
+    message += `*Dealer Notes:* ${order.order_notes}\n`;
+  }
+  message += `\nTime: ${new Date(order.created_at).toLocaleString('en-IN')}`;
+
+  return `https://wa.me/${cleanNumber ? (cleanNumber.startsWith('91') ? cleanNumber : `91${cleanNumber}`) : ''}?text=${encodeURIComponent(message)}`;
 };
 
 export const adminLogout = async (): Promise<void> => {

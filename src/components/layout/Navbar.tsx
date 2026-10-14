@@ -12,12 +12,16 @@ import {
   Laptop,
   Sparkles,
   Languages,
-  Clock
+  Clock,
+  User,
+  Briefcase
 } from 'lucide-react';
 import { Logo } from '../common/Logo';
 import { useCart } from '../../context/CartContext';
 import { useLanguage } from '../../context/LanguageContext';
 import { useStoreSettings } from '../../context/StoreSettingsContext';
+import { useCustomerAuth } from '../../context/CustomerAuthContext';
+import { useDealerAuth } from '../../context/DealerAuthContext';
 import { STORE_CONFIG } from '../../config/storeConfig';
 
 export const Navbar: React.FC = () => {
@@ -25,6 +29,8 @@ export const Navbar: React.FC = () => {
   const { totalItems, setIsCartDrawerOpen } = useCart();
   const { language, setLanguage, t } = useLanguage();
   const { settings } = useStoreSettings();
+  const { customer, isLoggedIn } = useCustomerAuth();
+  const { dealer, isDealerLoggedIn } = useDealerAuth();
 
   const [searchQuery, setSearchQuery] = useState('');
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
@@ -90,6 +96,16 @@ export const Navbar: React.FC = () => {
               </a>
             )}
 
+            {/* Dealer Quick Access Pill */}
+            <Link
+              to={isDealerLoggedIn ? "/dealer/dashboard" : "/dealer/login"}
+              className="flex items-center gap-1 px-2.5 py-0.5 rounded-full bg-amber-400 text-slate-950 hover:bg-amber-300 font-bold text-[11px] transition-colors shadow-xs"
+              title="Authorized Dealer Wholesale Portal"
+            >
+              <Briefcase className="w-3 h-3 text-slate-950" />
+              <span>{isDealerLoggedIn ? `${dealer?.business_name || 'Dealer'} (B2B)` : 'Dealer B2B'}</span>
+            </Link>
+
             {/* Language Switcher */}
             <button
               onClick={toggleLanguage}
@@ -133,18 +149,52 @@ export const Navbar: React.FC = () => {
           </form>
 
           {/* Quick links & Cart */}
-          <div className="flex items-center gap-2 sm:gap-4">
+          <div className="flex items-center gap-2 sm:gap-3">
             <Link
               to="/order-lookup"
-              className="hidden lg:flex items-center gap-1.5 text-xs font-medium text-charcoal-muted hover:text-secondary px-2.5 py-1.5 rounded-lg hover:bg-slate-50 transition-colors"
+              className="hidden xl:flex items-center gap-1.5 text-xs font-medium text-charcoal-muted hover:text-secondary px-2.5 py-1.5 rounded-lg hover:bg-slate-50 transition-colors"
             >
               <Package className="w-4 h-4" />
               <span>{t('navTrackOrder')}</span>
             </Link>
 
+            {/* Customer Account / Sign In */}
+            {isLoggedIn && customer ? (
+              <Link
+                to="/account"
+                className="hidden sm:flex items-center gap-1.5 text-xs font-bold text-primary hover:text-secondary px-3 py-1.5 rounded-xl border border-slate-200 hover:border-secondary bg-surface-muted/60 hover:bg-white transition-all shadow-xs"
+                title="Customer Account & Orders"
+              >
+                <User className="w-4 h-4 text-secondary" />
+                <span className="max-w-[100px] truncate">{customer.name.split(' ')[0]}</span>
+              </Link>
+            ) : (
+              <Link
+                to="/customer/login"
+                className="hidden sm:flex items-center gap-1.5 text-xs font-bold text-charcoal hover:text-primary px-3 py-1.5 rounded-xl border border-slate-200 hover:border-primary/40 bg-white transition-all shadow-xs"
+                title="Customer Sign In / Register"
+              >
+                <User className="w-4 h-4 text-charcoal-muted" />
+                <span>Customer Sign In</span>
+              </Link>
+            )}
+
+            {/* Dealer Portal B2B Button */}
+            <Link
+              to={isDealerLoggedIn ? "/dealer/dashboard" : "/dealer/login"}
+              className="hidden lg:flex items-center gap-1.5 text-xs font-black text-slate-950 bg-gradient-to-r from-amber-400 to-amber-300 hover:from-amber-300 hover:to-amber-200 px-3 py-1.5 rounded-xl border border-amber-500/30 shadow-xs transition-all"
+              title="Authorized Dealer Wholesale Portal"
+            >
+              <Briefcase className="w-3.5 h-3.5" />
+              <span>{isDealerLoggedIn ? 'Dealer Hub' : 'Dealer Portal'}</span>
+              <span className="bg-slate-950 text-white text-[9px] px-1 py-0.2 rounded font-black tracking-wider uppercase ml-0.5">
+                B2B
+              </span>
+            </Link>
+
             <Link
               to="/admin/login"
-              className="hidden md:flex items-center gap-1.5 text-xs font-medium text-charcoal-muted hover:text-primary px-2.5 py-1.5 rounded-lg hover:bg-slate-50 transition-colors"
+              className="hidden md:flex items-center gap-1.5 text-xs font-medium text-charcoal-muted hover:text-primary px-2 py-1.5 rounded-lg hover:bg-slate-50 transition-colors"
             >
               <span>{t('navAdmin')}</span>
             </Link>
@@ -255,12 +305,67 @@ export const Navbar: React.FC = () => {
           >
             Networking
           </Link>
+
+          {/* Dealer Wholesale B2B Shortcut */}
+          <div className="ml-auto pl-2 shrink-0">
+            <Link
+              to={isDealerLoggedIn ? "/dealer/dashboard" : "/dealer/login"}
+              className="px-2.5 py-1 rounded-lg text-slate-950 font-bold bg-amber-400 hover:bg-amber-300 transition-colors flex items-center gap-1.5 text-[11px] shadow-xs"
+            >
+              <Briefcase className="w-3.5 h-3.5 text-slate-950" />
+              <span>Wholesale Lots & Rates</span>
+              <span className="bg-slate-950 text-white text-[9px] px-1 py-0.2 rounded font-black uppercase">
+                B2B
+              </span>
+            </Link>
+          </div>
         </div>
       </nav>
 
       {/* Mobile Drawer Menu */}
       {mobileMenuOpen && (
         <div className="md:hidden bg-white border-t border-slate-200 px-4 py-4 space-y-3 animate-fade-in shadow-xl">
+          {/* Customer & Dealer Quick Actions in Mobile Drawer */}
+          <div className="grid grid-cols-2 gap-2 text-xs font-semibold">
+            {isLoggedIn && customer ? (
+              <Link
+                to="/account"
+                onClick={() => setMobileMenuOpen(false)}
+                className="p-2.5 rounded-xl bg-blue-50/80 text-primary border border-blue-200 flex items-center gap-2"
+              >
+                <User className="w-4 h-4 text-secondary shrink-0" />
+                <div className="truncate text-left">
+                  <div className="font-bold truncate">{customer.name.split(' ')[0]}</div>
+                  <div className="text-[10px] text-charcoal-muted">Customer Account</div>
+                </div>
+              </Link>
+            ) : (
+              <Link
+                to="/customer/login"
+                onClick={() => setMobileMenuOpen(false)}
+                className="p-2.5 rounded-xl bg-slate-50 text-charcoal border border-slate-200 flex items-center gap-2"
+              >
+                <User className="w-4 h-4 text-charcoal-muted shrink-0" />
+                <div className="text-left">
+                  <div className="font-bold">Customer Sign In</div>
+                  <div className="text-[10px] text-charcoal-muted">Login or Register</div>
+                </div>
+              </Link>
+            )}
+
+            <Link
+              to={isDealerLoggedIn ? "/dealer/dashboard" : "/dealer/login"}
+              onClick={() => setMobileMenuOpen(false)}
+              className="p-2.5 rounded-xl bg-amber-50 text-slate-950 border border-amber-300 flex items-center gap-2"
+            >
+              <Briefcase className="w-4 h-4 text-amber-600 shrink-0" />
+              <div className="truncate text-left">
+                <div className="font-bold truncate">{isDealerLoggedIn ? 'Dealer Hub' : 'Dealer Portal'}</div>
+                <div className="text-[10px] text-amber-800">Wholesale B2B</div>
+              </div>
+            </Link>
+          </div>
+
           <div className="grid grid-cols-2 gap-2 text-xs font-semibold">
             <Link
               to="/category/refurbished-laptops"
@@ -318,6 +423,13 @@ export const Navbar: React.FC = () => {
               className="block px-3 py-2 rounded-lg text-secondary font-semibold hover:bg-blue-50"
             >
               Track Existing Order
+            </Link>
+            <Link
+              to="/dealer/login"
+              onClick={() => setMobileMenuOpen(false)}
+              className="block px-3 py-2 rounded-lg text-amber-700 font-semibold hover:bg-amber-50"
+            >
+              Dealer / B2B Wholesale Portal
             </Link>
             <Link
               to="/admin/login"
