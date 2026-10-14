@@ -7,7 +7,11 @@ export const LocalModeNotice: React.FC = () => {
   const [showModal, setShowModal] = useState(false);
   const [isDismissed, setIsDismissed] = useState(false);
 
-  if (!isLocal || isDismissed) return null;
+  // In production builds, hide this banner from regular customer storefront so it looks 100% professional
+  const isAdminRoute = window.location.pathname.startsWith('/admin');
+  const isDev = import.meta.env.DEV;
+
+  if (!isLocal || isDismissed || (!isDev && !isAdminRoute)) return null;
 
   return (
     <>
