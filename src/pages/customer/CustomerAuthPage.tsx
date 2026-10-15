@@ -38,6 +38,7 @@ export const CustomerAuthPage: React.FC = () => {
   const [otpSent, setOtpSent] = useState(false);
   const [otpSending, setOtpSending] = useState(false);
   const [otpNotice, setOtpNotice] = useState<string | null>(null);
+  const [displayOtp, setDisplayOtp] = useState<string | null>(null);
 
   // Status
   const [error, setError] = useState<string | null>(null);
@@ -70,6 +71,7 @@ export const CustomerAuthPage: React.FC = () => {
     e.preventDefault();
     setError(null);
     setOtpNotice(null);
+    setDisplayOtp(null);
 
     const clean = identifier.replace(/\D/g, '').slice(-10);
     if (clean.length !== 10 && !identifier.includes('@')) {
@@ -83,6 +85,9 @@ export const CustomerAuthPage: React.FC = () => {
       if (res.success) {
         setOtpSent(true);
         setOtpNotice(res.message);
+        if (res.previewOtp) {
+          setDisplayOtp(res.previewOtp);
+        }
       }
     } catch (err: unknown) {
       setError((err as Error).message || 'Failed to send OTP.');
@@ -340,9 +345,46 @@ export const CustomerAuthPage: React.FC = () => {
                   </form>
                 ) : (
                   <form onSubmit={handleVerifyOtp} className="space-y-4">
+                    {/* Prominent Instant OTP Display Box */}
+                    {displayOtp && (
+                      <div className="p-4 bg-emerald-50 border-2 border-emerald-500 rounded-2xl shadow-xs space-y-3">
+                        <div className="flex items-center justify-between">
+                          <span className="font-extrabold text-[11px] uppercase tracking-wider text-emerald-900 flex items-center gap-1.5">
+                            <ShieldCheck className="w-4 h-4 text-emerald-600" />
+                            <span>Security OTP Generated</span>
+                          </span>
+                          <span className="text-[10px] bg-emerald-200 text-emerald-900 px-2 py-0.5 rounded-full font-bold">
+                            Valid 10 Min
+                          </span>
+                        </div>
+
+                        <p className="text-xs text-emerald-900">
+                          Your 6-digit login verification code for <strong>+91 {identifier.replace(/\D/g, '').slice(-10)}</strong>:
+                        </p>
+
+                        <div className="flex items-center gap-2.5">
+                          <div className="flex-1 font-mono text-2xl font-black text-center tracking-widest text-[#7b0c1e] bg-white border border-emerald-300 py-1.5 rounded-xl shadow-inner select-all">
+                            {displayOtp}
+                          </div>
+                          <button
+                            type="button"
+                            onClick={() => setOtpCode(displayOtp)}
+                            className="px-3.5 py-2.5 bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-xs rounded-xl shadow-xs transition-transform active:scale-95 flex items-center gap-1 shrink-0 cursor-pointer"
+                          >
+                            <CheckCircle2 className="w-3.5 h-3.5" />
+                            <span>Auto-Fill</span>
+                          </button>
+                        </div>
+
+                        <div className="text-[10.5px] text-slate-500 bg-white/80 p-2 rounded-lg border border-slate-200/60 leading-relaxed">
+                          ℹ️ Direct telecom SMS requires commercial DLT gateway. Code is provided above for instant demo/dev access. Click <strong>Auto-Fill</strong> then <strong>Verify OTP</strong>.
+                        </div>
+                      </div>
+                    )}
+
                     <div>
                       <label className="block font-bold text-charcoal mb-1 text-center">
-                        Enter 6-Digit Code sent to +91 {identifier.slice(-10)}
+                        Enter 6-Digit Code for +91 {identifier.slice(-10)}
                       </label>
                       <input
                         type="text"
@@ -371,8 +413,9 @@ export const CustomerAuthPage: React.FC = () => {
                           setOtpSent(false);
                           setOtpCode('');
                           setOtpNotice(null);
+                          setDisplayOtp(null);
                         }}
-                        className="text-[11px] text-charcoal-muted hover:text-primary"
+                        className="text-[11px] text-charcoal-muted hover:text-primary cursor-pointer underline"
                       >
                         Change Mobile Number
                       </button>

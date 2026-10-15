@@ -16,7 +16,12 @@ import {
   Briefcase,
   Home,
   Mic,
-  Camera
+  Camera,
+  Store,
+  Headphones,
+  FileText,
+  ChevronDown,
+  Heart
 } from 'lucide-react';
 import { Logo } from '../common/Logo';
 import { ShopByCategoryAccordion } from '../category/ShopByCategoryAccordion';
@@ -26,10 +31,214 @@ import { useStoreSettings } from '../../context/StoreSettingsContext';
 import { useCustomerAuth } from '../../context/CustomerAuthContext';
 import { useDealerAuth } from '../../context/DealerAuthContext';
 import { STORE_CONFIG } from '../../config/storeConfig';
+import { formatINR } from '../../services/api';
+
+const DESKTOP_NAV_CATEGORIES = [
+  {
+    id: 'desktop',
+    name: 'Desktop',
+    slug: 'desktop-computers',
+    subcategories: [
+      'Barebone Desktop',
+      'Branded Desktop',
+      'CPU (Processor)',
+      'Open Box Desktop',
+      'CPU Fan & Coolers',
+      'Motherboard',
+      'Desktop RAM (Memory)',
+      'Graphic Card (GPU)',
+      'Cabinet | RGB Fan'
+    ]
+  },
+  {
+    id: 'laptop',
+    name: 'Laptop',
+    slug: 'laptops',
+    subcategories: [
+      'Certified Second-Hand Laptops',
+      'Business Laptops (ThinkPad, Latitude)',
+      'Brand New Laptops',
+      'Laptop RAM (DDR4 / DDR5)',
+      'Laptop NVMe & SATA SSD',
+      'Laptop Battery & Adapters',
+      'Laptop Screen & Keyboards'
+    ]
+  },
+  {
+    id: 'storage',
+    name: 'Storage',
+    slug: 'storage-devices',
+    subcategories: [
+      'M.2 NVMe SSD (Gen3 & Gen4)',
+      '2.5" SATA SSD (Crucial, EVM)',
+      'Internal Desktop HDD',
+      'Surveillance Hard Drives',
+      'External Portable Hard Disk',
+      'USB Pen Drives & MicroSD'
+    ]
+  },
+  {
+    id: 'display',
+    name: 'Display',
+    slug: 'monitors-and-displays',
+    subcategories: [
+      'Gaming Monitors (144Hz+)',
+      'Full HD IPS Monitors (22", 24", 27")',
+      '4K Professional Displays',
+      'Curved Monitors',
+      'Monitor Wall Mounts & Arms',
+      'HDMI & DisplayPort Cables'
+    ]
+  },
+  {
+    id: 'peripherals',
+    name: 'Peripherals',
+    slug: 'keyboards-and-mice',
+    subcategories: [
+      'Mechanical Gaming Keyboards',
+      'Wireless Keyboard & Mouse Combos',
+      'Ergonomic Optical Mice',
+      'Gaming Mousepads',
+      'HD Webcams with Mic',
+      'USB Numeric Keypads'
+    ]
+  },
+  {
+    id: 'printers',
+    name: 'Printers & Scanners',
+    slug: 'printers-and-scanners',
+    subcategories: [
+      'All-in-One Ink Tank Printers',
+      'Monochrome Laser Printers',
+      'Original Ink Bottles & Cartridges',
+      'Thermal Receipt Printers',
+      'Flatbed Document Scanners',
+      'Barcode Scanners & Ribbons'
+    ]
+  },
+  {
+    id: 'security',
+    name: 'Security',
+    slug: 'cctv-and-security',
+    subcategories: [
+      'Dome CCTV Cameras (Indoor)',
+      'Bullet CCTV Cameras (Outdoor IP67)',
+      '4 / 8 / 16 Channel DVR & NVR',
+      'CCTV Power Supply (SMPS)',
+      '3+1 CCTV Cable Rolls (90m, 180m)',
+      'BNC & DC Connectors',
+      'Biometric Fingerprint & Face Machines'
+    ]
+  },
+  {
+    id: 'networking',
+    name: 'Networking',
+    slug: 'networking-devices',
+    subcategories: [
+      'Dual-Band Wi-Fi 6 Routers',
+      'Gigabit Network Switches',
+      'CAT6 LAN Cable Rolls',
+      'RJ45 Connectors & Crimpers',
+      'USB Wi-Fi Dongles & Adapters',
+      'Wi-Fi Range Extenders'
+    ]
+  },
+  {
+    id: 'software',
+    name: 'Software',
+    slug: 'other-electronics',
+    subcategories: [
+      'Quick Heal Total Security',
+      'Kaspersky Antivirus',
+      'Net Protector Total Security',
+      'Windows 11 Pro License',
+      'MS Office Professional'
+    ]
+  },
+  {
+    id: 'mobility',
+    name: 'Mobility',
+    slug: 'mobile-accessories',
+    subcategories: [
+      'Fast Charging Power Banks',
+      'Type-C PD Fast Adapters',
+      'Heavy Duty Braided Cables',
+      'Mobile Stands & Car Mounts',
+      'Bluetooth Earbuds & Neckbands'
+    ]
+  },
+  {
+    id: 'cables',
+    name: 'Cables',
+    slug: 'computer-accessories',
+    subcategories: [
+      'HDMI 4K High Speed Cables',
+      'DisplayPort to HDMI',
+      'VGA to VGA Monitor Cables',
+      'USB 3.0 Extension Cables',
+      'Printer USB Cables',
+      'Heavy Duty Power Cords'
+    ]
+  },
+  {
+    id: 'connectors',
+    name: 'Connector & Converter',
+    slug: 'computer-accessories',
+    subcategories: [
+      'HDMI to VGA with Audio',
+      'Type-C Multi-port Hub',
+      'SATA to USB 3.0 Adapter',
+      'DisplayPort to VGA Converter',
+      'OTG Type-C & Micro USB'
+    ]
+  },
+  {
+    id: 'accessories',
+    name: 'Accessories',
+    slug: 'computer-accessories',
+    subcategories: [
+      'Thermal Paste (Cooler Master, Arctic)',
+      'PC Cleaning Kits & Blower',
+      'Spike Guards & Surge Protectors',
+      'Cable Management Ties',
+      'Anti-Static Screen Cleaners'
+    ]
+  },
+  {
+    id: 'cctv-networking',
+    name: 'CCTV & Networking',
+    slug: 'cctv-and-security',
+    subcategories: [
+      'CP PLUS 4-Camera Complete Sets',
+      'HIKVISION HD Camera Combos',
+      'Waterproof Camera Junction Boxes',
+      'PoE Switches for IP Cameras',
+      'Video Baluns & Power Splitters'
+    ]
+  },
+  {
+    id: 'telecom',
+    name: 'Telecom',
+    slug: 'other-electronics',
+    subcategories: [
+      'EPABX Intercom Systems',
+      'Landline Caller ID Phones',
+      'Telephone Line Cables & RJ11 Plugs',
+      'Wireless Walkie Talkies'
+    ]
+  }
+];
+
+const POPULAR_BRANDS = [
+  'Lenovo', 'HP', 'Dell', 'Asus', 'Acer', 'Apple',
+  'Crucial', 'EVM', 'Western Digital', 'Seagate', 'Kingston',
+  'CP Plus', 'Hikvision', 'Dahua', 'Logitech', 'Zebronics',
+  'TP-Link', 'D-Link', 'Canon', 'Epson', 'Frontech'
+];
 
 export const Navbar: React.FC = () => {
   const navigate = useNavigate();
-  const { totalItems, setIsCartDrawerOpen } = useCart();
+  const { totalItems, subtotal, setIsCartDrawerOpen } = useCart();
   const { language, setLanguage, t } = useLanguage();
   const { settings } = useStoreSettings();
   const { customer, isLoggedIn } = useCustomerAuth();
@@ -38,6 +247,8 @@ export const Navbar: React.FC = () => {
   const [searchQuery, setSearchQuery] = useState('');
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [categoryDrawerOpen, setCategoryDrawerOpen] = useState(false);
+  const [activeDropdown, setActiveDropdown] = useState<string | null>(null);
+  const [brandDropdownOpen, setBrandDropdownOpen] = useState(false);
 
   useEffect(() => {
     const handleOpenDrawer = () => setCategoryDrawerOpen(true);
@@ -268,134 +479,277 @@ export const Navbar: React.FC = () => {
         </div>
 
         {/* Desktop Main Navigation Bar */}
-        <div className="container mx-auto px-4 py-3">
-          <div className="flex items-center justify-between gap-6">
+        <div className="container mx-auto px-4 py-2.5">
+          <div className="flex items-center justify-between gap-5">
             {/* Logo */}
             <Link to="/" className="shrink-0">
               <Logo />
             </Link>
 
-            {/* Desktop Search Bar with Golden Button */}
+            {/* Desktop Search Bar with Voice, Camera & Maroon Search Button (Matching Reference Image) */}
             <form onSubmit={handleSearchSubmit} className="flex-1 max-w-xl relative flex items-center">
               <input
                 type="text"
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
-                placeholder="Search laptops, RAM, SSD, monitors, CCTV..."
-                className="w-full pl-10 pr-24 py-2.5 bg-slate-50 border border-slate-300 rounded-xl text-sm focus:bg-white focus:border-amber-500 focus:ring-2 focus:ring-amber-500/20 transition-all text-charcoal"
+                placeholder="Search laptops, printers, RAM, SSD..."
+                className="w-full pl-4 pr-32 py-2 bg-white border border-slate-300 rounded-xl text-xs sm:text-sm focus:outline-hidden focus:border-[#7b0c1e] focus:ring-1 focus:ring-[#7b0c1e]/20 text-charcoal shadow-inner"
               />
-              <Search className="w-4 h-4 text-slate-400 absolute left-3.5 pointer-events-none" />
+              <div className="absolute right-24 flex items-center gap-1.5 text-slate-400">
+                <button
+                  type="button"
+                  onClick={() => handleSearchSubmit({ preventDefault: () => {} } as React.FormEvent)}
+                  className="p-1 hover:text-[#7b0c1e] transition-colors cursor-pointer"
+                  title="Voice Search"
+                  aria-label="Voice Search"
+                >
+                  <Mic className="w-4 h-4" />
+                </button>
+                <button
+                  type="button"
+                  onClick={() => handleSearchSubmit({ preventDefault: () => {} } as React.FormEvent)}
+                  className="p-1 hover:text-[#7b0c1e] transition-colors cursor-pointer"
+                  title="Visual Search"
+                  aria-label="Visual Search"
+                >
+                  <Camera className="w-4 h-4" />
+                </button>
+              </div>
               <button
                 type="submit"
-                className="absolute right-1.5 px-4 py-1.5 bg-gradient-to-r from-amber-500 to-amber-600 hover:from-amber-400 hover:to-amber-500 text-slate-950 font-black text-xs rounded-lg shadow-xs transition-all cursor-pointer"
+                className="absolute right-1 px-4 py-1.5 bg-[#7b0c1e] hover:bg-[#5e0915] text-white font-bold text-xs rounded-lg transition-all flex items-center gap-1 cursor-pointer shadow-xs"
               >
-                Search
+                <Search className="w-3.5 h-3.5" />
+                <span>Search</span>
               </button>
             </form>
 
-            {/* Quick Links & Cart */}
-            <div className="flex items-center gap-3">
+            {/* Quick Links & Cart (Matching Reference Image Icons) */}
+            <div className="flex items-center gap-3.5">
+              {cleanPhone && (
+                <a
+                  href={`tel:${cleanPhone}`}
+                  className="flex flex-col items-center text-slate-600 hover:text-[#7b0c1e] transition-colors"
+                  title="Call Shop"
+                >
+                  <Phone className="w-4 h-4 text-slate-700" />
+                  <span className="text-[10px] font-semibold mt-0.5">Call</span>
+                </a>
+              )}
+
+              <Link
+                to="/contact"
+                className="flex flex-col items-center text-slate-600 hover:text-[#7b0c1e] transition-colors"
+                title="Store & Address"
+              >
+                <Store className="w-4 h-4 text-slate-700" />
+                <span className="text-[10px] font-semibold mt-0.5">Store</span>
+              </Link>
+
+              {cleanWhatsapp && (
+                <a
+                  href={`https://wa.me/${cleanWhatsapp}`}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="flex flex-col items-center text-slate-600 hover:text-[#7b0c1e] transition-colors"
+                  title="Customer Support"
+                >
+                  <Headphones className="w-4 h-4 text-slate-700" />
+                  <span className="text-[10px] font-semibold mt-0.5">Help</span>
+                </a>
+              )}
+
               <Link
                 to="/order-lookup"
-                className="flex items-center gap-1.5 text-xs font-semibold text-charcoal hover:text-amber-600 px-2.5 py-1.5 rounded-lg hover:bg-slate-50 transition-colors"
+                className="flex flex-col items-center text-slate-600 hover:text-[#7b0c1e] transition-colors"
+                title="Track Order / Wishlist"
               >
-                <Package className="w-4 h-4 text-slate-500" />
-                <span>Track Order</span>
+                <Heart className="w-4 h-4 text-slate-700" />
+                <span className="text-[10px] font-semibold mt-0.5">Track</span>
+              </Link>
+
+              <Link
+                to={isDealerLoggedIn ? "/dealer/dashboard" : "/dealer/login"}
+                className="flex flex-col items-center text-amber-800 hover:text-[#7b0c1e] transition-colors"
+                title="B2B Wholesale Portal"
+              >
+                <FileText className="w-4 h-4 text-amber-700" />
+                <span className="text-[10px] font-bold mt-0.5">Wholesale</span>
               </Link>
 
               {/* Customer Account Button */}
               {isLoggedIn && customer ? (
                 <Link
                   to="/account"
-                  className="flex items-center gap-1.5 text-xs font-bold text-slate-900 hover:text-amber-600 px-3 py-1.5 rounded-xl border border-slate-200 hover:border-amber-400 bg-slate-50 hover:bg-white transition-all shadow-xs"
+                  className="flex flex-col items-center text-slate-800 hover:text-[#7b0c1e] transition-colors"
+                  title="My Account"
                 >
-                  <User className="w-4 h-4 text-amber-600" />
-                  <span className="max-w-[100px] truncate">{customer.name.split(' ')[0]}</span>
+                  <User className="w-4 h-4 text-[#7b0c1e]" />
+                  <span className="text-[10px] font-bold mt-0.5 max-w-[65px] truncate">
+                    {customer.name.split(' ')[0]}
+                  </span>
                 </Link>
               ) : (
                 <Link
                   to="/customer/login"
-                  className="flex items-center gap-1.5 text-xs font-bold text-slate-900 hover:text-amber-600 px-3 py-1.5 rounded-xl border border-slate-200 hover:border-amber-400 bg-white transition-all shadow-xs"
+                  className="flex flex-col items-center text-slate-600 hover:text-[#7b0c1e] transition-colors"
+                  title="Customer Login / Sign In"
                 >
-                  <User className="w-4 h-4 text-slate-500" />
-                  <span>Customer Sign In</span>
+                  <User className="w-4 h-4 text-slate-700" />
+                  <span className="text-[10px] font-semibold mt-0.5">Login</span>
                 </Link>
               )}
 
-              {/* Cart Button */}
+              {/* Cart Button (Exact Maroon Match with Reference Image) */}
               <button
                 onClick={() => setIsCartDrawerOpen(true)}
-                className="flex items-center gap-2 px-3 py-2 bg-slate-50 hover:bg-slate-100 border border-slate-200 rounded-xl text-charcoal font-bold text-xs transition-all relative cursor-pointer"
+                className="flex items-center gap-2 px-3.5 py-2 bg-[#7b0c1e] hover:bg-[#5e0915] text-white rounded-lg font-bold text-xs transition-all shadow-xs cursor-pointer ml-1"
                 aria-label="Open cart"
               >
                 <div className="relative">
-                  <ShoppingCart className="w-5 h-5 text-primary" />
+                  <ShoppingCart className="w-4 h-4" />
                   {totalItems > 0 && (
-                    <span className="absolute -top-2 -right-2 bg-amber-500 text-slate-950 text-[10px] font-black w-4 h-4 rounded-full flex items-center justify-center">
+                    <span className="absolute -top-2 -right-2 bg-amber-400 text-slate-950 text-[9px] font-black w-3.5 h-3.5 rounded-full flex items-center justify-center">
                       {totalItems}
                     </span>
                   )}
                 </div>
-                <span>{t('cart')}</span>
+                <span>{totalItems} item(s) - {formatINR(subtotal)}</span>
               </button>
             </div>
           </div>
         </div>
 
-        {/* Desktop Category Navigation Sub-bar */}
-        <nav className="bg-[#fffdfa] border-t border-slate-200/80 text-xs font-semibold">
-          <div className="container mx-auto px-4 flex items-center gap-1.5 overflow-x-auto py-1">
-            {/* Desktop "Shop by Category" Drawer Trigger Button */}
-            <button
-              type="button"
-              onClick={() => setCategoryDrawerOpen(true)}
-              className="px-3 py-1.5 rounded-lg bg-[#4a1525] hover:bg-[#6b0b1a] text-amber-300 transition-all flex items-center gap-1.5 font-bold text-xs uppercase tracking-wider shrink-0 cursor-pointer shadow-xs border border-amber-400/40 mr-1"
-              title="Browse all categories & sub-categories"
-            >
-              <Menu className="w-3.5 h-3.5 text-amber-300" />
-              <span>Shop by Category</span>
-            </button>
+        {/* Decorative Festive Garland Strip (Matching Reference Image) */}
+        <div className="h-2 bg-[#4a0812] border-b border-amber-500/40 flex items-center justify-around overflow-hidden px-2">
+          {Array.from({ length: 36 }).map((_, i) => (
+            <div key={i} className="flex flex-col items-center">
+              <div className="w-0.5 h-1 bg-amber-300/60" />
+              <div className={`w-1.5 h-1.5 rounded-full ${i % 2 === 0 ? 'bg-amber-400 shadow-[0_0_4px_#f59e0b]' : 'bg-rose-400'}`} />
+            </div>
+          ))}
+        </div>
 
-            <Link
-              to="/products"
-              className="px-3 py-1.5 rounded-lg text-slate-800 hover:text-amber-700 hover:bg-white transition-colors shrink-0"
-            >
-              All Electronics
-            </Link>
-            <Link
-              to="/category/second-hand-laptops"
-              className="px-3 py-1.5 rounded-lg text-amber-900 font-extrabold bg-amber-100/80 hover:bg-amber-200 transition-colors flex items-center gap-1.5 shrink-0 border border-amber-300"
-            >
-              <Laptop className="w-3.5 h-3.5 text-amber-700" />
-              <span>2nd-Hand Laptops</span>
-              <span className="bg-amber-600 text-white text-[9px] px-1.5 py-0.2 rounded font-extrabold uppercase">
-                Tested
-              </span>
-            </Link>
-            <Link
-              to="/category/ram-and-ssd"
-              className="px-3 py-1.5 rounded-lg text-slate-800 hover:text-amber-700 hover:bg-white transition-colors shrink-0 font-bold"
-            >
-              RAM & SSD
-            </Link>
-            <Link
-              to="/category/desktop-computers"
-              className="px-3 py-1.5 rounded-lg text-slate-800 hover:text-amber-700 hover:bg-white transition-colors shrink-0"
-            >
-              Desktops
-            </Link>
-            <Link
-              to="/category/cctv-and-security"
-              className="px-3 py-1.5 rounded-lg text-slate-800 hover:text-amber-700 hover:bg-white transition-colors shrink-0"
-            >
-              CCTV & Security
-            </Link>
-            <Link
-              to="/category/computer-accessories"
-              className="px-3 py-1.5 rounded-lg text-slate-800 hover:text-amber-700 hover:bg-white transition-colors shrink-0"
-            >
-              Accessories
-            </Link>
+        {/* Desktop Category Navigation Ribbon (Deep Maroon Strip Matching Reference Image) */}
+        <nav
+          className="bg-[#5a0a16] text-white text-[11px] font-bold relative shadow-md z-40 select-none"
+          onMouseLeave={() => {
+            setActiveDropdown(null);
+            setBrandDropdownOpen(false);
+          }}
+        >
+          <div className="container mx-auto px-4 flex items-center gap-1 overflow-x-auto py-1 scrollbar-none">
+            {/* Shop By Brand Button (White Pill in Maroon Strip) */}
+            <div className="relative shrink-0">
+              <button
+                type="button"
+                onMouseEnter={() => {
+                  setBrandDropdownOpen(true);
+                  setActiveDropdown(null);
+                }}
+                onClick={() => setBrandDropdownOpen(!brandDropdownOpen)}
+                className="px-3 py-1.5 rounded bg-white hover:bg-amber-50 text-[#5a0a16] font-extrabold text-[11px] uppercase tracking-wider flex items-center gap-1.5 shadow-xs shrink-0 cursor-pointer transition-colors mr-1"
+                title="Browse by OEM Brand"
+              >
+                <Store className="w-3.5 h-3.5 text-[#5a0a16]" />
+                <span>Shop By Brand</span>
+                <ChevronDown className="w-3 h-3 text-[#5a0a16]" />
+              </button>
+
+              {/* Shop by Brand Dropdown */}
+              {brandDropdownOpen && (
+                <div
+                  className="absolute left-0 top-full mt-1 w-72 bg-white text-slate-900 rounded-xl shadow-2xl border border-amber-200/80 p-3 z-50 animate-fade-in"
+                  onMouseEnter={() => setBrandDropdownOpen(true)}
+                  onMouseLeave={() => setBrandDropdownOpen(false)}
+                >
+                  <div className="text-[10px] uppercase font-black tracking-widest text-[#5a0a16] border-b border-slate-100 pb-1.5 mb-2 flex items-center justify-between">
+                    <span>Popular OEM Brands</span>
+                    <span className="text-amber-600 font-bold">100% Genuine</span>
+                  </div>
+                  <div className="grid grid-cols-2 gap-1.5 text-xs">
+                    {POPULAR_BRANDS.map((brand) => (
+                      <button
+                        key={brand}
+                        type="button"
+                        onClick={() => {
+                          navigate(`/products?brand=${encodeURIComponent(brand)}`);
+                          setBrandDropdownOpen(false);
+                        }}
+                        className="text-left px-2 py-1 rounded-lg hover:bg-amber-50 hover:text-[#5a0a16] font-medium text-slate-700 transition-colors flex items-center gap-1.5 cursor-pointer"
+                      >
+                        <span className="w-1.5 h-1.5 rounded-full bg-amber-400" />
+                        <span className="truncate">{brand}</span>
+                      </button>
+                    ))}
+                  </div>
+                </div>
+              )}
+            </div>
+
+            {/* 15 Category Items with Hover/Click Dropdowns (Matching Reference Image) */}
+            {DESKTOP_NAV_CATEGORIES.map((cat) => {
+              const isOpen = activeDropdown === cat.id;
+              return (
+                <div key={cat.id} className="relative shrink-0">
+                  <button
+                    type="button"
+                    onMouseEnter={() => {
+                      setActiveDropdown(cat.id);
+                      setBrandDropdownOpen(false);
+                    }}
+                    onClick={() => setActiveDropdown(isOpen ? null : cat.id)}
+                    className={`px-2.5 py-1.5 rounded text-white transition-all whitespace-nowrap cursor-pointer flex items-center gap-1 ${
+                      isOpen
+                        ? 'bg-white/25 text-amber-200 font-black shadow-xs'
+                        : 'hover:bg-white/15 hover:text-amber-200'
+                    }`}
+                  >
+                    <span>{cat.name}</span>
+                    <ChevronDown className={`w-2.5 h-2.5 transition-transform ${isOpen ? 'rotate-180 text-amber-300' : 'opacity-60'}`} />
+                  </button>
+
+                  {/* Sub-Category Dropdown Menu */}
+                  {isOpen && (
+                    <div
+                      className="absolute left-0 top-full mt-1 w-64 bg-white text-slate-900 rounded-xl shadow-2xl border border-amber-200/90 p-3 z-50 animate-fade-in"
+                      onMouseEnter={() => setActiveDropdown(cat.id)}
+                      onMouseLeave={() => setActiveDropdown(null)}
+                    >
+                      <div className="flex items-center justify-between border-b border-slate-100 pb-1.5 mb-2">
+                        <span className="text-[10px] uppercase font-black tracking-wider text-[#5a0a16]">
+                          {cat.name} Parts
+                        </span>
+                        <Link
+                          to={`/category/${cat.slug}`}
+                          onClick={() => setActiveDropdown(null)}
+                          className="text-[10px] text-amber-700 hover:text-amber-900 font-bold hover:underline"
+                        >
+                          View All →
+                        </Link>
+                      </div>
+
+                      <div className="space-y-1">
+                        {cat.subcategories.map((sub) => (
+                          <button
+                            key={sub}
+                            type="button"
+                            onClick={() => {
+                              navigate(`/products?category=${cat.slug}&subcategory=${encodeURIComponent(sub)}`);
+                              setActiveDropdown(null);
+                            }}
+                            className="w-full text-left px-2 py-1.5 rounded-lg hover:bg-amber-50 hover:text-[#5a0a16] text-[11px] font-medium text-slate-700 transition-colors flex items-center gap-2 cursor-pointer group"
+                          >
+                            <span className="w-1.5 h-1.5 rounded-full bg-amber-400 group-hover:scale-125 transition-transform" />
+                            <span className="truncate">{sub}</span>
+                          </button>
+                        ))}
+                      </div>
+                    </div>
+                  )}
+                </div>
+              );
+            })}
           </div>
         </nav>
       </div>
