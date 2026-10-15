@@ -32,7 +32,7 @@ import { useStoreSettings } from '../../context/StoreSettingsContext';
 import { useCustomerAuth } from '../../context/CustomerAuthContext';
 import { useDealerAuth } from '../../context/DealerAuthContext';
 import { STORE_CONFIG } from '../../config/storeConfig';
-import { formatINR } from '../../services/api';
+import { formatINR, getCategories, getPopularBrands } from '../../services/api';
 
 const DESKTOP_NAV_CATEGORIES = [
   {
@@ -250,7 +250,27 @@ export const Navbar: React.FC = () => {
   const [categoryDrawerOpen, setCategoryDrawerOpen] = useState(false);
   const [activeDropdown, setActiveDropdown] = useState<string | null>(null);
   const [brandDropdownOpen, setBrandDropdownOpen] = useState(false);
+  const [navCategories, setNavCategories] = useState(DESKTOP_NAV_CATEGORIES);
+  const [navBrands, setNavBrands] = useState(POPULAR_BRANDS);
   const closeTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+
+  useEffect(() => {
+    getCategories().then(cats => {
+      if (cats && cats.length > 0) {
+        setNavCategories(cats.map(c => ({
+          id: c.id,
+          name: c.name,
+          slug: c.slug,
+          subcategories: c.subcategories || []
+        })));
+      }
+    });
+    getPopularBrands().then(brnds => {
+      if (brnds && brnds.length > 0) {
+        setNavBrands(brnds);
+      }
+    });
+  }, []);
 
   const handleNavMouseLeave = () => {
     if (closeTimerRef.current) clearTimeout(closeTimerRef.current);
@@ -272,7 +292,7 @@ export const Navbar: React.FC = () => {
     setActiveDropdown(null);
   };
 
-  const activeCategoryData = DESKTOP_NAV_CATEGORIES.find(c => c.id === activeDropdown);
+  const activeCategoryData = navCategories.find(c => c.id === activeDropdown);
 
   useEffect(() => {
     return () => {
@@ -689,8 +709,8 @@ export const Navbar: React.FC = () => {
               </button>
             </div>
 
-            {/* 15 Category Items (Matching Reference Image) */}
-            {DESKTOP_NAV_CATEGORIES.map((cat) => {
+            {/* Category Items (Dynamically managed from Admin Dashboard) */}
+            {navCategories.map((cat) => {
               const isOpen = activeDropdown === cat.id;
               return (
                 <div key={cat.id} className="shrink-0">
@@ -753,7 +773,7 @@ export const Navbar: React.FC = () => {
                 </div>
 
                 <div className="grid grid-cols-2 sm:grid-cols-4 md:grid-cols-7 gap-2.5">
-                  {POPULAR_BRANDS.map((brand) => (
+                  {navBrands.map((brand) => (
                     <button
                       key={brand}
                       type="button"

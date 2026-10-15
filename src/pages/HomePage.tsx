@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState, useMemo } from 'react';
 import { Link } from 'react-router-dom';
 import { Product, Category } from '../types';
 import { getProducts, getCategories } from '../services/api';
@@ -129,54 +129,71 @@ export const HomePage: React.FC = () => {
     fetchData();
   }, []);
 
-  const heroSlides = [
-    {
-      badge: '🪔 NAVRATRI 9 DAYS FESTIVE OFFER | नवरात्री महाबचत 🪔',
-      title: 'Navratri 9 Days Festive Dhamaka: Up to 45% OFF',
-      subtitle: 'Celebrate 9 auspicious days of Navratri with heavy price cuts on certified second-hand laptops, NVMe SSDs, gaming RAM & CCTV kits. 30-Day Testing Warranty!',
-      startingPrice: 'Starts ₹399',
-      image: 'https://images.unsplash.com/photo-1546868871-7041f2a55e12?w=1000&auto=format&fit=crop&q=80',
-      accentColor: 'from-[#6b0b1a] via-[#4a0812] to-slate-950',
-      link: '/products',
-      ctaText: 'NAVRATRI DEALS'
-    },
-    {
-      badge: 'TOP BRANDED ELECTRONICS',
-      title: 'Experience The Future Of Tech & Sound',
-      subtitle: 'High-performance Desktop PCs, Certified Second-Hand Laptops, Lightning-Fast NVMe SSDs & Genuine Accessories.',
-      startingPrice: '₹499',
-      image: 'https://images.unsplash.com/photo-1546868871-7041f2a55e12?w=1000&auto=format&fit=crop&q=80',
-      accentColor: 'from-blue-950 via-slate-900 to-slate-950',
-      link: '/products',
-      ctaText: 'SHOP NOW'
-    },
-    {
-      badge: 'TESTED & VERIFIED BY VISHAL SONI',
-      title: 'Certified Second-Hand Laptops with Warranty',
-      subtitle: '28-point rigorous diagnostic testing, pristine condition, upgraded SSD & RAM. Tested for professionals and students.',
-      startingPrice: '₹14,999',
-      image: 'https://images.unsplash.com/photo-1496181133206-80ce9b88a853?w=1000&auto=format&fit=crop&q=80',
-      accentColor: 'from-amber-950 via-slate-900 to-slate-950',
-      link: '/category/second-hand-laptops',
-      ctaText: 'EXPLORE LAPTOPS'
-    },
-    {
-      badge: 'CRUCIAL & EVM ORIGINAL',
-      title: 'Upgrade Your PC with High-Speed RAM & SSD',
-      subtitle: 'Boost multitasking, eliminate boot delays, and revive your old computer with 100% genuine memory upgrades.',
-      startingPrice: '₹950',
-      image: 'https://images.unsplash.com/photo-1591799264318-7e6ef8ddb7ea?w=1000&auto=format&fit=crop&q=80',
-      accentColor: 'from-slate-900 via-indigo-950 to-slate-950',
-      link: '/category/ram-and-ssd',
-      ctaText: 'VIEW STORAGE'
+  const heroSlides = useMemo(() => {
+    const list = [];
+
+    if (settings.banner_navratri_active !== false) {
+      list.push({
+        badge: settings.banner_navratri_badge || '🪔 NAVRATRI 9 DAYS FESTIVE OFFER | नवरात्री महाबचत 🪔',
+        title: settings.banner_navratri_title || 'Navratri 9 Days Festive Dhamaka: Up to 45% OFF',
+        subtitle: settings.banner_navratri_subtitle || 'Celebrate 9 auspicious days of Navratri with heavy price cuts on certified second-hand laptops, NVMe SSDs, gaming RAM & CCTV kits. 30-Day Testing Warranty!',
+        startingPrice: settings.banner_navratri_discount || 'Starts ₹399',
+        image: 'https://images.unsplash.com/photo-1546868871-7041f2a55e12?w=1000&auto=format&fit=crop&q=80',
+        accentColor: 'from-[#6b0b1a] via-[#4a0812] to-slate-950',
+        link: settings.banner_navratri_link || '/products',
+        ctaText: 'NAVRATRI DEALS'
+      });
     }
-  ];
+
+    list.push(
+      {
+        badge: 'TOP BRANDED ELECTRONICS',
+        title: 'Experience The Future Of Tech & Sound',
+        subtitle: 'High-performance Desktop PCs, Certified Second-Hand Laptops, Lightning-Fast NVMe SSDs & Genuine Accessories.',
+        startingPrice: '₹499',
+        image: 'https://images.unsplash.com/photo-1546868871-7041f2a55e12?w=1000&auto=format&fit=crop&q=80',
+        accentColor: 'from-blue-950 via-slate-900 to-slate-950',
+        link: '/products',
+        ctaText: 'SHOP NOW'
+      },
+      {
+        badge: 'TESTED & VERIFIED BY VISHAL SONI',
+        title: 'Certified Second-Hand Laptops with Warranty',
+        subtitle: '28-point rigorous diagnostic testing, pristine condition, upgraded SSD & RAM. Tested for professionals and students.',
+        startingPrice: '₹14,999',
+        image: 'https://images.unsplash.com/photo-1496181133206-80ce9b88a853?w=1000&auto=format&fit=crop&q=80',
+        accentColor: 'from-amber-950 via-slate-900 to-slate-950',
+        link: '/category/second-hand-laptops',
+        ctaText: 'EXPLORE LAPTOPS'
+      },
+      {
+        badge: 'CRUCIAL & EVM ORIGINAL',
+        title: 'Upgrade Your PC with High-Speed RAM & SSD',
+        subtitle: 'Boost multitasking, eliminate boot delays, and revive your old computer with 100% genuine memory upgrades.',
+        startingPrice: '₹950',
+        image: 'https://images.unsplash.com/photo-1591799264318-7e6ef8ddb7ea?w=1000&auto=format&fit=crop&q=80',
+        accentColor: 'from-slate-900 via-indigo-950 to-slate-950',
+        link: '/category/ram-and-ssd',
+        ctaText: 'VIEW STORAGE'
+      }
+    );
+
+    return list;
+  }, [settings]);
 
   const effectiveWhatsapp = settings.whatsapp_number || STORE_CONFIG.whatsappNumber;
   const cleanWhatsapp = effectiveWhatsapp ? effectiveWhatsapp.replace(/\D/g, '') : '';
 
   return (
     <div className="space-y-10 sm:space-y-14 pb-16">
+      {/* 0. Optional Announcement Ticker Bar */}
+      {settings.announcement_ticker && (
+        <div className="bg-gradient-to-r from-amber-600 via-rose-700 to-amber-600 text-white py-1.5 px-4 text-center text-xs font-bold tracking-wide shadow-xs flex items-center justify-center gap-2">
+          <Sparkles className="w-3.5 h-3.5 text-amber-200 animate-pulse" />
+          <span>{settings.announcement_ticker}</span>
+        </div>
+      )}
+
       {/* 1. Hero Promotional Banner (Inspired by Reference Image 1) */}
       <section className="container mx-auto px-4 pt-3 sm:pt-4">
         <div className="grid grid-cols-1 lg:grid-cols-12 gap-3.5 sm:gap-4 items-stretch">
@@ -504,10 +521,10 @@ export const HomePage: React.FC = () => {
               <div className="space-y-1">
                 <div className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full bg-rose-600 text-white text-[9px] sm:text-[10px] font-black uppercase tracking-wider">
                   <Flame className="w-3 h-3 sm:w-3.5 sm:h-3.5" />
-                  <span>🪔 Navratri 9-Day Mega Sale 🪔</span>
+                  <span>{settings.banner_navratri_badge || '🪔 Navratri 9-Day Mega Sale 🪔'}</span>
                 </div>
                 <h2 className="text-base sm:text-2xl lg:text-3xl font-black text-white">
-                  Navratri 9 Days Festive Deals & Price Cuts
+                  {settings.banner_navratri_title || 'Navratri 9 Days Festive Deals & Price Cuts'}
                 </h2>
               </div>
 

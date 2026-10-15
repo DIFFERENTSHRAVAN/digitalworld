@@ -4,13 +4,23 @@ import { STORE_CONFIG } from '../config/storeConfig';
 export const initialCategories: Category[] = [
   {
     id: 'c1',
-    name: 'Second-Hand Laptops',
+    name: 'Refurbished Laptops',
     slug: 'refurbished-laptops',
     description: 'Certified 28-point tested refurbished laptops with 30-Day Testing Warranty',
     icon: 'Laptop',
     image_url: 'https://images.unsplash.com/photo-1588872657578-7efd1f1555ed?w=500&auto=format&fit=crop&q=80',
     display_order: 1,
-    is_active: true
+    is_active: true,
+    subcategories: [
+      'Refurbished Laptops (Tested)',
+      'Commercial / Business Laptops',
+      'Gaming Laptops',
+      'Laptop RAM (DDR4 / DDR5)',
+      'Laptop NVMe SSD Storage',
+      'Laptop Adapters & Chargers',
+      'Laptop Keyboards & Batteries',
+      'Laptop Screen & Body Parts'
+    ]
   },
   {
     id: 'c2',
@@ -20,7 +30,14 @@ export const initialCategories: Category[] = [
     icon: 'Laptop',
     image_url: 'https://images.unsplash.com/photo-1517336714731-489689fd1ca8?w=500&auto=format&fit=crop&q=80',
     display_order: 2,
-    is_active: true
+    is_active: true,
+    subcategories: [
+      'Brand New Sealed Laptops',
+      'Thin & Light Ultrabooks',
+      'Student & Office Laptops',
+      'High-End Gaming Rigs',
+      'Official Brand Warranty Laptops'
+    ]
   },
   {
     id: 'c3',
@@ -30,7 +47,19 @@ export const initialCategories: Category[] = [
     icon: 'Monitor',
     image_url: 'https://images.unsplash.com/photo-1593640408182-31c70c8268f5?w=500&auto=format&fit=crop&q=80',
     display_order: 3,
-    is_active: true
+    is_active: true,
+    subcategories: [
+      'Barebone Desktop',
+      'Branded Desktop',
+      'CPU (Processor)',
+      'New Products',
+      'Open Box',
+      'CPU (Processor) Fan',
+      'Motherboard',
+      'Desktop RAM (Memory)',
+      'Graphics Card (GPU)',
+      'Cabinet | Cabinet Fan'
+    ]
   },
   {
     id: 'c4',
@@ -40,7 +69,16 @@ export const initialCategories: Category[] = [
     icon: 'HardDrive',
     image_url: 'https://images.unsplash.com/photo-1597872200969-2b65d56bd16b?w=500&auto=format&fit=crop&q=80',
     display_order: 4,
-    is_active: true
+    is_active: true,
+    subcategories: [
+      'Internal SSD (SATA)',
+      'NVMe M.2 High-Speed SSD',
+      'External Portable SSD',
+      'Desktop 3.5" Hard Drive',
+      'Surveillance Hard Drive (CCTV)',
+      'Pen Drives & Flash Drives',
+      'MicroSD & Memory Cards'
+    ]
   },
   {
     id: 'c5',
@@ -50,7 +88,15 @@ export const initialCategories: Category[] = [
     icon: 'Cpu',
     image_url: 'https://images.unsplash.com/photo-1562976540-1502c2145186?w=500&auto=format&fit=crop&q=80',
     display_order: 5,
-    is_active: true
+    is_active: true,
+    subcategories: [
+      'DDR3 Desktop & Laptop RAM',
+      'DDR4 High-Speed RAM',
+      'DDR5 Next-Gen RAM',
+      '2.5" SATA SSD',
+      'M.2 NVMe Gen3 & Gen4 SSD',
+      'External SSD Enclosures'
+    ]
   },
   {
     id: 'c6',
@@ -60,7 +106,16 @@ export const initialCategories: Category[] = [
     icon: 'Cpu',
     image_url: 'https://images.unsplash.com/photo-1618755788416-0ef24483750d?w=500&auto=format&fit=crop&q=80',
     display_order: 6,
-    is_active: true
+    is_active: true,
+    subcategories: [
+      'Thermal Paste (Cooler Master, Arctic)',
+      'PC Cleaning Kits & Blower',
+      'Spike Guards & Surge Protectors',
+      'Cable Management Ties',
+      'Anti-Static Screen Cleaners',
+      'HDMI to VGA Converters',
+      'SATA to USB Adapters'
+    ]
   },
   {
     id: 'c7',
@@ -70,7 +125,15 @@ export const initialCategories: Category[] = [
     icon: 'Keyboard',
     image_url: 'https://images.unsplash.com/photo-1587829741301-dc798b83add3?w=500&auto=format&fit=crop&q=80',
     display_order: 7,
-    is_active: true
+    is_active: true,
+    subcategories: [
+      'Wired Keyboards & Mice',
+      'Wireless Keyboard Combos',
+      'RGB Mechanical Gaming Keyboards',
+      'Gaming Optical Mice',
+      'Large Mouse Pads & Desk Mats',
+      'USB 3.0 Hubs & Converters'
+    ]
   },
   {
     id: 'c8',
@@ -80,7 +143,15 @@ export const initialCategories: Category[] = [
     icon: 'Printer',
     image_url: 'https://images.unsplash.com/photo-1612815154858-60aa4c59eaa6?w=500&auto=format&fit=crop&q=80',
     display_order: 8,
-    is_active: true
+    is_active: true,
+    subcategories: [
+      'Laser Single-Function Printers',
+      'All-In-One Tank Printers',
+      'Thermal Receipt / POS Printers',
+      '1D & 2D Barcode Scanners',
+      'Laser Toner Cartridges & Inks',
+      'Printer Power & USB Cables'
+    ]
   },
   {
     id: 'c9',
@@ -90,7 +161,15 @@ export const initialCategories: Category[] = [
     icon: 'Monitor',
     image_url: 'https://images.unsplash.com/photo-1527443224154-c4a3942d3acf?w=500&auto=format&fit=crop&q=80',
     display_order: 9,
-    is_active: true
+    is_active: true,
+    subcategories: [
+      'Desktop Monitors (19" - 24")',
+      'Full HD / IPS Monitors (27")',
+      'High Refresh Gaming Monitors',
+      'CCTV Surveillance Screens',
+      'HDMI / VGA / DisplayPort Cables',
+      'Monitor Wall Mounts & Stands'
+    ]
   },
   {
     id: 'c10',
@@ -100,7 +179,16 @@ export const initialCategories: Category[] = [
     icon: 'Shield',
     image_url: 'https://images.unsplash.com/photo-1557597774-9d273605dfa9?w=500&auto=format&fit=crop&q=80',
     display_order: 10,
-    is_active: true
+    is_active: true,
+    subcategories: [
+      '2MP & 5MP HD CCTV Cameras',
+      'IP Network Bullet & Dome Cameras',
+      '4-Channel & 8-Channel DVRs',
+      '16CH & 32CH NVR Systems',
+      'CCTV SMPS & Power Supplies',
+      'BNC & DC Connectors, 3+1 Wire',
+      'Wi-Fi 360° Smart Home Cameras'
+    ]
   },
   {
     id: 'c11',
@@ -110,7 +198,15 @@ export const initialCategories: Category[] = [
     icon: 'Wifi',
     image_url: 'https://images.unsplash.com/photo-1544197150-b99a580bb7a8?w=500&auto=format&fit=crop&q=80',
     display_order: 11,
-    is_active: true
+    is_active: true,
+    subcategories: [
+      'High-Speed Wi-Fi Routers',
+      'Wi-Fi Range Extenders & Repeaters',
+      'Fast Ethernet & Gigabit PoE Switches',
+      'Cat6 LAN Patch Cords & Cable Rolls',
+      'USB Wi-Fi Adapters & Dongles',
+      'RJ45 Connectors & Crimpers'
+    ]
   },
   {
     id: 'c12',
@@ -120,7 +216,14 @@ export const initialCategories: Category[] = [
     icon: 'Headphones',
     image_url: 'https://images.unsplash.com/photo-1505740420928-5e560c06d30e?w=500&auto=format&fit=crop&q=80',
     display_order: 12,
-    is_active: true
+    is_active: true,
+    subcategories: [
+      'Bluetooth Wireless Neckbands',
+      'Over-Ear Gaming Headsets with Mic',
+      '2.1 & 4.1 Multimedia Desktop Speakers',
+      'Portable Bluetooth Speakers',
+      'Wired Earphones with Mic'
+    ]
   },
   {
     id: 'c13',
@@ -130,7 +233,14 @@ export const initialCategories: Category[] = [
     icon: 'Smartphone',
     image_url: 'https://images.unsplash.com/photo-1585338107529-13afc5f02586?w=500&auto=format&fit=crop&q=80',
     display_order: 13,
-    is_active: true
+    is_active: true,
+    subcategories: [
+      'Fast Charging Adapters & PD',
+      'Type-C Braided Cables',
+      'Heavy Duty Power Banks',
+      'Wireless Collar Mics for Phones',
+      'Mobile Stands & Car Mounts'
+    ]
   },
   {
     id: 'c14',
@@ -140,7 +250,15 @@ export const initialCategories: Category[] = [
     icon: 'Sliders',
     image_url: 'https://images.unsplash.com/photo-1550009158-9ebf69173e03?w=500&auto=format&fit=crop&q=80',
     display_order: 14,
-    is_active: true
+    is_active: true,
+    subcategories: [
+      'Windows 11 Pro Genuine License',
+      'Quick Heal Total Security Antivirus',
+      'EPABX Intercom Systems',
+      'Landline Caller ID Phones',
+      'Telephone Line Cables & RJ11 Plugs',
+      'Wireless Walkie Talkies'
+    ]
   }
 ];
 
@@ -166,14 +284,29 @@ export const initialStoreSettings: StoreSettings = {
   return_policy_text: STORE_CONFIG.returnPolicyText,
   warranty_policy_text: STORE_CONFIG.warrantyPolicyText,
 
-  // Bank & Maps Details
+  // Exact Bank Details (Requirement 5)
   bank_name: STORE_CONFIG.bankName,
   bank_account_name: STORE_CONFIG.bankAccountName,
   bank_account_number: STORE_CONFIG.bankAccountNumber,
   bank_ifsc: STORE_CONFIG.bankIfsc,
   bank_branch: STORE_CONFIG.bankBranch,
   bank_payment_instructions: STORE_CONFIG.bankPaymentInstructions,
-  google_maps_url: STORE_CONFIG.googleMapsUrl
+  google_maps_url: STORE_CONFIG.googleMapsUrl,
+
+  // Promotional Banners & Offers (Admin Customizable)
+  banner_navratri_active: true,
+  banner_navratri_badge: '🪔 NAVRATRI 9 DAYS FESTIVE OFFER | नवरात्री महाबचत 🪔',
+  banner_navratri_title: 'Navratri 9 Days Festive Dhamaka: Up to 45% OFF',
+  banner_navratri_subtitle: 'Celebrate 9 auspicious days of Navratri with heavy price cuts on certified second-hand laptops, NVMe SSDs, gaming RAM & CCTV kits. 30-Day Testing Warranty!',
+  banner_navratri_discount: 'Starts ₹399',
+  banner_navratri_link: '/products',
+  announcement_ticker: '🪔 Navratri Mahabachat Offer Live: Flat 20% to 45% OFF on Refurbished Laptops & NVMe SSDs! 30-Day Testing Warranty! WhatsApp: +91 8062314869',
+  popular_brands: [
+    'Lenovo', 'HP', 'Dell', 'Asus', 'Acer', 'Apple',
+    'Crucial', 'EVM', 'Western Digital', 'Seagate', 'Kingston',
+    'CP Plus', 'Hikvision', 'Dahua', 'Logitech', 'Zebronics',
+    'TP-Link', 'D-Link', 'Canon', 'Epson', 'Frontech'
+  ]
 };
 
 export const initialProducts: Product[] = [

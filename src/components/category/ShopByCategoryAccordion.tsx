@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import {
   Monitor,
@@ -22,6 +22,7 @@ import {
 } from 'lucide-react';
 import { useStoreSettings } from '../../context/StoreSettingsContext';
 import { STORE_CONFIG } from '../../config/storeConfig';
+import { getCategories } from '../../services/api';
 
 export interface CategoryItemData {
   id: string;
@@ -255,6 +256,21 @@ export const ShopByCategoryAccordion: React.FC<ShopByCategoryAccordionProps> = (
 }) => {
   const { settings } = useStoreSettings();
   const [expandedId, setExpandedId] = useState<string | null>(defaultExpandedId || null);
+  const [categoriesList, setCategoriesList] = useState<CategoryItemData[]>(CATEGORIES_WITH_SUBCATEGORIES);
+
+  useEffect(() => {
+    getCategories().then(cats => {
+      if (cats && cats.length > 0) {
+        setCategoriesList(cats.map(c => ({
+          id: c.id,
+          name: c.name,
+          slug: c.slug,
+          icon: c.icon || 'Monitor',
+          subcategories: c.subcategories || []
+        })));
+      }
+    });
+  }, []);
 
   const toggleCategory = (id: string) => {
     setExpandedId(prev => (prev === id ? null : id));
@@ -310,14 +326,14 @@ export const ShopByCategoryAccordion: React.FC<ShopByCategoryAccordionProps> = (
             SHOP BY CATEGORY
           </h3>
           <span className="text-[10px] font-bold text-amber-800 bg-[#faecd8] px-2 py-0.5 rounded-full">
-            {CATEGORIES_WITH_SUBCATEGORIES.length} Categories
+            {categoriesList.length} Categories
           </span>
         </div>
       )}
 
       {/* 2. Categories Accordion List (Reference Image 1 & 2) */}
       <div className="space-y-1">
-        {CATEGORIES_WITH_SUBCATEGORIES.map((category) => {
+        {categoriesList.map((category) => {
           const isOpen = expandedId === category.id;
 
           return (

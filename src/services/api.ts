@@ -123,7 +123,7 @@ const getLocalCategories = (): Category[] => {
     const cats: Category[] = JSON.parse(data);
     let updated = false;
 
-    // Merge new categories and update image_url from initialCategories
+    // Merge new categories and update image_url & subcategories from initialCategories
     initialCategories.forEach(initCat => {
       const match = cats.find(c => c.id === initCat.id || c.slug === initCat.slug);
       if (!match) {
@@ -132,6 +132,10 @@ const getLocalCategories = (): Category[] => {
       } else {
         if (!match.image_url || match.image_url !== initCat.image_url) {
           match.image_url = initCat.image_url;
+          updated = true;
+        }
+        if (!match.subcategories || match.subcategories.length === 0) {
+          match.subcategories = initCat.subcategories || [];
           updated = true;
         }
       }
@@ -285,6 +289,132 @@ export const getCategories = async (): Promise<Category[]> => {
     }
   }
   return getLocalCategories().filter(c => c.is_active);
+};
+
+export const getAllCategoriesAdmin = async (): Promise<Category[]> => {
+  if (isSupabaseConfigured() && supabase) {
+    try {
+      const { data, error } = await supabase
+        .from('categories')
+        .select('*')
+        .order('display_order', { ascending: true });
+      if (!error && data) return data as Category[];
+    } catch {
+      // fallback
+    }
+  }
+  return getLocalCategories();
+};
+
+export const addCategoryAdmin = async (categoryData: Partial<Category>): Promise<Category> => {
+  const newId = 'cat-' + Date.now();
+  const slug = categoryData.slug || (categoryData.name ? categoryData.name.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/(^-|-$)/g, '') : newId);
+  const newCat: Category = {
+    id: newId,
+    name: categoryData.name || 'New Category',
+    slug,
+    description: categoryData.description || '',
+    icon: categoryData.icon || 'Monitor',
+    image_url: categoryData.image_url || 'https://images.unsplash.com/photo-1593640408182-31c70c8268f5?w=500&auto=format&fit=crop&q=80',
+    display_order: categoryData.display_order !== undefined ? Number(categoryData.display_order) : 99,
+    is_active: categoryData.is_active !== undefined ? categoryData.is_active : true,
+    subcategories: categoryData.subcategories || []
+  };
+
+  if (isSupabaseConfigured() && supabase) {
+    try {
+      await supabase.from('categories').insert(newCat);
+    } catch (err) {
+      console.warn('Supabase add category failed, saving locally', err);
+    }
+  }
+
+  const cats = getLocalCategories();
+  cats.push(newCat);
+  localStorage.setItem(STORAGE_CATEGORIES, JSON.stringify(cats));
+  return newCat;
+};
+
+export const updateCategoryAdmin = async (id: string, updates: Partial<Category>): Promise<Category> => {
+  if (isSupabaseConfigured() && supabase) {
+    try {
+      await supabase.from('categories').update(updates).eq('id', id);
+    } catch (err) {
+      console.warn('Supabase update category failed, saving locally', err);
+    }
+  }
+
+  const cats = getLocalCategories();
+  const idx = cats.findIndex(c => c.id === id);
+  if (idx !== -1) {
+    cats[idx] = { ...cats[idx], ...updates };
+    localStorage.setItem(STORAGE_CATEGORIES, JSON.stringify(cats));
+    return cats[idx];
+  }
+  throw new Error('Category not found');
+};
+
+export const deleteCategoryAdmin = async (id: string): Promise<boolean> => {
+  if (isSupabaseConfigured() && supabase) {
+    try {
+      await supabase.from('categories').delete().eq('id', id);
+    } catch (err) {
+      console.warn('Supabase delete category failed, deleting locally', err);
+    }
+  }
+
+  const cats = getLocalCategories().filter(c => c.id !== id);
+  localStorage.setItem(STORAGE_CATEGORIES, JSON.stringify(cats));
+  return true;
+};
+
+export const addSubcategoryAdmin = async (categoryId: string, subcategoryName: string): Promise<Category> => {
+  const cats = getLocalCategories();
+  const cat = cats.find(c => c.id === categoryId);
+  if (!cat) throw new Error('Category not found');
+  const subs = cat.subcategories ? [...cat.subcategories] : [];
+  const trimmed = subcategoryName.trim();
+  if (trimmed && !subs.includes(trimmed)) {
+    subs.push(trimmed);
+  }
+  return updateCategoryAdmin(categoryId, { subcategories: subs });
+};
+
+export const removeSubcategoryAdmin = async (categoryId: string, subcategoryName: string): Promise<Category> => {
+  const cats = getLocalCategories();
+  const cat = cats.find(c => c.id === categoryId);
+  if (!cat) throw new Error('Category not found');
+  const subs = (cat.subcategories || []).filter(s => s !== subcategoryName);
+  return updateCategoryAdmin(categoryId, { subcategories: subs });
+};
+
+export const updateSubcategoriesAdmin = async (categoryId: string, subcategories: string[]): Promise<Category> => {
+  return updateCategoryAdmin(categoryId, { subcategories });
+};
+
+// ==================== OEM BRANDS ====================
+const STORAGE_POPULAR_BRANDS = 'dw_popular_brands';
+
+export const getPopularBrands = async (): Promise<string[]> => {
+  const stored = localStorage.getItem(STORAGE_POPULAR_BRANDS);
+  if (stored) {
+    try {
+      return JSON.parse(stored);
+    } catch {
+      // fallback
+    }
+  }
+  return initialStoreSettings.popular_brands || [
+    'Lenovo', 'HP', 'Dell', 'Asus', 'Acer', 'Apple',
+    'Crucial', 'EVM', 'Western Digital', 'Seagate', 'Kingston',
+    'CP Plus', 'Hikvision', 'Dahua', 'Logitech', 'Zebronics',
+    'TP-Link', 'D-Link', 'Canon', 'Epson', 'Frontech'
+  ];
+};
+
+export const updatePopularBrandsAdmin = async (brands: string[]): Promise<string[]> => {
+  localStorage.setItem(STORAGE_POPULAR_BRANDS, JSON.stringify(brands));
+  return brands;
 };
 
 // ==================== PRODUCTS ====================

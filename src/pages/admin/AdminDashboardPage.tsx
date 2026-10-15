@@ -36,7 +36,16 @@ import {
   updateDealerStatusAdmin,
   createDealerAdmin,
   resetDealerPasswordAdmin,
-  generateDealerApprovalWhatsAppUrl
+  generateDealerApprovalWhatsAppUrl,
+  getAllCategoriesAdmin,
+  addCategoryAdmin,
+  updateCategoryAdmin,
+  deleteCategoryAdmin,
+  addSubcategoryAdmin,
+  removeSubcategoryAdmin,
+  updateSubcategoriesAdmin,
+  getPopularBrands,
+  updatePopularBrandsAdmin
 } from '../../services/api';
 import { useStoreSettings } from '../../context/StoreSettingsContext';
 import { Logo } from '../../components/common/Logo';
@@ -74,7 +83,13 @@ import {
   UserX,
   Building2,
   Tag,
-  TrendingDown
+  TrendingDown,
+  Shapes,
+  Sparkles,
+  Layers,
+  ChevronDown,
+  ChevronUp,
+  FolderPlus
 } from 'lucide-react';
 
 export const AdminDashboardPage: React.FC = () => {
@@ -82,7 +97,7 @@ export const AdminDashboardPage: React.FC = () => {
   const { settings, updateSettings, refreshSettings } = useStoreSettings();
 
   const [adminUser, setAdminUser] = useState<AdminUser | null>(null);
-  const [activeTab, setActiveTab] = useState<'overview' | 'products' | 'laptops' | 'orders' | 'dealers' | 'settings'>('overview');
+  const [activeTab, setActiveTab] = useState<'overview' | 'products' | 'laptops' | 'orders' | 'dealers' | 'categories' | 'settings'>('overview');
   const [loading, setLoading] = useState(true);
 
   // Core Data
@@ -90,6 +105,32 @@ export const AdminDashboardPage: React.FC = () => {
   const [categories, setCategories] = useState<Category[]>([]);
   const [orders, setOrders] = useState<Order[]>([]);
   const [dealers, setDealers] = useState<DealerUser[]>([]);
+  const [brands, setBrands] = useState<string[]>([]);
+  const [newBrandInput, setNewBrandInput] = useState('');
+
+  // Category & Sub-category Management State
+  const [categoryModalOpen, setCategoryModalOpen] = useState(false);
+  const [editingCategory, setEditingCategory] = useState<Category | null>(null);
+  const [categoryForm, setCategoryForm] = useState<{
+    name: string;
+    slug: string;
+    description: string;
+    icon: string;
+    image_url: string;
+    display_order: number;
+    is_active: boolean;
+  }>({
+    name: '',
+    slug: '',
+    description: '',
+    icon: 'Monitor',
+    image_url: '',
+    display_order: 1,
+    is_active: true
+  });
+  const [expandedCategoryIds, setExpandedCategoryIds] = useState<{ [id: string]: boolean }>({});
+  const [newSubcategoryInputs, setNewSubcategoryInputs] = useState<{ [id: string]: string }>({});
+  const [productModalCategoryId, setProductModalCategoryId] = useState<string>('');
 
   // Dealer Management State
   const [dealerFilterStatus, setDealerFilterStatus] = useState<string>('all');
@@ -151,6 +192,12 @@ export const AdminDashboardPage: React.FC = () => {
   useEffect(() => {
     setSettingsForm(settings);
   }, [settings]);
+
+  useEffect(() => {
+    if (productModalOpen) {
+      setProductModalCategoryId(editingProduct?.category_id || categories[0]?.id || '');
+    }
+  }, [productModalOpen, editingProduct, categories]);
 
   const handleRequestCredOtp = async () => {
     setCredError(null);
@@ -284,17 +331,19 @@ export const AdminDashboardPage: React.FC = () => {
       }
       setAdminUser(user);
 
-      const [prods, cats, ords, dlrs] = await Promise.all([
+      const [prods, cats, ords, dlrs, brnds] = await Promise.all([
         getAllProductsAdmin(),
-        getCategories(),
+        getAllCategoriesAdmin(),
         getAllOrdersAdmin(),
-        getDealersAdmin()
+        getDealersAdmin(),
+        getPopularBrands()
       ]);
 
       setProducts(prods);
       setCategories(cats);
       setOrders(ords);
       setDealers(dlrs);
+      setBrands(brnds);
     } catch (err) {
       console.error('Failed to load admin data', err);
     } finally {
@@ -309,6 +358,133 @@ export const AdminDashboardPage: React.FC = () => {
   const handleLogout = async () => {
     await adminLogout();
     navigate('/admin/login');
+  };
+
+  // ==================== CATEGORY & BRAND HANDLERS ====================
+  const handleOpenAddCategory = () => {
+    setEditingCategory(null);
+    setCategoryForm({
+      name: '',
+      slug: '',
+      description: '',
+      icon: 'Monitor',
+      image_url: 'https://images.unsplash.com/photo-1593640408182-31c70c8268f5?w=500&auto=format&fit=crop&q=80',
+      display_order: categories.length + 1,
+      is_active: true
+    });
+    setCategoryModalOpen(true);
+  };
+
+  const handleOpenEditCategory = (cat: Category) => {
+    setEditingCategory(cat);
+    setCategoryForm({
+      name: cat.name,
+      slug: cat.slug,
+      description: cat.description || '',
+      icon: cat.icon || 'Monitor',
+      image_url: cat.image_url || '',
+      display_order: cat.display_order,
+      is_active: cat.is_active
+    });
+    setCategoryModalOpen(true);
+  };
+
+  const handleSaveCategory = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!categoryForm.name.trim()) {
+      alert('Please enter a category name');
+      return;
+    }
+
+    try {
+      if (editingCategory) {
+        const updated = await updateCategoryAdmin(editingCategory.id, categoryForm);
+        setCategories(categories.map(c => c.id === updated.id ? updated : c));
+        showToast(`Category "${updated.name}" updated successfully!`);
+      } else {
+        const added = await addCategoryAdmin(categoryForm);
+        setCategories([...categories, added]);
+        showToast(`New category "${added.name}" added successfully!`);
+      }
+      setCategoryModalOpen(false);
+    } catch (err: unknown) {
+      alert('Failed to save category: ' + (err as Error).message);
+    }
+  };
+
+  const handleDeleteCategory = async (cat: Category) => {
+    if (window.confirm(`Are you sure you want to delete category "${cat.name}"? Products in this category may become unassigned.`)) {
+      try {
+        await deleteCategoryAdmin(cat.id);
+        setCategories(categories.filter(c => c.id !== cat.id));
+        showToast(`Category "${cat.name}" removed from catalog.`);
+      } catch (err: unknown) {
+        alert('Failed to delete category: ' + (err as Error).message);
+      }
+    }
+  };
+
+  const handleToggleCategoryActive = async (cat: Category) => {
+    try {
+      const updated = await updateCategoryAdmin(cat.id, { is_active: !cat.is_active });
+      setCategories(categories.map(c => c.id === updated.id ? updated : c));
+      showToast(`Category "${cat.name}" is now ${updated.is_active ? 'ACTIVE' : 'INACTIVE'}`);
+    } catch (err: unknown) {
+      alert('Failed to toggle status: ' + (err as Error).message);
+    }
+  };
+
+  const toggleCategoryExpand = (categoryId: string) => {
+    setExpandedCategoryIds(prev => ({
+      ...prev,
+      [categoryId]: !prev[categoryId]
+    }));
+  };
+
+  const handleAddSubcategory = async (categoryId: string) => {
+    const subName = newSubcategoryInputs[categoryId]?.trim();
+    if (!subName) return;
+
+    try {
+      const updated = await addSubcategoryAdmin(categoryId, subName);
+      setCategories(categories.map(c => c.id === updated.id ? updated : c));
+      setNewSubcategoryInputs(prev => ({ ...prev, [categoryId]: '' }));
+      showToast(`Sub-category "${subName}" added!`);
+    } catch (err: unknown) {
+      alert('Failed to add sub-category: ' + (err as Error).message);
+    }
+  };
+
+  const handleRemoveSubcategory = async (categoryId: string, subName: string) => {
+    try {
+      const updated = await removeSubcategoryAdmin(categoryId, subName);
+      setCategories(categories.map(c => c.id === updated.id ? updated : c));
+      showToast(`Sub-category "${subName}" removed.`);
+    } catch (err: unknown) {
+      alert('Failed to remove sub-category: ' + (err as Error).message);
+    }
+  };
+
+  const handleAddBrand = async (e: React.FormEvent) => {
+    e.preventDefault();
+    const trimmed = newBrandInput.trim();
+    if (!trimmed) return;
+    if (brands.some(b => b.toLowerCase() === trimmed.toLowerCase())) {
+      alert(`Brand "${trimmed}" already exists in the list.`);
+      return;
+    }
+    const updated = [...brands, trimmed];
+    setBrands(updated);
+    await updatePopularBrandsAdmin(updated);
+    setNewBrandInput('');
+    showToast(`Brand "${trimmed}" added to Shop by Brand filter!`);
+  };
+
+  const handleRemoveBrand = async (brandName: string) => {
+    const updated = brands.filter(b => b !== brandName);
+    setBrands(updated);
+    await updatePopularBrandsAdmin(updated);
+    showToast(`Brand "${brandName}" removed.`);
   };
 
   // Dealer Action Handlers
@@ -709,6 +885,18 @@ export const AdminDashboardPage: React.FC = () => {
                 {metrics.pendingDealersCount}
               </span>
             )}
+          </button>
+
+          <button
+            onClick={() => setActiveTab('categories')}
+            className={`px-4 py-2.5 text-xs font-bold border-b-2 flex items-center gap-2 transition-colors cursor-pointer shrink-0 ${
+              activeTab === 'categories'
+                ? 'border-secondary text-secondary'
+                : 'border-transparent text-charcoal-muted hover:text-charcoal'
+            }`}
+          >
+            <Shapes className="w-4 h-4" />
+            <span>Categories & Sub-Parts ({categories.length})</span>
           </button>
 
           <button
@@ -1648,6 +1836,103 @@ export const AdminDashboardPage: React.FC = () => {
                   </div>
                 </div>
 
+                {/* Promotional Banners & Festive Offers (Navratri 9-Day, Mega Sales, Announcement Bar) */}
+                <div className="space-y-4 pt-3 border-t border-slate-100">
+                  <div className="flex items-center gap-2">
+                    <Sparkles className="w-5 h-5 text-amber-500" />
+                    <div>
+                      <h3 className="font-bold text-sm text-primary">
+                        Promotional Banners, Ticker & Festive Offers
+                      </h3>
+                      <p className="text-[11px] text-charcoal-muted">
+                        Customize the top announcement bar and festive promotional slides on the homepage.
+                      </p>
+                    </div>
+                  </div>
+
+                  <div>
+                    <label className="block font-bold text-charcoal mb-1">
+                      Top Announcement Bar Ticker (Visible across entire website)
+                    </label>
+                    <input
+                      type="text"
+                      value={settingsForm.announcement_ticker || ''}
+                      onChange={(e) => setSettingsForm({ ...settingsForm, announcement_ticker: e.target.value })}
+                      placeholder="e.g. ⚡ Free Delivery on orders above ₹1,999 | Best Second-Hand Laptops with 1-Year Testing Warranty!"
+                      className="w-full px-3.5 py-2.5 rounded-xl border border-slate-300 bg-surface-muted focus:bg-white focus:border-secondary text-xs"
+                    />
+                  </div>
+
+                  <div className="p-4 bg-amber-50/70 rounded-2xl border border-amber-200 space-y-3">
+                    <label className="flex items-center gap-2 cursor-pointer font-bold text-amber-950">
+                      <input
+                        type="checkbox"
+                        checked={settingsForm.banner_navratri_active !== false}
+                        onChange={(e) => setSettingsForm({ ...settingsForm, banner_navratri_active: e.target.checked })}
+                        className="rounded text-amber-600 w-4 h-4"
+                      />
+                      <span>Show Navratri 9 Days Festive Offer Banner & Sale Section</span>
+                    </label>
+
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 pt-1">
+                      <div>
+                        <label className="block font-bold text-amber-900 mb-1 text-xs">Festive Badge Text</label>
+                        <input
+                          type="text"
+                          value={settingsForm.banner_navratri_badge || ''}
+                          onChange={(e) => setSettingsForm({ ...settingsForm, banner_navratri_badge: e.target.value })}
+                          placeholder="🪔 NAVRATRI 9 DAYS FESTIVE OFFER | नवरात्री महाबचत 🪔"
+                          className="w-full px-3 py-2 rounded-xl border border-amber-300 bg-white text-xs"
+                        />
+                      </div>
+
+                      <div>
+                        <label className="block font-bold text-amber-900 mb-1 text-xs">Discount / Price Tag</label>
+                        <input
+                          type="text"
+                          value={settingsForm.banner_navratri_discount || ''}
+                          onChange={(e) => setSettingsForm({ ...settingsForm, banner_navratri_discount: e.target.value })}
+                          placeholder="Starts ₹399 / Up to 45% OFF"
+                          className="w-full px-3 py-2 rounded-xl border border-amber-300 bg-white text-xs font-bold"
+                        />
+                      </div>
+
+                      <div>
+                        <label className="block font-bold text-amber-900 mb-1 text-xs">Banner Headline Title</label>
+                        <input
+                          type="text"
+                          value={settingsForm.banner_navratri_title || ''}
+                          onChange={(e) => setSettingsForm({ ...settingsForm, banner_navratri_title: e.target.value })}
+                          placeholder="Navratri 9 Days Festive Dhamaka: Up to 45% OFF"
+                          className="w-full px-3 py-2 rounded-xl border border-amber-300 bg-white text-xs font-bold"
+                        />
+                      </div>
+
+                      <div>
+                        <label className="block font-bold text-amber-900 mb-1 text-xs">Banner Target URL</label>
+                        <input
+                          type="text"
+                          value={settingsForm.banner_navratri_link || ''}
+                          onChange={(e) => setSettingsForm({ ...settingsForm, banner_navratri_link: e.target.value })}
+                          placeholder="/products or /category/second-hand-laptops"
+                          className="w-full px-3 py-2 rounded-xl border border-amber-300 bg-white text-xs font-mono"
+                        />
+                      </div>
+                    </div>
+
+                    <div>
+                      <label className="block font-bold text-amber-900 mb-1 text-xs">Banner Subtitle / Description</label>
+                      <input
+                        type="text"
+                        value={settingsForm.banner_navratri_subtitle || ''}
+                        onChange={(e) => setSettingsForm({ ...settingsForm, banner_navratri_subtitle: e.target.value })}
+                        placeholder="Celebrate 9 auspicious days of Navratri with heavy price cuts on certified second-hand laptops..."
+                        className="w-full px-3 py-2 rounded-xl border border-amber-300 bg-white text-xs"
+                      />
+                    </div>
+                  </div>
+                </div>
+
                 <div className="pt-4 border-t border-slate-200 flex justify-end">
                   <button
                     type="submit"
@@ -2393,6 +2678,288 @@ export const AdminDashboardPage: React.FC = () => {
             )}
           </div>
         )}
+
+        {/* ===================== TAB 6: CATEGORIES & SUB-PARTS ===================== */}
+        {activeTab === 'categories' && (
+          <div className="space-y-6 animate-fade-in text-left">
+            {/* Header with Add Button */}
+            <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 bg-white p-6 rounded-3xl border border-slate-200 shadow-card">
+              <div>
+                <div className="flex items-center gap-2">
+                  <Shapes className="w-6 h-6 text-secondary" />
+                  <h2 className="text-xl font-black text-primary">Category & Sub-Parts Architecture</h2>
+                </div>
+                <p className="text-xs text-charcoal-muted mt-1">
+                  Manage website navigation categories, icons, display order, and sub-parts displayed on the desktop hover ribbon and mobile menus.
+                </p>
+              </div>
+
+              <button
+                onClick={handleOpenAddCategory}
+                className="px-5 py-2.5 bg-secondary hover:bg-secondary-dark text-white rounded-xl font-bold text-xs flex items-center gap-2 shadow-xs transition-colors shrink-0 cursor-pointer"
+              >
+                <Plus className="w-4 h-4" />
+                <span>Add New Category</span>
+              </button>
+            </div>
+
+            {/* Quick Metrics */}
+            <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 sm:gap-4">
+              <div className="bg-white p-4 rounded-2xl border border-slate-200 shadow-xs">
+                <span className="text-[11px] font-bold text-charcoal-muted uppercase">Total Categories</span>
+                <p className="text-2xl font-black text-primary mt-0.5">{categories.length}</p>
+              </div>
+
+              <div className="bg-white p-4 rounded-2xl border border-slate-200 shadow-xs">
+                <span className="text-[11px] font-bold text-charcoal-muted uppercase">Total Sub-Parts</span>
+                <p className="text-2xl font-black text-secondary mt-0.5">
+                  {categories.reduce((acc, cat) => acc + (cat.subcategories?.length || 0), 0)}
+                </p>
+              </div>
+
+              <div className="bg-white p-4 rounded-2xl border border-slate-200 shadow-xs">
+                <span className="text-[11px] font-bold text-charcoal-muted uppercase">Active in Store</span>
+                <p className="text-2xl font-black text-emerald-600 mt-0.5">
+                  {categories.filter(c => c.is_active).length}
+                </p>
+              </div>
+
+              <div className="bg-white p-4 rounded-2xl border border-slate-200 shadow-xs">
+                <span className="text-[11px] font-bold text-charcoal-muted uppercase">OEM Brands</span>
+                <p className="text-2xl font-black text-blue-600 mt-0.5">{brands.length}</p>
+              </div>
+            </div>
+
+            {/* OEM Brands Quick Management Card */}
+            <div className="bg-white p-6 rounded-3xl border border-slate-200 shadow-card space-y-4">
+              <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-2 border-b border-slate-100 pb-3">
+                <div>
+                  <h3 className="font-extrabold text-sm text-primary flex items-center gap-2">
+                    <Tag className="w-4 h-4 text-secondary" />
+                    <span>OEM Brands & Manufacturers (Desktop Ribbon & Filters)</span>
+                  </h3>
+                  <p className="text-xs text-charcoal-muted mt-0.5">
+                    Brands shown in the desktop navigation "Shop By Brand" dropdown and brand search filters.
+                  </p>
+                </div>
+              </div>
+
+              {/* Brand Chips */}
+              <div className="flex flex-wrap gap-2 pt-1">
+                {brands.map(brand => (
+                  <span
+                    key={brand}
+                    className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-bold bg-slate-100 text-charcoal border border-slate-200 hover:border-slate-300"
+                  >
+                    <span>{brand}</span>
+                    <button
+                      type="button"
+                      onClick={() => handleRemoveBrand(brand)}
+                      title={`Remove brand ${brand}`}
+                      className="text-slate-400 hover:text-rose-600 transition-colors cursor-pointer"
+                    >
+                      <X className="w-3.5 h-3.5" />
+                    </button>
+                  </span>
+                ))}
+              </div>
+
+              {/* Add New Brand Form */}
+              <form onSubmit={handleAddBrand} className="flex items-center gap-2 pt-2 max-w-md">
+                <input
+                  type="text"
+                  value={newBrandInput}
+                  onChange={(e) => setNewBrandInput(e.target.value)}
+                  placeholder="Enter brand name (e.g. Acer, Zebronics, Logitech...)"
+                  className="flex-1 px-3.5 py-2 rounded-xl border border-slate-300 text-xs focus:border-secondary focus:bg-white bg-surface-muted"
+                />
+                <button
+                  type="submit"
+                  className="px-4 py-2 bg-primary hover:bg-primary-light text-white font-bold text-xs rounded-xl flex items-center gap-1.5 shadow-xs shrink-0 cursor-pointer"
+                >
+                  <Plus className="w-3.5 h-3.5" />
+                  <span>Add Brand</span>
+                </button>
+              </form>
+            </div>
+
+            {/* Categories & Subcategories List */}
+            <div className="bg-white rounded-3xl border border-slate-200 shadow-card overflow-hidden">
+              <div className="p-4 sm:p-6 border-b border-slate-100 flex items-center justify-between">
+                <div>
+                  <h3 className="font-extrabold text-sm text-primary">All Store Categories ({categories.length})</h3>
+                  <p className="text-xs text-charcoal-muted mt-0.5">
+                    Click "Manage Subcategories" on any category to view, add, or remove sub-parts.
+                  </p>
+                </div>
+              </div>
+
+              <div className="divide-y divide-slate-100">
+                {categories
+                  .slice()
+                  .sort((a, b) => a.display_order - b.display_order)
+                  .map((cat) => {
+                    const isExpanded = !!expandedCategoryIds[cat.id];
+                    const subList = cat.subcategories || [];
+
+                    return (
+                      <div key={cat.id} className="p-4 sm:p-5 hover:bg-slate-50/60 transition-colors">
+                        {/* Main Category Row */}
+                        <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3">
+                          <div className="flex items-center gap-3">
+                            <span className="w-7 h-7 rounded-lg bg-slate-100 text-slate-500 font-mono text-xs font-bold flex items-center justify-center shrink-0">
+                              #{cat.display_order}
+                            </span>
+
+                            {cat.image_url ? (
+                              <img
+                                src={cat.image_url}
+                                alt={cat.name}
+                                className="w-10 h-10 rounded-xl object-cover border border-slate-200 shrink-0"
+                              />
+                            ) : (
+                              <div className="w-10 h-10 rounded-xl bg-amber-50 border border-amber-200 flex items-center justify-center text-amber-800 shrink-0 font-bold">
+                                <Shapes className="w-5 h-5" />
+                              </div>
+                            )}
+
+                            <div>
+                              <div className="flex items-center gap-2">
+                                <h4 className="font-extrabold text-sm text-primary">{cat.name}</h4>
+                                <button
+                                  type="button"
+                                  onClick={() => handleToggleCategoryActive(cat)}
+                                  className={`px-2 py-0.5 rounded-full text-[10px] font-bold cursor-pointer transition-colors ${
+                                    cat.is_active
+                                      ? 'bg-emerald-100 text-emerald-800 hover:bg-emerald-200'
+                                      : 'bg-slate-200 text-slate-600 hover:bg-slate-300'
+                                  }`}
+                                >
+                                  {cat.is_active ? 'ACTIVE' : 'HIDDEN'}
+                                </button>
+                              </div>
+                              <p className="text-[11px] text-charcoal-muted font-mono mt-0.5">
+                                slug: /category/{cat.slug} | icon: {cat.icon || 'Monitor'}
+                              </p>
+                            </div>
+                          </div>
+
+                          <div className="flex items-center gap-2 self-end sm:self-auto shrink-0">
+                            <button
+                              type="button"
+                              onClick={() => toggleCategoryExpand(cat.id)}
+                              className={`px-3 py-1.5 rounded-xl text-xs font-bold border flex items-center gap-1.5 transition-colors cursor-pointer ${
+                                isExpanded
+                                  ? 'bg-amber-50 border-amber-300 text-amber-900'
+                                  : 'bg-white border-slate-200 text-charcoal hover:bg-slate-100'
+                              }`}
+                            >
+                              <Layers className="w-3.5 h-3.5 text-secondary" />
+                              <span>Sub-Parts ({subList.length})</span>
+                              {isExpanded ? (
+                                <ChevronUp className="w-3.5 h-3.5" />
+                              ) : (
+                                <ChevronDown className="w-3.5 h-3.5" />
+                              )}
+                            </button>
+
+                            <button
+                              type="button"
+                              onClick={() => handleOpenEditCategory(cat)}
+                              className="p-2 rounded-xl text-slate-500 hover:text-secondary hover:bg-slate-100 border border-slate-200 transition-colors cursor-pointer"
+                              title="Edit Category"
+                            >
+                              <Edit className="w-4 h-4" />
+                            </button>
+
+                            <button
+                              type="button"
+                              onClick={() => handleDeleteCategory(cat)}
+                              className="p-2 rounded-xl text-slate-400 hover:text-rose-600 hover:bg-rose-50 border border-slate-200 transition-colors cursor-pointer"
+                              title="Delete Category"
+                            >
+                              <Trash2 className="w-4 h-4" />
+                            </button>
+                          </div>
+                        </div>
+
+                        {/* Expandable Subcategories Management Panel */}
+                        {isExpanded && (
+                          <div className="mt-4 pt-4 border-t border-slate-200/80 bg-slate-50/80 p-4 rounded-2xl space-y-3 animate-fade-in">
+                            <div className="flex items-center justify-between">
+                              <span className="text-xs font-extrabold text-primary flex items-center gap-1.5">
+                                <Layers className="w-4 h-4 text-secondary" />
+                                <span>Sub-Categories / Sub-Parts under "{cat.name}"</span>
+                              </span>
+                              <span className="text-[11px] text-charcoal-muted">
+                                {subList.length} sub-part{subList.length !== 1 ? 's' : ''} configured
+                              </span>
+                            </div>
+
+                            {/* Subcategories Chip List */}
+                            {subList.length > 0 ? (
+                              <div className="flex flex-wrap gap-2">
+                                {subList.map((sub) => (
+                                  <span
+                                    key={sub}
+                                    className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-semibold bg-white text-charcoal border border-slate-200 shadow-2xs"
+                                  >
+                                    <span>{sub}</span>
+                                    <button
+                                      type="button"
+                                      onClick={() => handleRemoveSubcategory(cat.id, sub)}
+                                      title={`Remove ${sub}`}
+                                      className="text-slate-400 hover:text-rose-600 transition-colors cursor-pointer"
+                                    >
+                                      <X className="w-3.5 h-3.5" />
+                                    </button>
+                                  </span>
+                                ))}
+                              </div>
+                            ) : (
+                              <p className="text-xs text-slate-400 italic">
+                                No subcategories added yet. Add one below to show on the storefront hover menu!
+                              </p>
+                            )}
+
+                            {/* Add Subcategory Form for this category */}
+                            <div className="flex items-center gap-2 pt-1 max-w-md">
+                              <input
+                                type="text"
+                                value={newSubcategoryInputs[cat.id] || ''}
+                                onChange={(e) =>
+                                  setNewSubcategoryInputs(prev => ({
+                                    ...prev,
+                                    [cat.id]: e.target.value
+                                  }))
+                                }
+                                onKeyDown={(e) => {
+                                  if (e.key === 'Enter') {
+                                    e.preventDefault();
+                                    handleAddSubcategory(cat.id);
+                                  }
+                                }}
+                                placeholder={`Add sub-part for ${cat.name}...`}
+                                className="flex-1 px-3 py-1.5 rounded-xl border border-slate-300 text-xs bg-white focus:border-secondary"
+                              />
+                              <button
+                                type="button"
+                                onClick={() => handleAddSubcategory(cat.id)}
+                                className="px-3.5 py-1.5 bg-secondary hover:bg-secondary-dark text-white font-bold text-xs rounded-xl flex items-center gap-1 shadow-xs cursor-pointer"
+                              >
+                                <Plus className="w-3.5 h-3.5" />
+                                <span>Add Sub-Part</span>
+                              </button>
+                            </div>
+                          </div>
+                        )}
+                      </div>
+                    );
+                  })}
+              </div>
+            </div>
+          </div>
+        )}
       </main>
 
       {/* ===================== ADD / EDIT PRODUCT MODAL ===================== */}
@@ -2434,6 +3001,7 @@ export const AdminDashboardPage: React.FC = () => {
                   brand,
                   model,
                   category_id: categoryId,
+                  subcategory: (formData.get('subcategory') as string) || undefined,
                   condition,
                   price,
                   original_price: originalPrice,
@@ -2498,14 +3066,33 @@ export const AdminDashboardPage: React.FC = () => {
                   <label className="block font-bold text-charcoal mb-1">Category *</label>
                   <select
                     name="category_id"
-                    defaultValue={editingProduct?.category_id || categories[0]?.id}
-                    className="w-full px-3 py-2 rounded-xl border border-slate-300"
+                    value={productModalCategoryId || editingProduct?.category_id || categories[0]?.id}
+                    onChange={(e) => setProductModalCategoryId(e.target.value)}
+                    className="w-full px-3 py-2 rounded-xl border border-slate-300 bg-white"
                   >
                     {categories.map(c => (
                       <option key={c.id} value={c.id}>{c.name}</option>
                     ))}
                   </select>
                 </div>
+              </div>
+
+              {/* Sub-Category Selection */}
+              <div>
+                <label className="block font-bold text-charcoal mb-1">Sub-Category / Sub-Part</label>
+                <select
+                  name="subcategory"
+                  defaultValue={editingProduct?.subcategory || ''}
+                  className="w-full px-3 py-2 rounded-xl border border-slate-300 bg-white"
+                >
+                  <option value="">-- General / No Subcategory --</option>
+                  {(categories.find(c => c.id === (productModalCategoryId || editingProduct?.category_id || categories[0]?.id))?.subcategories || []).map(s => (
+                    <option key={s} value={s}>{s}</option>
+                  ))}
+                </select>
+                <span className="text-[10px] text-charcoal-muted">
+                  Sub-categories are dynamically managed in the "Categories & Sub-Parts" tab.
+                </span>
               </div>
 
               {/* Product ID and Item Code (Image 4 & 5) */}
@@ -2812,6 +3399,155 @@ export const AdminDashboardPage: React.FC = () => {
                   className="px-6 py-2 bg-primary text-white rounded-xl font-bold hover:bg-primary-light"
                 >
                   {editingProduct?.id ? 'Save Changes' : 'Create Product'}
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
+
+      {/* ===================== ADD / EDIT CATEGORY MODAL ===================== */}
+      {categoryModalOpen && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-xs overflow-y-auto">
+          <div className="bg-white rounded-3xl max-w-lg w-full max-h-[90vh] overflow-y-auto p-6 sm:p-8 shadow-2xl border border-slate-200 text-left space-y-5 animate-fade-in">
+            <div className="flex items-center justify-between pb-3 border-b border-slate-200">
+              <h3 className="font-extrabold text-lg text-primary flex items-center gap-2">
+                <Shapes className="w-5 h-5 text-secondary" />
+                <span>{editingCategory ? 'Edit Store Category' : 'Add New Store Category'}</span>
+              </h3>
+              <button
+                type="button"
+                onClick={() => setCategoryModalOpen(false)}
+                className="p-1.5 rounded-xl text-slate-400 hover:text-charcoal cursor-pointer"
+              >
+                <X className="w-5 h-5" />
+              </button>
+            </div>
+
+            <form onSubmit={handleSaveCategory} className="space-y-4 text-xs">
+              <div>
+                <label className="block font-bold text-charcoal mb-1">Category Name *</label>
+                <input
+                  type="text"
+                  required
+                  value={categoryForm.name}
+                  onChange={(e) => {
+                    const name = e.target.value;
+                    const autoSlug = name.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/(^-|-$)/g, '');
+                    setCategoryForm(prev => ({
+                      ...prev,
+                      name,
+                      slug: editingCategory ? prev.slug : autoSlug
+                    }));
+                  }}
+                  placeholder="e.g. Desktop Computers, CCTV & Security..."
+                  className="w-full px-3.5 py-2.5 rounded-xl border border-slate-300 bg-surface-muted focus:bg-white focus:border-secondary text-xs"
+                />
+              </div>
+
+              <div>
+                <label className="block font-bold text-charcoal mb-1">URL Slug</label>
+                <input
+                  type="text"
+                  value={categoryForm.slug}
+                  onChange={(e) => setCategoryForm({ ...categoryForm, slug: e.target.value })}
+                  placeholder="e.g. desktop-computers"
+                  className="w-full px-3.5 py-2.5 rounded-xl border border-slate-300 bg-surface-muted focus:bg-white focus:border-secondary font-mono text-xs"
+                />
+                <span className="text-[10px] text-charcoal-muted">Will create route /category/{categoryForm.slug || 'slug'}</span>
+              </div>
+
+              <div className="grid grid-cols-2 gap-3">
+                <div>
+                  <label className="block font-bold text-charcoal mb-1">Category Icon</label>
+                  <select
+                    value={categoryForm.icon}
+                    onChange={(e) => setCategoryForm({ ...categoryForm, icon: e.target.value })}
+                    className="w-full px-3 py-2 rounded-xl border border-slate-300 bg-white text-xs"
+                  >
+                    <option value="Monitor">Monitor (Desktop/PC)</option>
+                    <option value="Laptop">Laptop (Notebooks)</option>
+                    <option value="HardDrive">HardDrive (Storage/SSD)</option>
+                    <option value="Tv">Tv (Displays/Screens)</option>
+                    <option value="Keyboard">Keyboard (Peripherals)</option>
+                    <option value="Shapes">Shapes (Printers/Parts)</option>
+                    <option value="Video">Video (CCTV/Cameras)</option>
+                    <option value="Router">Router (Networking/Wi-Fi)</option>
+                    <option value="Shield">Shield (Antivirus/Software)</option>
+                    <option value="Smartphone">Smartphone (Mobility)</option>
+                    <option value="Cable">Cable (Cables & Wires)</option>
+                    <option value="Wrench">Wrench (Converters & Tools)</option>
+                    <option value="Layers">Layers (Accessories)</option>
+                    <option value="PhoneCall">PhoneCall (Telecom/Intercom)</option>
+                  </select>
+                </div>
+
+                <div>
+                  <label className="block font-bold text-charcoal mb-1">Display Order #</label>
+                  <input
+                    type="number"
+                    value={categoryForm.display_order}
+                    onChange={(e) => setCategoryForm({ ...categoryForm, display_order: parseInt(e.target.value, 10) || 1 })}
+                    className="w-full px-3 py-2 rounded-xl border border-slate-300 bg-white text-xs font-mono"
+                  />
+                </div>
+              </div>
+
+              <div>
+                <label className="block font-bold text-charcoal mb-1">Cover Image URL</label>
+                <input
+                  type="url"
+                  value={categoryForm.image_url}
+                  onChange={(e) => setCategoryForm({ ...categoryForm, image_url: e.target.value })}
+                  placeholder="https://images.unsplash.com/..."
+                  className="w-full px-3.5 py-2.5 rounded-xl border border-slate-300 bg-surface-muted focus:bg-white focus:border-secondary text-xs"
+                />
+                {categoryForm.image_url && (
+                  <div className="mt-2 flex items-center gap-2">
+                    <img
+                      src={categoryForm.image_url}
+                      alt="Category Preview"
+                      className="w-12 h-12 object-cover rounded-xl border border-slate-200"
+                    />
+                    <span className="text-[10px] text-charcoal-muted">Image preview</span>
+                  </div>
+                )}
+              </div>
+
+              <div>
+                <label className="block font-bold text-charcoal mb-1">Description (Optional)</label>
+                <textarea
+                  rows={2}
+                  value={categoryForm.description}
+                  onChange={(e) => setCategoryForm({ ...categoryForm, description: e.target.value })}
+                  placeholder="Short summary for this category..."
+                  className="w-full px-3 py-2 rounded-xl border border-slate-300 bg-surface-muted focus:bg-white focus:border-secondary text-xs"
+                />
+              </div>
+
+              <label className="flex items-center gap-2 p-3 rounded-xl border border-slate-200 bg-slate-50 cursor-pointer font-bold">
+                <input
+                  type="checkbox"
+                  checked={categoryForm.is_active}
+                  onChange={(e) => setCategoryForm({ ...categoryForm, is_active: e.target.checked })}
+                  className="rounded text-secondary w-4 h-4"
+                />
+                <span>Active & Visible in Storefront Menus</span>
+              </label>
+
+              <div className="pt-3 border-t border-slate-200 flex justify-end gap-2.5">
+                <button
+                  type="button"
+                  onClick={() => setCategoryModalOpen(false)}
+                  className="px-4 py-2 border border-slate-300 rounded-xl font-bold text-xs cursor-pointer hover:bg-slate-50"
+                >
+                  Cancel
+                </button>
+                <button
+                  type="submit"
+                  className="px-5 py-2 bg-secondary hover:bg-secondary-dark text-white rounded-xl font-bold text-xs shadow-xs cursor-pointer"
+                >
+                  {editingCategory ? 'Update Category' : 'Create Category'}
                 </button>
               </div>
             </form>

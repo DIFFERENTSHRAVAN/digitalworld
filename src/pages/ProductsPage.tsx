@@ -145,6 +145,7 @@ export const ProductsPage: React.FC = () => {
           product.name,
           product.brand,
           product.model,
+          product.subcategory,
           product.processor,
           product.description,
           product.pid,

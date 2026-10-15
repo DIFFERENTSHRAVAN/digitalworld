@@ -52,6 +52,9 @@ export interface Product {
   is_dealer_only?: boolean;
   min_dealer_qty?: number;
 
+  // Sub-category assignment (Admin Customizable)
+  subcategory?: string;
+
   // Demo status
   is_demo_product?: boolean;
 
@@ -68,6 +71,7 @@ export interface Category {
   image_url?: string;
   display_order: number;
   is_active: boolean;
+  subcategories?: string[];
 }
 
 export interface CartItem {
@@ -179,6 +183,16 @@ export interface StoreSettings {
   bank_branch?: string;
   bank_payment_instructions?: string;
   google_maps_url?: string;
+
+  // Promotional Banners & Offers (Admin Customizable)
+  banner_navratri_active?: boolean;
+  banner_navratri_badge?: string;
+  banner_navratri_title?: string;
+  banner_navratri_subtitle?: string;
+  banner_navratri_discount?: string;
+  banner_navratri_link?: string;
+  announcement_ticker?: string;
+  popular_brands?: string[];
 
   updated_at?: string;
 }
