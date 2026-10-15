@@ -496,47 +496,45 @@ export const HomePage: React.FC = () => {
         </div>
       </section>
 
-      {/* 4. Limited Time Deals with Countdown Timer (Reference Image 1) */}
+      {/* 4. Limited Time Deals with Countdown Timer (Reference Image 1 & 2) */}
       {trendingDeals.length > 0 && (
-        <section className="container mx-auto px-4">
-          <div className="bg-gradient-to-r from-slate-950 via-slate-900 to-amber-950 rounded-3xl p-6 sm:p-8 text-white border-2 border-amber-500/40 shadow-xl space-y-6">
-            <div className="flex flex-col md:flex-row items-start md:items-center justify-between gap-4 border-b border-amber-500/20 pb-5">
+        <section className="container mx-auto px-2.5 sm:px-4">
+          <div className="bg-gradient-to-r from-slate-950 via-slate-900 to-amber-950 rounded-2xl sm:rounded-3xl p-3 sm:p-6 lg:p-8 text-white border-2 border-amber-500/40 shadow-xl space-y-3.5 sm:space-y-6">
+            <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-2.5 sm:gap-4 border-b border-amber-500/20 pb-3 sm:pb-4">
               <div className="space-y-1">
-                <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-rose-600 text-white text-[10px] font-black uppercase tracking-wider">
-                  <Flame className="w-3.5 h-3.5" />
+                <div className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full bg-rose-600 text-white text-[9px] sm:text-[10px] font-black uppercase tracking-wider">
+                  <Flame className="w-3 h-3 sm:w-3.5 sm:h-3.5" />
                   <span>🪔 Navratri 9-Day Mega Sale 🪔</span>
                 </div>
-                <h2 className="text-xl sm:text-3xl font-black text-white">
+                <h2 className="text-base sm:text-2xl lg:text-3xl font-black text-white">
                   Navratri 9 Days Festive Deals & Price Cuts
                 </h2>
               </div>
 
               {/* Countdown Timer Display */}
-              <div className="flex items-center gap-2 bg-slate-900/90 p-2.5 rounded-2xl border border-amber-500/40">
-                <Clock className="w-4 h-4 text-amber-400 shrink-0" />
-                <span className="text-[11px] font-bold text-slate-300 mr-1">Offer Ends In:</span>
-                <div className="flex items-center gap-1.5 font-mono font-black text-xs sm:text-sm text-amber-400">
-                  <span className="bg-slate-800 px-2 py-1 rounded-md border border-slate-700">
+              <div className="flex items-center gap-1.5 sm:gap-2 bg-slate-900/90 px-2.5 py-1.5 sm:p-2.5 rounded-xl border border-amber-500/40 self-start sm:self-auto">
+                <Clock className="w-3.5 h-3.5 text-amber-400 shrink-0" />
+                <span className="text-[10px] sm:text-[11px] font-bold text-slate-300 mr-0.5 sm:mr-1">Offer Ends:</span>
+                <div className="flex items-center gap-1 font-mono font-black text-xs sm:text-sm text-amber-400">
+                  <span className="bg-slate-800 px-1.5 py-0.5 rounded border border-slate-700">
                     {String(timeLeft.hours).padStart(2, '0')}h
                   </span>
                   <span>:</span>
-                  <span className="bg-slate-800 px-2 py-1 rounded-md border border-slate-700">
+                  <span className="bg-slate-800 px-1.5 py-0.5 rounded border border-slate-700">
                     {String(timeLeft.minutes).padStart(2, '0')}m
                   </span>
                   <span>:</span>
-                  <span className="bg-slate-800 px-2 py-1 rounded-md border border-slate-700">
+                  <span className="bg-slate-800 px-1.5 py-0.5 rounded border border-slate-700">
                     {String(timeLeft.seconds).padStart(2, '0')}s
                   </span>
                 </div>
               </div>
             </div>
 
-            {/* Trending Products Grid */}
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-5">
+            {/* Trending Products Grid (2 columns on mobile, matching Reference Image 2!) */}
+            <div className="grid grid-cols-2 sm:grid-cols-2 lg:grid-cols-4 gap-2 sm:gap-3.5 lg:gap-5">
               {trendingDeals.map((product) => (
-                <div key={product.id} className="bg-white rounded-2xl overflow-hidden shadow-lg text-charcoal">
-                  <ProductCard product={product} />
-                </div>
+                <ProductCard key={product.id} product={product} />
               ))}
             </div>
           </div>
