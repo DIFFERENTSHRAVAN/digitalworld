@@ -4,6 +4,7 @@ import { Product, Category } from '../types';
 import { getProducts, getCategories } from '../services/api';
 import { ProductCard } from '../components/product/ProductCard';
 import { BrandCarousel } from '../components/common/BrandCarousel';
+import { ShopByCategoryAccordion } from '../components/category/ShopByCategoryAccordion';
 import { useLanguage } from '../context/LanguageContext';
 import { useStoreSettings } from '../context/StoreSettingsContext';
 import { STORE_CONFIG } from '../config/storeConfig';
@@ -327,56 +328,13 @@ export const HomePage: React.FC = () => {
         <BrandCarousel />
       </section>
 
-      {/* 3. Product Categories Section (Reference Image 5 - 4 Columns on Mobile) */}
+      {/* 3. Product Categories Section with Subcategories (Reference Image 1 & 2) */}
       <section className="container mx-auto px-4">
-        {/* Section Header with Golden Accent */}
-        <div className="flex items-end justify-between mb-4 pb-2 border-b border-slate-200">
-          <div>
-            <div className="flex items-center gap-2 text-xs font-bold uppercase tracking-wider text-amber-700 mb-0.5">
-              <Layers className="w-3.5 h-3.5" />
-              <span>Explore Categories</span>
-            </div>
-            <h2 className="text-xl sm:text-3xl font-black text-primary tracking-tight">
-              Electronics & Hardware
-            </h2>
-          </div>
-          <Link
-            to="/products"
-            className="text-xs font-bold text-primary hover:text-amber-700 flex items-center gap-1 transition-colors"
-          >
-            <span>View All ({categories.length})</span>
-            <ArrowRight className="w-3.5 h-3.5" />
-          </Link>
-        </div>
-
-        {/* Category Cards Grid (4 columns on mobile - Reference Image 5) */}
-        <div className="grid grid-cols-4 sm:grid-cols-4 md:grid-cols-7 lg:grid-cols-7 gap-2 sm:gap-3">
-          {categories.map((category) => (
-            <Link
-              key={category.id}
-              to={`/category/${category.slug}`}
-              className="group bg-white hover:bg-amber-50/60 rounded-xl sm:rounded-2xl p-1.5 sm:p-2.5 border border-slate-200/90 hover:border-amber-400 hover:shadow-xs transition-all flex flex-col items-center text-center cursor-pointer"
-            >
-              {/* Category Image Circle / Thumbnail */}
-              <div className="w-12 h-12 sm:w-16 sm:h-16 rounded-xl overflow-hidden bg-white border border-slate-100 group-hover:border-amber-300 group-hover:scale-105 transition-all p-1 flex items-center justify-center shadow-2xs">
-                <img
-                  src={category.image_url || CATEGORY_HARDWARE_IMAGES[category.slug] || 'https://images.unsplash.com/photo-1587831990711-23ca6441447b?w=400&auto=format&fit=crop&q=80'}
-                  alt={category.name}
-                  loading="lazy"
-                  className="w-full h-full object-contain"
-                  onError={(e) => {
-                    (e.target as HTMLImageElement).src = CATEGORY_HARDWARE_IMAGES[category.slug] || 'https://images.unsplash.com/photo-1587831990711-23ca6441447b?w=400&auto=format&fit=crop&q=80';
-                  }}
-                />
-              </div>
-
-              {/* Category Name */}
-              <h3 className="mt-1 text-[10px] sm:text-xs font-bold text-slate-800 group-hover:text-[#881337] transition-colors line-clamp-1 leading-tight">
-                {category.name}
-              </h3>
-            </Link>
-          ))}
-        </div>
+        <ShopByCategoryAccordion
+          showHeader={true}
+          defaultExpandedId="desktop"
+          className="max-w-4xl mx-auto shadow-sm"
+        />
       </section>
 
       {/* 4. Trust Badges Strip (Reference Image 2) */}

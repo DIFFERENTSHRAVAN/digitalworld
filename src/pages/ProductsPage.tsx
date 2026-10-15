@@ -45,10 +45,13 @@ export const ProductsPage: React.FC = () => {
     }
   }, [categorySlug]);
 
-  // Sync search param with filter state
+  // Sync search param and subcategory param with filter state
   useEffect(() => {
     const q = searchParams.get('search');
-    if (q !== null) {
+    const subcat = searchParams.get('subcategory');
+    if (subcat) {
+      setSearchQuery(subcat);
+    } else if (q !== null) {
       setSearchQuery(q);
     }
   }, [searchParams]);
@@ -122,18 +125,28 @@ export const ProductsPage: React.FC = () => {
       if (min !== null && product.price < min) return false;
       if (max !== null && product.price > max) return false;
 
-      // 6. Search Query
+      // 6. Search Query & Sub-category Token Matching
       if (searchQuery.trim() !== '') {
         const query = searchQuery.toLowerCase().trim();
-        const matchesName = product.name.toLowerCase().includes(query);
-        const matchesBrand = product.brand.toLowerCase().includes(query);
-        const matchesModel = product.model.toLowerCase().includes(query);
-        const matchesCpu = product.processor?.toLowerCase().includes(query);
-        const matchesDesc = product.description.toLowerCase().includes(query);
-        const matchesPid = product.pid?.toLowerCase().includes(query);
-        const matchesItemCode = product.item_code?.toLowerCase().includes(query);
+        const tokens = query.replace(/[()|&]/g, ' ').split(/\s+/).filter(t => t.length > 2);
 
-        if (!matchesName && !matchesBrand && !matchesModel && !matchesCpu && !matchesDesc && !matchesPid && !matchesItemCode) {
+        const textToSearch = [
+          product.name,
+          product.brand,
+          product.model,
+          product.processor,
+          product.description,
+          product.pid,
+          product.item_code,
+          product.category_name,
+          product.storage_type_capacity,
+          product.ram
+        ].filter(Boolean).join(' ').toLowerCase();
+
+        const directMatch = textToSearch.includes(query);
+        const tokenMatch = tokens.length > 0 && tokens.some(tok => textToSearch.includes(tok));
+
+        if (!directMatch && !tokenMatch) {
           return false;
         }
       }

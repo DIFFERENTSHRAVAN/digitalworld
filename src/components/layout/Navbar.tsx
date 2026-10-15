@@ -19,6 +19,7 @@ import {
   Camera
 } from 'lucide-react';
 import { Logo } from '../common/Logo';
+import { ShopByCategoryAccordion } from '../category/ShopByCategoryAccordion';
 import { useCart } from '../../context/CartContext';
 import { useLanguage } from '../../context/LanguageContext';
 import { useStoreSettings } from '../../context/StoreSettingsContext';
@@ -377,28 +378,22 @@ export const Navbar: React.FC = () => {
             >
               Accessories
             </Link>
-            <Link
-              to="/contact"
-              className="px-3 py-1.5 rounded-lg text-amber-900 hover:text-amber-950 font-bold hover:bg-amber-50 transition-colors shrink-0 flex items-center gap-1 ml-auto"
-            >
-              <span>Bank & Address</span>
-            </Link>
           </div>
         </nav>
       </div>
 
       {/* =========================================================================
-          MOBILE SLIDE-OUT DRAWER MENU
+          MOBILE SLIDE-OUT DRAWER MENU (Reference Images 1 & 2: SHOP BY CATEGORY)
           ========================================================================= */}
       {mobileMenuOpen && (
-        <div className="md:hidden bg-white border-t border-slate-200 px-4 py-4 space-y-3 animate-fade-in shadow-2xl">
+        <div className="md:hidden bg-[#fcf9f2] border-t border-[#ebdcc6] px-3 py-3 space-y-3 animate-fade-in shadow-2xl max-h-[85vh] overflow-y-auto">
           {/* Quick User / Dealer Shortcuts */}
           <div className="grid grid-cols-2 gap-2 text-xs font-semibold">
             {isLoggedIn && customer ? (
               <Link
                 to="/account"
                 onClick={() => setMobileMenuOpen(false)}
-                className="p-2.5 rounded-xl bg-blue-50/80 text-primary border border-blue-200 flex items-center gap-2"
+                className="p-2.5 rounded-xl bg-white text-primary border border-amber-200 flex items-center gap-2 shadow-2xs"
               >
                 <User className="w-4 h-4 text-secondary shrink-0" />
                 <div className="truncate text-left">
@@ -410,11 +405,11 @@ export const Navbar: React.FC = () => {
               <Link
                 to="/customer/login"
                 onClick={() => setMobileMenuOpen(false)}
-                className="p-2.5 rounded-xl bg-slate-50 text-charcoal border border-slate-200 flex items-center gap-2"
+                className="p-2.5 rounded-xl bg-white text-charcoal border border-amber-200 flex items-center gap-2 shadow-2xs"
               >
                 <User className="w-4 h-4 text-charcoal-muted shrink-0" />
                 <div className="text-left">
-                  <div className="font-bold">Customer Login</div>
+                  <div className="font-bold text-[#4a1525]">Customer Login</div>
                   <div className="text-[10px] text-charcoal-muted">Sign In / Register</div>
                 </div>
               </Link>
@@ -423,95 +418,36 @@ export const Navbar: React.FC = () => {
             <Link
               to={isDealerLoggedIn ? "/dealer/dashboard" : "/dealer/login"}
               onClick={() => setMobileMenuOpen(false)}
-              className="p-2.5 rounded-xl bg-amber-50 text-slate-950 border border-amber-300 flex items-center gap-2"
+              className="p-2.5 rounded-xl bg-amber-50 text-slate-950 border border-amber-300 flex items-center gap-2 shadow-2xs"
             >
-              <Briefcase className="w-4 h-4 text-amber-600 shrink-0" />
+              <Briefcase className="w-4 h-4 text-amber-700 shrink-0" />
               <div className="truncate text-left">
-                <div className="font-bold truncate">{isDealerLoggedIn ? 'Dealer Hub' : 'Dealer Portal'}</div>
+                <div className="font-bold truncate text-[#4a1525]">{isDealerLoggedIn ? 'Dealer Hub' : 'Dealer Portal'}</div>
                 <div className="text-[10px] text-amber-800">B2B Wholesale</div>
               </div>
             </Link>
           </div>
 
-          {/* Quick Nav Links */}
-          <div className="border-t border-slate-100 pt-2 space-y-1 text-sm font-medium">
-            <Link
-              to="/"
-              onClick={() => setMobileMenuOpen(false)}
-              className="block px-3 py-2 rounded-lg text-slate-800 hover:bg-slate-50 font-bold"
-            >
-              Home
-            </Link>
-            <Link
-              to="/products"
-              onClick={() => setMobileMenuOpen(false)}
-              className="block px-3 py-2 rounded-lg text-slate-800 hover:bg-slate-50"
-            >
-              All Electronics Catalog
-            </Link>
-            <Link
-              to="/category/second-hand-laptops"
-              onClick={() => setMobileMenuOpen(false)}
-              className="block px-3 py-2 rounded-lg text-amber-900 font-bold hover:bg-amber-50 flex items-center justify-between"
-            >
-              <span>Second-Hand Laptops (Tested)</span>
-              <span className="bg-amber-600 text-white text-[9px] px-1.5 py-0.5 rounded font-extrabold uppercase">
-                28-Pt Test
-              </span>
-            </Link>
-            <Link
-              to="/category/ram-and-ssd"
-              onClick={() => setMobileMenuOpen(false)}
-              className="block px-3 py-2 rounded-lg text-slate-800 hover:bg-slate-50"
-            >
-              RAM and SSD Memory
-            </Link>
-            <Link
-              to="/category/desktop-computers"
-              onClick={() => setMobileMenuOpen(false)}
-              className="block px-3 py-2 rounded-lg text-slate-800 hover:bg-slate-50"
-            >
-              Desktop Computers
-            </Link>
-            <Link
-              to="/category/cctv-and-security"
-              onClick={() => setMobileMenuOpen(false)}
-              className="block px-3 py-2 rounded-lg text-slate-800 hover:bg-slate-50"
-            >
-              CCTV & Security
-            </Link>
-            <Link
-              to="/category/printers-and-scanners"
-              onClick={() => setMobileMenuOpen(false)}
-              className="block px-3 py-2 rounded-lg text-slate-800 hover:bg-slate-50"
-            >
-              Printers & Scanners
-            </Link>
-            <Link
-              to="/category/computer-accessories"
-              onClick={() => setMobileMenuOpen(false)}
-              className="block px-3 py-2 rounded-lg text-slate-800 hover:bg-slate-50"
-            >
-              Computer Accessories & Hubs
-            </Link>
-            <Link
-              to="/contact"
-              onClick={() => setMobileMenuOpen(false)}
-              className="block px-3 py-2 rounded-lg text-[#7b0c1e] font-bold hover:bg-amber-50"
-            >
-              Business Address & Bank Details
-            </Link>
+          {/* SHOP BY CATEGORY Accordion with Subcategories & Call/WhatsApp (Reference Images 1 & 2) */}
+          <ShopByCategoryAccordion
+            onSelectCategory={() => setMobileMenuOpen(false)}
+            showHeader={true}
+            className="shadow-none border-0 p-0 bg-transparent"
+          />
+
+          {/* Additional Utility Links */}
+          <div className="border-t border-[#ebdcc6]/80 pt-2 flex items-center justify-between text-xs text-slate-600 px-1">
             <Link
               to="/order-lookup"
               onClick={() => setMobileMenuOpen(false)}
-              className="block px-3 py-2 rounded-lg text-secondary font-semibold hover:bg-blue-50"
+              className="hover:text-primary font-medium"
             >
               Track Order Status
             </Link>
             <Link
               to="/admin/login"
               onClick={() => setMobileMenuOpen(false)}
-              className="block px-3 py-2 rounded-lg text-slate-400 hover:bg-slate-50 text-xs"
+              className="text-slate-400 hover:text-slate-600"
             >
               Shop Owner Login
             </Link>
