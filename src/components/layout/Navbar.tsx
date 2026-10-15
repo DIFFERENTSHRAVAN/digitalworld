@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import {
   Search,
@@ -21,7 +21,8 @@ import {
   Headphones,
   FileText,
   ChevronDown,
-  Heart
+  Heart,
+  ArrowRight
 } from 'lucide-react';
 import { Logo } from '../common/Logo';
 import { ShopByCategoryAccordion } from '../category/ShopByCategoryAccordion';
@@ -249,6 +250,35 @@ export const Navbar: React.FC = () => {
   const [categoryDrawerOpen, setCategoryDrawerOpen] = useState(false);
   const [activeDropdown, setActiveDropdown] = useState<string | null>(null);
   const [brandDropdownOpen, setBrandDropdownOpen] = useState(false);
+  const closeTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+
+  const handleNavMouseLeave = () => {
+    if (closeTimerRef.current) clearTimeout(closeTimerRef.current);
+    closeTimerRef.current = setTimeout(() => {
+      setActiveDropdown(null);
+      setBrandDropdownOpen(false);
+    }, 200);
+  };
+
+  const handleCategoryMouseEnter = (catId: string) => {
+    if (closeTimerRef.current) clearTimeout(closeTimerRef.current);
+    setActiveDropdown(catId);
+    setBrandDropdownOpen(false);
+  };
+
+  const handleBrandMouseEnter = () => {
+    if (closeTimerRef.current) clearTimeout(closeTimerRef.current);
+    setBrandDropdownOpen(true);
+    setActiveDropdown(null);
+  };
+
+  const activeCategoryData = DESKTOP_NAV_CATEGORIES.find(c => c.id === activeDropdown);
+
+  useEffect(() => {
+    return () => {
+      if (closeTimerRef.current) clearTimeout(closeTimerRef.current);
+    };
+  }, []);
 
   useEffect(() => {
     const handleOpenDrawer = () => setCategoryDrawerOpen(true);
@@ -633,124 +663,192 @@ export const Navbar: React.FC = () => {
         {/* Desktop Category Navigation Ribbon (Deep Maroon Strip Matching Reference Image) */}
         <nav
           className="bg-[#5a0a16] text-white text-[11px] font-bold relative shadow-md z-40 select-none"
-          onMouseLeave={() => {
-            setActiveDropdown(null);
-            setBrandDropdownOpen(false);
-          }}
+          onMouseLeave={handleNavMouseLeave}
         >
-          <div className="container mx-auto px-4 flex items-center gap-1 overflow-x-auto py-1 scrollbar-none">
+          {/* Scrollable ribbon buttons */}
+          <div className="container mx-auto px-4 flex items-center gap-0.5 overflow-x-auto py-1 scrollbar-none">
             {/* Shop By Brand Button (White Pill in Maroon Strip) */}
-            <div className="relative shrink-0">
+            <div className="shrink-0">
               <button
                 type="button"
-                onMouseEnter={() => {
-                  setBrandDropdownOpen(true);
+                onMouseEnter={handleBrandMouseEnter}
+                onClick={() => {
+                  setBrandDropdownOpen(!brandDropdownOpen);
                   setActiveDropdown(null);
                 }}
-                onClick={() => setBrandDropdownOpen(!brandDropdownOpen)}
-                className="px-3 py-1.5 rounded bg-white hover:bg-amber-50 text-[#5a0a16] font-extrabold text-[11px] uppercase tracking-wider flex items-center gap-1.5 shadow-xs shrink-0 cursor-pointer transition-colors mr-1"
+                className={`px-3 py-1.5 rounded uppercase tracking-wider flex items-center gap-1.5 shrink-0 cursor-pointer transition-all mr-1 text-[11px] font-black ${
+                  brandDropdownOpen
+                    ? 'bg-amber-400 text-slate-950 shadow-md'
+                    : 'bg-white hover:bg-amber-50 text-[#5a0a16] shadow-xs'
+                }`}
                 title="Browse by OEM Brand"
               >
-                <Store className="w-3.5 h-3.5 text-[#5a0a16]" />
+                <Store className="w-3.5 h-3.5" />
                 <span>Shop By Brand</span>
-                <ChevronDown className="w-3 h-3 text-[#5a0a16]" />
+                <ChevronDown className={`w-3 h-3 transition-transform ${brandDropdownOpen ? 'rotate-180' : ''}`} />
               </button>
-
-              {/* Shop by Brand Dropdown */}
-              {brandDropdownOpen && (
-                <div
-                  className="absolute left-0 top-full mt-1 w-72 bg-white text-slate-900 rounded-xl shadow-2xl border border-amber-200/80 p-3 z-50 animate-fade-in"
-                  onMouseEnter={() => setBrandDropdownOpen(true)}
-                  onMouseLeave={() => setBrandDropdownOpen(false)}
-                >
-                  <div className="text-[10px] uppercase font-black tracking-widest text-[#5a0a16] border-b border-slate-100 pb-1.5 mb-2 flex items-center justify-between">
-                    <span>Popular OEM Brands</span>
-                    <span className="text-amber-600 font-bold">100% Genuine</span>
-                  </div>
-                  <div className="grid grid-cols-2 gap-1.5 text-xs">
-                    {POPULAR_BRANDS.map((brand) => (
-                      <button
-                        key={brand}
-                        type="button"
-                        onClick={() => {
-                          navigate(`/products?brand=${encodeURIComponent(brand)}`);
-                          setBrandDropdownOpen(false);
-                        }}
-                        className="text-left px-2 py-1 rounded-lg hover:bg-amber-50 hover:text-[#5a0a16] font-medium text-slate-700 transition-colors flex items-center gap-1.5 cursor-pointer"
-                      >
-                        <span className="w-1.5 h-1.5 rounded-full bg-amber-400" />
-                        <span className="truncate">{brand}</span>
-                      </button>
-                    ))}
-                  </div>
-                </div>
-              )}
             </div>
 
-            {/* 15 Category Items with Hover/Click Dropdowns (Matching Reference Image) */}
+            {/* 15 Category Items (Matching Reference Image) */}
             {DESKTOP_NAV_CATEGORIES.map((cat) => {
               const isOpen = activeDropdown === cat.id;
               return (
-                <div key={cat.id} className="relative shrink-0">
+                <div key={cat.id} className="shrink-0">
                   <button
                     type="button"
-                    onMouseEnter={() => {
-                      setActiveDropdown(cat.id);
-                      setBrandDropdownOpen(false);
+                    onMouseEnter={() => handleCategoryMouseEnter(cat.id)}
+                    onClick={() => {
+                      if (activeDropdown === cat.id) {
+                        navigate(`/category/${cat.slug}`);
+                        setActiveDropdown(null);
+                      } else {
+                        handleCategoryMouseEnter(cat.id);
+                      }
                     }}
-                    onClick={() => setActiveDropdown(isOpen ? null : cat.id)}
-                    className={`px-2.5 py-1.5 rounded text-white transition-all whitespace-nowrap cursor-pointer flex items-center gap-1 ${
+                    className={`px-2.5 py-1.5 rounded transition-all whitespace-nowrap cursor-pointer flex items-center gap-1 ${
                       isOpen
-                        ? 'bg-white/25 text-amber-200 font-black shadow-xs'
-                        : 'hover:bg-white/15 hover:text-amber-200'
+                        ? 'bg-white text-[#5a0a16] font-black shadow-md'
+                        : 'text-white hover:bg-white/15 hover:text-amber-200'
                     }`}
                   >
                     <span>{cat.name}</span>
-                    <ChevronDown className={`w-2.5 h-2.5 transition-transform ${isOpen ? 'rotate-180 text-amber-300' : 'opacity-60'}`} />
+                    <ChevronDown className={`w-2.5 h-2.5 transition-transform ${isOpen ? 'rotate-180 text-[#5a0a16]' : 'opacity-60'}`} />
                   </button>
-
-                  {/* Sub-Category Dropdown Menu */}
-                  {isOpen && (
-                    <div
-                      className="absolute left-0 top-full mt-1 w-64 bg-white text-slate-900 rounded-xl shadow-2xl border border-amber-200/90 p-3 z-50 animate-fade-in"
-                      onMouseEnter={() => setActiveDropdown(cat.id)}
-                      onMouseLeave={() => setActiveDropdown(null)}
-                    >
-                      <div className="flex items-center justify-between border-b border-slate-100 pb-1.5 mb-2">
-                        <span className="text-[10px] uppercase font-black tracking-wider text-[#5a0a16]">
-                          {cat.name} Parts
-                        </span>
-                        <Link
-                          to={`/category/${cat.slug}`}
-                          onClick={() => setActiveDropdown(null)}
-                          className="text-[10px] text-amber-700 hover:text-amber-900 font-bold hover:underline"
-                        >
-                          View All →
-                        </Link>
-                      </div>
-
-                      <div className="space-y-1">
-                        {cat.subcategories.map((sub) => (
-                          <button
-                            key={sub}
-                            type="button"
-                            onClick={() => {
-                              navigate(`/products?category=${cat.slug}&subcategory=${encodeURIComponent(sub)}`);
-                              setActiveDropdown(null);
-                            }}
-                            className="w-full text-left px-2 py-1.5 rounded-lg hover:bg-amber-50 hover:text-[#5a0a16] text-[11px] font-medium text-slate-700 transition-colors flex items-center gap-2 cursor-pointer group"
-                          >
-                            <span className="w-1.5 h-1.5 rounded-full bg-amber-400 group-hover:scale-125 transition-transform" />
-                            <span className="truncate">{sub}</span>
-                          </button>
-                        ))}
-                      </div>
-                    </div>
-                  )}
                 </div>
               );
             })}
           </div>
+
+          {/* =========================================================================
+              UNCLIPPED MEGA-DROPDOWNS (Direct child of <nav>, zero overflow clip)
+              ========================================================================= */}
+
+          {/* 1. Shop By Brand Mega Dropdown */}
+          {brandDropdownOpen && (
+            <div
+              className="absolute left-0 right-0 top-full bg-white text-slate-900 shadow-2xl border-b-4 border-[#7b0c1e] border-t border-amber-300 z-50 animate-fade-in"
+              onMouseEnter={() => {
+                if (closeTimerRef.current) clearTimeout(closeTimerRef.current);
+                setBrandDropdownOpen(true);
+              }}
+              onMouseLeave={handleNavMouseLeave}
+            >
+              <div className="container mx-auto px-6 py-5">
+                <div className="flex items-center justify-between pb-2.5 mb-3.5 border-b border-slate-100">
+                  <div className="flex items-center gap-2">
+                    <Store className="w-5 h-5 text-[#7b0c1e]" />
+                    <span className="text-base font-black text-[#5a0a16]">Shop By OEM Brand</span>
+                    <span className="text-[11px] font-bold bg-amber-100 text-amber-900 px-2.5 py-0.5 rounded-full border border-amber-300">
+                      100% Genuine Certified
+                    </span>
+                  </div>
+                  <Link
+                    to="/products"
+                    onClick={() => setBrandDropdownOpen(false)}
+                    className="text-xs font-bold text-amber-800 hover:text-[#5a0a16] flex items-center gap-1 hover:underline"
+                  >
+                    <span>View All Products in Catalog</span>
+                    <ArrowRight className="w-3.5 h-3.5" />
+                  </Link>
+                </div>
+
+                <div className="grid grid-cols-2 sm:grid-cols-4 md:grid-cols-7 gap-2.5">
+                  {POPULAR_BRANDS.map((brand) => (
+                    <button
+                      key={brand}
+                      type="button"
+                      onClick={() => {
+                        navigate(`/products?brand=${encodeURIComponent(brand)}`);
+                        setBrandDropdownOpen(false);
+                      }}
+                      className="text-left px-3 py-2 rounded-xl bg-slate-50 hover:bg-amber-50 hover:text-[#5a0a16] text-xs font-bold text-slate-800 transition-all border border-slate-200/80 hover:border-amber-400 flex items-center gap-2 cursor-pointer group shadow-2xs"
+                    >
+                      <span className="w-2 h-2 rounded-full bg-amber-400 group-hover:scale-125 transition-transform shrink-0" />
+                      <span className="truncate">{brand}</span>
+                    </button>
+                  ))}
+                </div>
+              </div>
+            </div>
+          )}
+
+          {/* 2. Sub-Category Mega Dropdown */}
+          {activeCategoryData && (
+            <div
+              className="absolute left-0 right-0 top-full bg-white text-slate-900 shadow-2xl border-b-4 border-[#7b0c1e] border-t border-amber-300 z-50 animate-fade-in"
+              onMouseEnter={() => {
+                if (closeTimerRef.current) clearTimeout(closeTimerRef.current);
+                setActiveDropdown(activeCategoryData.id);
+              }}
+              onMouseLeave={handleNavMouseLeave}
+            >
+              <div className="container mx-auto px-6 py-5">
+                <div className="flex items-center justify-between pb-2.5 mb-3.5 border-b border-slate-100">
+                  <div className="flex items-center gap-2.5">
+                    <span className="w-2.5 h-2.5 rounded-full bg-amber-500 shadow-xs" />
+                    <span className="text-base font-black text-[#5a0a16]">
+                      {activeCategoryData.name} Components & Parts
+                    </span>
+                    <span className="text-[11px] font-bold bg-amber-100 text-amber-900 px-2.5 py-0.5 rounded-full border border-amber-300">
+                      {activeCategoryData.subcategories.length} Sub-Categories
+                    </span>
+                  </div>
+                  <Link
+                    to={`/category/${activeCategoryData.slug}`}
+                    onClick={() => setActiveDropdown(null)}
+                    className="text-xs font-bold text-amber-800 hover:text-[#5a0a16] flex items-center gap-1 hover:underline"
+                  >
+                    <span>Explore All {activeCategoryData.name} Products</span>
+                    <ArrowRight className="w-3.5 h-3.5" />
+                  </Link>
+                </div>
+
+                <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-2.5">
+                  {activeCategoryData.subcategories.map((sub) => (
+                    <button
+                      key={sub}
+                      type="button"
+                      onClick={() => {
+                        navigate(`/products?category=${activeCategoryData.slug}&subcategory=${encodeURIComponent(sub)}`);
+                        setActiveDropdown(null);
+                      }}
+                      className="text-left px-3.5 py-2.5 rounded-xl bg-slate-50 hover:bg-amber-50 hover:text-[#5a0a16] text-xs font-bold text-slate-800 transition-all border border-slate-200/80 hover:border-amber-400 flex items-center justify-between cursor-pointer group shadow-2xs"
+                    >
+                      <div className="flex items-center gap-2.5 min-w-0">
+                        <span className="w-2 h-2 rounded-full bg-amber-400 group-hover:bg-[#7b0c1e] group-hover:scale-125 transition-all shrink-0" />
+                        <span className="truncate">{sub}</span>
+                      </div>
+                      <span className="text-[10px] text-slate-400 group-hover:text-amber-700 font-bold ml-1 shrink-0">→</span>
+                    </button>
+                  ))}
+                </div>
+
+                {/* Helpful footer strip inside dropdown */}
+                <div className="mt-4 pt-3 border-t border-slate-100 flex flex-wrap items-center justify-between text-[11px] text-slate-500">
+                  <div className="flex items-center gap-4">
+                    <span className="flex items-center gap-1 font-semibold text-slate-700">
+                      <ShieldCheck className="w-3.5 h-3.5 text-emerald-600" />
+                      30-Day Testing Warranty
+                    </span>
+                    <span className="flex items-center gap-1 font-semibold text-slate-700">
+                      <Package className="w-3.5 h-3.5 text-amber-600" />
+                      100% Genuine Parts
+                    </span>
+                  </div>
+                  {cleanWhatsapp && (
+                    <a
+                      href={`https://wa.me/${cleanWhatsapp}?text=${encodeURIComponent(`Hello Vishal Soni, I am looking for parts under ${activeCategoryData.name} at Digital World.`)}`}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="text-emerald-700 hover:text-emerald-800 font-bold flex items-center gap-1"
+                    >
+                      <span>Need a custom component? WhatsApp Vishal Soni →</span>
+                    </a>
+                  )}
+                </div>
+              </div>
+            </div>
+          )}
         </nav>
       </div>
 

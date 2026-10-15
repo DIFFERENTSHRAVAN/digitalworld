@@ -12,7 +12,13 @@ import {
   ChevronDown,
   ChevronUp,
   Phone,
-  MessageCircle
+  MessageCircle,
+  Shield,
+  Smartphone,
+  Cable,
+  Wrench,
+  Layers,
+  PhoneCall
 } from 'lucide-react';
 import { useStoreSettings } from '../../context/StoreSettingsContext';
 import { STORE_CONFIG } from '../../config/storeConfig';
@@ -21,7 +27,7 @@ export interface CategoryItemData {
   id: string;
   name: string;
   slug: string;
-  icon: 'Monitor' | 'Laptop' | 'HardDrive' | 'Tv' | 'Keyboard' | 'Shapes' | 'Video' | 'Router';
+  icon: string;
   subcategories: string[];
 }
 
@@ -145,6 +151,92 @@ export const CATEGORIES_WITH_SUBCATEGORIES: CategoryItemData[] = [
       'USB Wi-Fi Adapters & Dongles',
       'RJ45 Connectors & Crimpers'
     ]
+  },
+  {
+    id: 'software',
+    name: 'Software',
+    slug: 'other-electronics',
+    icon: 'Layers',
+    subcategories: [
+      'Windows 11 Pro Genuine License',
+      'Quick Heal Total Security Antivirus',
+      'K7 Ultimate Security',
+      'Microsoft Office Home & Business'
+    ]
+  },
+  {
+    id: 'mobility',
+    name: 'Mobility',
+    slug: 'mobile-accessories',
+    icon: 'Smartphone',
+    subcategories: [
+      'Fast Charging Adapters & PD',
+      'Type-C Braided Cables',
+      'Heavy Duty Power Banks',
+      'Wireless Collar Mics for Phones'
+    ]
+  },
+  {
+    id: 'cables',
+    name: 'Cables',
+    slug: 'computer-accessories',
+    icon: 'Cable',
+    subcategories: [
+      'High Speed 4K HDMI Cables',
+      'Gold-Plated VGA Cables',
+      'Heavy Duty 3-Pin Power Cords',
+      'Cat6 High Speed Patch Cables'
+    ]
+  },
+  {
+    id: 'connector-converter',
+    name: 'Connector & Converter',
+    slug: 'computer-accessories',
+    icon: 'Layers',
+    subcategories: [
+      'HDMI to VGA with Audio Converter',
+      'SATA to USB 3.0 Adapter',
+      'DisplayPort to VGA Converter',
+      'OTG Type-C & Micro USB'
+    ]
+  },
+  {
+    id: 'accessories',
+    name: 'Accessories',
+    slug: 'computer-accessories',
+    icon: 'Wrench',
+    subcategories: [
+      'Thermal Paste (Cooler Master, Arctic)',
+      'PC Cleaning Kits & Blower',
+      'Spike Guards & Surge Protectors',
+      'Cable Management Ties',
+      'Anti-Static Screen Cleaners'
+    ]
+  },
+  {
+    id: 'cctv-networking',
+    name: 'CCTV & Networking',
+    slug: 'cctv-and-security',
+    icon: 'Shield',
+    subcategories: [
+      'CP PLUS 4-Camera Complete Sets',
+      'HIKVISION HD Camera Combos',
+      'Waterproof Camera Junction Boxes',
+      'PoE Switches for IP Cameras',
+      'Video Baluns & Power Splitters'
+    ]
+  },
+  {
+    id: 'telecom',
+    name: 'Telecom',
+    slug: 'other-electronics',
+    icon: 'PhoneCall',
+    subcategories: [
+      'EPABX Intercom Systems',
+      'Landline Caller ID Phones',
+      'Telephone Line Cables & RJ11 Plugs',
+      'Wireless Walkie Talkies'
+    ]
   }
 ];
 
@@ -192,6 +284,18 @@ export const ShopByCategoryAccordion: React.FC<ShopByCategoryAccordionProps> = (
         return <Video {...props} />;
       case 'Router':
         return <Router {...props} />;
+      case 'Shield':
+        return <Shield {...props} />;
+      case 'Smartphone':
+        return <Smartphone {...props} />;
+      case 'Cable':
+        return <Cable {...props} />;
+      case 'Wrench':
+        return <Wrench {...props} />;
+      case 'Layers':
+        return <Layers {...props} />;
+      case 'PhoneCall':
+        return <PhoneCall {...props} />;
       default:
         return <Monitor {...props} />;
     }
@@ -206,7 +310,7 @@ export const ShopByCategoryAccordion: React.FC<ShopByCategoryAccordionProps> = (
             SHOP BY CATEGORY
           </h3>
           <span className="text-[10px] font-bold text-amber-800 bg-[#faecd8] px-2 py-0.5 rounded-full">
-            8 Categories
+            {CATEGORIES_WITH_SUBCATEGORIES.length} Categories
           </span>
         </div>
       )}
@@ -253,7 +357,7 @@ export const ShopByCategoryAccordion: React.FC<ShopByCategoryAccordionProps> = (
                   {category.subcategories.map((subcat, idx) => (
                     <Link
                       key={idx}
-                      to={`/products?category=${category.slug}&search=${encodeURIComponent(subcat)}`}
+                      to={`/products?category=${category.slug}&subcategory=${encodeURIComponent(subcat)}`}
                       onClick={onSelectCategory}
                       className="flex items-center gap-2.5 px-3 py-2 rounded-lg text-xs sm:text-sm font-semibold text-[#4a1525] hover:bg-[#faecd8] hover:text-[#7b0c1e] transition-colors"
                     >

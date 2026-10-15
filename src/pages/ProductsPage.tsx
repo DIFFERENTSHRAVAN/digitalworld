@@ -40,10 +40,13 @@ export const ProductsPage: React.FC = () => {
 
   // Sync category param with filter state
   useEffect(() => {
+    const catQuery = searchParams.get('category');
     if (categorySlug) {
       setSelectedCategory(categorySlug);
+    } else if (catQuery) {
+      setSelectedCategory(catQuery);
     }
-  }, [categorySlug]);
+  }, [categorySlug, searchParams]);
 
   // Sync search param and subcategory param with filter state
   useEffect(() => {
@@ -128,7 +131,15 @@ export const ProductsPage: React.FC = () => {
       // 6. Search Query & Sub-category Token Matching
       if (searchQuery.trim() !== '') {
         const query = searchQuery.toLowerCase().trim();
-        const tokens = query.replace(/[()|&]/g, ' ').split(/\s+/).filter(t => t.length > 2);
+        const rawTokens = query.replace(/[()|&/,-]/g, ' ').split(/\s+/).filter(t => t.length >= 3);
+        const stems = rawTokens.map(tok => {
+          let s = tok;
+          if (s.endsWith('ies') && s.length > 4) s = s.slice(0, -3) + 'y';
+          else if (s.endsWith('es') && s.length > 4) s = s.slice(0, -2);
+          else if (s.endsWith('s') && s.length > 3) s = s.slice(0, -1);
+          return s;
+        });
+        const allKeywords = Array.from(new Set([...rawTokens, ...stems]));
 
         const textToSearch = [
           product.name,
@@ -144,7 +155,7 @@ export const ProductsPage: React.FC = () => {
         ].filter(Boolean).join(' ').toLowerCase();
 
         const directMatch = textToSearch.includes(query);
-        const tokenMatch = tokens.length > 0 && tokens.some(tok => textToSearch.includes(tok));
+        const tokenMatch = allKeywords.length > 0 && allKeywords.some(tok => textToSearch.includes(tok));
 
         if (!directMatch && !tokenMatch) {
           return false;
@@ -208,6 +219,28 @@ export const ProductsPage: React.FC = () => {
           <p className="text-xs text-charcoal-muted mt-1">
             Showing {filteredProducts.length} verified products available from Digital World
           </p>
+
+          {searchParams.get('subcategory') && (
+            <div className="flex flex-wrap items-center gap-2 mt-2">
+              <span className="text-xs font-semibold text-slate-500">Sub-Category:</span>
+              <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-amber-100 text-[#5a0a16] font-bold text-xs border border-amber-300 shadow-2xs">
+                <span>{searchParams.get('subcategory')}</span>
+                <button
+                  type="button"
+                  onClick={() => {
+                    const next = new URLSearchParams(searchParams);
+                    next.delete('subcategory');
+                    setSearchParams(next);
+                    setSearchQuery('');
+                  }}
+                  className="hover:text-red-700 cursor-pointer ml-1"
+                  title="Remove subcategory filter"
+                >
+                  <X className="w-3.5 h-3.5" />
+                </button>
+              </span>
+            </div>
+          )}
         </div>
 
         {/* Filter Drawer Toggle on Mobile */}
@@ -400,20 +433,41 @@ export const ProductsPage: React.FC = () => {
               ))}
             </div>
           ) : filteredProducts.length === 0 ? (
-            <div className="bg-white rounded-2xl border border-slate-200 p-12 text-center space-y-4">
-              <div className="w-16 h-16 bg-slate-100 rounded-full flex items-center justify-center mx-auto text-slate-400">
+            <div className="bg-white rounded-2xl border border-slate-200 p-8 sm:p-12 text-center space-y-4">
+              <div className="w-16 h-16 bg-amber-50 border border-amber-200 rounded-full flex items-center justify-center mx-auto text-[#7b0c1e]">
                 <Search className="w-8 h-8" />
               </div>
-              <h3 className="text-lg font-bold text-charcoal">No products match your criteria</h3>
-              <p className="text-xs text-charcoal-muted max-w-sm mx-auto">
-                Try widening your price range, clearing brand/category filters, or searching for a general keyword.
+              <h3 className="text-lg font-bold text-charcoal">
+                {searchParams.get('subcategory')
+                  ? `No products currently in stock for "${searchParams.get('subcategory')}"`
+                  : 'No products match your criteria'}
+              </h3>
+              <p className="text-xs text-charcoal-muted max-w-md mx-auto">
+                {searchParams.get('subcategory')
+                  ? `Vishal Soni can arrange "${searchParams.get('subcategory')}" directly on order. Contact us via WhatsApp or clear the subcategory filter to browse all ${currentCategoryName}.`
+                  : 'Try widening your price range, clearing brand/category filters, or searching for a general keyword.'}
               </p>
-              <button
-                onClick={resetAllFilters}
-                className="px-5 py-2.5 bg-primary text-white text-xs font-bold rounded-xl hover:bg-primary-light transition-colors"
-              >
-                Clear All Filters
-              </button>
+              <div className="flex flex-wrap items-center justify-center gap-3 pt-2">
+                {searchParams.get('subcategory') && (
+                  <button
+                    onClick={() => {
+                      const next = new URLSearchParams(searchParams);
+                      next.delete('subcategory');
+                      setSearchParams(next);
+                      setSearchQuery('');
+                    }}
+                    className="px-5 py-2.5 bg-[#7b0c1e] text-white text-xs font-bold rounded-xl hover:bg-[#5a0a16] transition-colors cursor-pointer"
+                  >
+                    View All {currentCategoryName}
+                  </button>
+                )}
+                <button
+                  onClick={resetAllFilters}
+                  className="px-5 py-2.5 bg-slate-100 hover:bg-slate-200 text-charcoal text-xs font-bold rounded-xl transition-colors cursor-pointer"
+                >
+                  Clear All Filters
+                </button>
+              </div>
             </div>
           ) : (
             <>
