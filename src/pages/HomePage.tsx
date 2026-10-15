@@ -4,7 +4,6 @@ import { Product, Category } from '../types';
 import { getProducts, getCategories } from '../services/api';
 import { ProductCard } from '../components/product/ProductCard';
 import { BrandCarousel } from '../components/common/BrandCarousel';
-import { ShopByCategoryAccordion } from '../components/category/ShopByCategoryAccordion';
 import { useLanguage } from '../context/LanguageContext';
 import { useStoreSettings } from '../context/StoreSettingsContext';
 import { STORE_CONFIG } from '../config/storeConfig';
@@ -50,7 +49,8 @@ import {
   ChevronRight,
   Layers,
   Building,
-  Check
+  Check,
+  Menu
 } from 'lucide-react';
 
 export const HomePage: React.FC = () => {
@@ -131,6 +131,16 @@ export const HomePage: React.FC = () => {
 
   const heroSlides = [
     {
+      badge: '🪔 NAVRATRI 9 DAYS FESTIVE OFFER | नवरात्री महाबचत 🪔',
+      title: 'Navratri 9 Days Festive Dhamaka: Up to 45% OFF',
+      subtitle: 'Celebrate 9 auspicious days of Navratri with heavy price cuts on certified second-hand laptops, NVMe SSDs, gaming RAM & CCTV kits. 30-Day Testing Warranty!',
+      startingPrice: 'Starts ₹399',
+      image: 'https://images.unsplash.com/photo-1546868871-7041f2a55e12?w=1000&auto=format&fit=crop&q=80',
+      accentColor: 'from-[#6b0b1a] via-[#4a0812] to-slate-950',
+      link: '/products',
+      ctaText: 'NAVRATRI DEALS'
+    },
+    {
       badge: 'TOP BRANDED ELECTRONICS',
       title: 'Experience The Future Of Tech & Sound',
       subtitle: 'High-performance Desktop PCs, Certified Second-Hand Laptops, Lightning-Fast NVMe SSDs & Genuine Accessories.',
@@ -166,12 +176,12 @@ export const HomePage: React.FC = () => {
   const cleanWhatsapp = effectiveWhatsapp ? effectiveWhatsapp.replace(/\D/g, '') : '';
 
   return (
-    <div className="space-y-12 sm:space-y-16 pb-16">
+    <div className="space-y-10 sm:space-y-14 pb-16">
       {/* 1. Hero Promotional Banner (Inspired by Reference Image 1) */}
       <section className="container mx-auto px-4 pt-3 sm:pt-4">
-        <div className="grid grid-cols-1 lg:grid-cols-12 gap-4 sm:gap-5 items-stretch">
-          {/* Main Hero Slider (8 cols) */}
-          <div className="lg:col-span-8 relative rounded-2xl sm:rounded-3xl overflow-hidden shadow-xl sm:shadow-2xl bg-slate-950 text-white min-h-[220px] sm:min-h-[340px] lg:min-h-[420px] flex items-center">
+        <div className="grid grid-cols-1 lg:grid-cols-12 gap-3.5 sm:gap-4 items-stretch">
+          {/* Main Hero Slider (8 cols) - Compact Height */}
+          <div className="lg:col-span-8 relative rounded-2xl sm:rounded-3xl overflow-hidden shadow-xl bg-slate-950 text-white min-h-[190px] sm:min-h-[250px] lg:min-h-[295px] flex items-center">
             {heroSlides.map((slide, idx) => (
               <div
                 key={idx}
@@ -191,32 +201,32 @@ export const HomePage: React.FC = () => {
                 </div>
 
                 {/* Content Box */}
-                <div className="relative z-20 p-4 sm:p-8 lg:p-12 max-w-xl space-y-2 sm:space-y-4 text-left">
-                  <div className="inline-flex items-center gap-1.5 sm:gap-2 px-2.5 py-0.5 sm:px-3 sm:py-1 rounded-full bg-amber-400 text-slate-950 text-[9px] sm:text-xs font-black tracking-widest uppercase">
-                    <Sparkles className="w-3 h-3 sm:w-3.5 sm:h-3.5" />
-                    <span>{slide.badge}</span>
+                <div className="relative z-20 p-3.5 sm:p-6 lg:p-7 max-w-xl space-y-1.5 sm:space-y-2.5 text-left">
+                  <div className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full bg-amber-400 text-slate-950 text-[8.5px] sm:text-[11px] font-black tracking-widest uppercase shadow-xs">
+                    <Sparkles className="w-3 h-3 text-slate-950 shrink-0" />
+                    <span className="truncate">{slide.badge}</span>
                   </div>
 
-                  <h1 className="text-lg sm:text-3xl lg:text-5xl font-black text-white tracking-tight leading-tight">
+                  <h1 className="text-base sm:text-2xl lg:text-3xl font-black text-white tracking-tight leading-snug">
                     {slide.title}
                   </h1>
 
-                  <p className="text-[11px] sm:text-sm text-slate-300 leading-relaxed line-clamp-1 sm:line-clamp-3">
+                  <p className="text-[11px] sm:text-xs text-slate-300 leading-snug line-clamp-1 sm:line-clamp-2">
                     {slide.subtitle}
                   </p>
 
-                  <div className="pt-1 sm:pt-2 flex flex-wrap items-center gap-3 sm:gap-4">
+                  <div className="pt-1 sm:pt-2 flex flex-wrap items-center gap-2.5 sm:gap-4">
                     <Link
                       to={slide.link}
-                      className="px-4 py-2 sm:px-7 sm:py-3.5 rounded-xl bg-gradient-to-r from-amber-500 to-amber-600 hover:from-amber-400 hover:to-amber-500 text-slate-950 font-black text-xs sm:text-sm tracking-wider uppercase shadow-lg shadow-amber-500/25 flex items-center gap-1.5 sm:gap-2 transition-all transform hover:scale-105 cursor-pointer"
+                      className="px-3.5 py-1.5 sm:px-5 sm:py-2 rounded-xl bg-gradient-to-r from-amber-500 to-amber-600 hover:from-amber-400 hover:to-amber-500 text-slate-950 font-black text-xs sm:text-sm tracking-wider uppercase shadow-md shadow-amber-500/25 flex items-center gap-1.5 transition-all transform hover:scale-105 cursor-pointer"
                     >
                       <span>{slide.ctaText}</span>
-                      <ArrowRight className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
+                      <ArrowRight className="w-3.5 h-3.5" />
                     </Link>
 
                     <div className="text-xs">
-                      <span className="text-slate-400 block text-[9px] sm:text-[10px] uppercase font-bold">Starts from</span>
-                      <span className="text-amber-400 font-extrabold text-sm sm:text-xl">
+                      <span className="text-slate-400 block text-[8px] sm:text-[9px] uppercase font-bold">Starts from</span>
+                      <span className="text-amber-400 font-extrabold text-xs sm:text-base">
                         {slide.startingPrice}
                       </span>
                     </div>
@@ -226,14 +236,14 @@ export const HomePage: React.FC = () => {
             ))}
 
             {/* Slider Dots */}
-            <div className="absolute bottom-3 left-4 sm:bottom-4 sm:left-12 z-30 flex items-center gap-1.5 sm:gap-2">
+            <div className="absolute bottom-2.5 left-4 sm:bottom-3 sm:left-7 z-30 flex items-center gap-1.5">
               {heroSlides.map((_, idx) => (
                 <button
                   key={idx}
                   type="button"
                   onClick={() => setCurrentSlide(idx)}
-                  className={`h-2 sm:h-2.5 rounded-full transition-all cursor-pointer ${
-                    idx === currentSlide ? 'w-6 sm:w-8 bg-amber-400' : 'w-2 sm:w-2.5 bg-white/40 hover:bg-white/70'
+                  className={`h-2 rounded-full transition-all cursor-pointer ${
+                    idx === currentSlide ? 'w-5 sm:w-7 bg-amber-400' : 'w-2 bg-white/40 hover:bg-white/70'
                   }`}
                   aria-label={`Go to slide ${idx + 1}`}
                 />
@@ -244,46 +254,46 @@ export const HomePage: React.FC = () => {
             <button
               type="button"
               onClick={() => setCurrentSlide((prev) => (prev === 0 ? heroSlides.length - 1 : prev - 1))}
-              className="absolute left-3 top-1/2 -translate-y-1/2 z-30 p-2 rounded-full bg-slate-900/60 hover:bg-slate-900 text-white backdrop-blur-sm border border-white/20 transition-all cursor-pointer hidden sm:flex items-center justify-center"
+              className="absolute left-2.5 top-1/2 -translate-y-1/2 z-30 p-1.5 rounded-full bg-slate-900/60 hover:bg-slate-900 text-white backdrop-blur-sm border border-white/20 transition-all cursor-pointer hidden sm:flex items-center justify-center"
               aria-label="Previous Slide"
             >
-              <ChevronLeft className="w-5 h-5" />
+              <ChevronLeft className="w-4 h-4" />
             </button>
             <button
               type="button"
               onClick={() => setCurrentSlide((prev) => (prev === heroSlides.length - 1 ? 0 : prev + 1))}
-              className="absolute right-3 top-1/2 -translate-y-1/2 z-30 p-2 rounded-full bg-slate-900/60 hover:bg-slate-900 text-white backdrop-blur-sm border border-white/20 transition-all cursor-pointer hidden sm:flex items-center justify-center"
+              className="absolute right-2.5 top-1/2 -translate-y-1/2 z-30 p-1.5 rounded-full bg-slate-900/60 hover:bg-slate-900 text-white backdrop-blur-sm border border-white/20 transition-all cursor-pointer hidden sm:flex items-center justify-center"
               aria-label="Next Slide"
             >
-              <ChevronRight className="w-5 h-5" />
+              <ChevronRight className="w-4 h-4" />
             </button>
           </div>
 
           {/* Right Mini Promotional Promo Cards (4 cols) - Inspired by Image 1 */}
-          <div className="lg:col-span-4 flex flex-col sm:flex-row lg:flex-col gap-3 sm:gap-4 justify-between">
+          <div className="lg:col-span-4 flex flex-col sm:flex-row lg:flex-col gap-2.5 sm:gap-3 justify-between">
             {/* Promo Card 1: RAM & SSD */}
             <Link
               to="/category/ram-and-ssd"
-              className="group relative flex-1 rounded-2xl sm:rounded-3xl overflow-hidden bg-gradient-to-br from-slate-900 to-blue-950 p-4 sm:p-6 text-white border border-amber-500/20 shadow-lg flex flex-col justify-between hover:border-amber-400/50 transition-all"
+              className="group relative flex-1 rounded-2xl sm:rounded-3xl overflow-hidden bg-gradient-to-br from-slate-900 to-blue-950 p-3.5 sm:p-4 text-white border border-amber-500/20 shadow-md flex flex-col justify-between hover:border-amber-400/50 transition-all"
             >
-              <div className="relative z-10 space-y-1.5 sm:space-y-2">
-                <span className="text-[9px] sm:text-[10px] font-black uppercase tracking-widest text-amber-400 bg-amber-500/20 px-2 py-0.5 rounded-full border border-amber-500/30 inline-block">
+              <div className="relative z-10 space-y-1">
+                <span className="text-[8.5px] sm:text-[9.5px] font-black uppercase tracking-widest text-amber-400 bg-amber-500/20 px-2 py-0.5 rounded-full border border-amber-500/30 inline-block">
                   PC Upgrade Hub
                 </span>
-                <h3 className="text-base sm:text-xl font-black text-white group-hover:text-amber-300 transition-colors">
+                <h3 className="text-sm sm:text-base font-black text-white group-hover:text-amber-300 transition-colors">
                   RAM & NVMe SSD
                 </h3>
-                <p className="text-[11px] sm:text-xs text-slate-300">
+                <p className="text-[10px] sm:text-[11px] text-slate-300 line-clamp-1">
                   DDR3, DDR4, Gen3 & Gen4 NVMe. Speed up your PC instantly.
                 </p>
               </div>
 
-              <div className="relative z-10 pt-3 sm:pt-4 flex items-center justify-between">
+              <div className="relative z-10 pt-2 flex items-center justify-between">
                 <span className="text-xs font-bold text-amber-400 group-hover:underline flex items-center gap-1">
                   <span>Shop Memory</span>
-                  <ArrowRight className="w-3.5 h-3.5 transition-transform group-hover:translate-x-1" />
+                  <ArrowRight className="w-3 h-3 transition-transform group-hover:translate-x-1" />
                 </span>
-                <span className="text-xs font-black text-white bg-slate-800/80 px-2 py-0.5 rounded-lg border border-slate-700">
+                <span className="text-[11px] font-black text-white bg-slate-800/80 px-2 py-0.5 rounded-lg border border-slate-700">
                   From ₹850
                 </span>
               </div>
@@ -292,29 +302,29 @@ export const HomePage: React.FC = () => {
             {/* Promo Card 2: B2B Dealer Wholesale */}
             <Link
               to="/dealer/login"
-              className="group relative flex-1 rounded-2xl sm:rounded-3xl overflow-hidden bg-gradient-to-br from-amber-950 via-slate-950 to-slate-900 p-4 sm:p-6 text-white border-2 border-amber-500/40 shadow-lg flex flex-col justify-between hover:border-amber-400 transition-all"
+              className="group relative flex-1 rounded-2xl sm:rounded-3xl overflow-hidden bg-gradient-to-br from-amber-950 via-slate-950 to-slate-900 p-3.5 sm:p-4 text-white border-2 border-amber-500/40 shadow-md flex flex-col justify-between hover:border-amber-400 transition-all"
             >
-              <div className="relative z-10 space-y-1.5 sm:space-y-2">
+              <div className="relative z-10 space-y-1">
                 <div className="flex items-center gap-1.5">
-                  <Building className="w-3.5 h-3.5 text-amber-400" />
-                  <span className="text-[9px] sm:text-[10px] font-black uppercase tracking-widest text-amber-400">
+                  <Building className="w-3 h-3 text-amber-400" />
+                  <span className="text-[8.5px] sm:text-[9.5px] font-black uppercase tracking-widest text-amber-400">
                     B2B Wholesale Portal
                   </span>
                 </div>
-                <h3 className="text-base sm:text-xl font-black text-white group-hover:text-amber-300 transition-colors">
+                <h3 className="text-sm sm:text-base font-black text-white group-hover:text-amber-300 transition-colors">
                   Bulk Dealer Pricing
                 </h3>
-                <p className="text-[11px] sm:text-xs text-slate-300">
-                  Exclusive wholesale prices on laptops, RAM, and electronics for verified dealers.
+                <p className="text-[10px] sm:text-[11px] text-slate-300 line-clamp-1">
+                  Wholesale prices on laptops, RAM & electronics for verified dealers.
                 </p>
               </div>
 
-              <div className="relative z-10 pt-3 sm:pt-4 flex items-center justify-between">
+              <div className="relative z-10 pt-2 flex items-center justify-between">
                 <span className="text-xs font-bold text-amber-400 group-hover:underline flex items-center gap-1">
                   <span>Dealer Login / Register</span>
-                  <ArrowRight className="w-3.5 h-3.5 transition-transform group-hover:translate-x-1" />
+                  <ArrowRight className="w-3 h-3 transition-transform group-hover:translate-x-1" />
                 </span>
-                <span className="text-[9px] sm:text-[10px] font-extrabold uppercase px-2 py-0.5 rounded-full bg-amber-400 text-slate-950">
+                <span className="text-[9px] font-extrabold uppercase px-2 py-0.5 rounded-full bg-amber-400 text-slate-950">
                   Special Rates
                 </span>
               </div>
@@ -328,13 +338,117 @@ export const HomePage: React.FC = () => {
         <BrandCarousel />
       </section>
 
-      {/* 3. Product Categories Section with Subcategories (Reference Image 1 & 2) */}
+      {/* 3. Product Categories Section (Reference Image 1 & 5) */}
       <section className="container mx-auto px-4">
-        <ShopByCategoryAccordion
-          showHeader={true}
-          defaultExpandedId="desktop"
-          className="max-w-4xl mx-auto shadow-sm"
-        />
+        <div className="bg-[#fffdf9] rounded-2xl sm:rounded-3xl p-4 sm:p-6 border border-amber-200/80 shadow-xs space-y-4">
+          <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 pb-3 border-b border-amber-200/60">
+            <div>
+              <div className="flex items-center gap-1.5 text-xs font-black uppercase tracking-wider text-[#7b0c1e]">
+                <span>🪔</span>
+                <span>Top Categories</span>
+              </div>
+              <h2 className="text-lg sm:text-2xl font-black text-primary tracking-tight">
+                Shop By Category
+              </h2>
+            </div>
+
+            <button
+              type="button"
+              onClick={() => window.dispatchEvent(new CustomEvent('open-category-drawer'))}
+              className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-xl bg-[#4a1525] hover:bg-[#6b0b1a] text-amber-300 font-bold text-xs uppercase tracking-wider transition-all shadow-xs cursor-pointer border border-amber-400/40"
+              title="Click to view all categories with complete sub-categories"
+            >
+              <Menu className="w-3.5 h-3.5 text-amber-400" />
+              <span>Full Category & Sub-Parts Menu (☰)</span>
+              <ArrowRight className="w-3.5 h-3.5 ml-0.5" />
+            </button>
+          </div>
+
+          {/* Quick Categories 8 Grid */}
+          <div className="grid grid-cols-2 sm:grid-cols-4 lg:grid-cols-8 gap-2.5 sm:gap-3">
+            {[
+              {
+                id: 'desktop-computers',
+                name: 'Desktops',
+                badge: 'Custom',
+                image: 'https://images.unsplash.com/photo-1587831990711-23ca6441447b?w=300&auto=format&fit=crop&q=80',
+                link: '/category/desktop-computers'
+              },
+              {
+                id: 'second-hand-laptops',
+                name: '2nd-Hand Laptops',
+                badge: 'Tested',
+                image: 'https://images.unsplash.com/photo-1541807084-5c52b6b3adef?w=300&auto=format&fit=crop&q=80',
+                link: '/category/second-hand-laptops'
+              },
+              {
+                id: 'ram-and-ssd',
+                name: 'RAM & SSD',
+                badge: 'Genuine',
+                image: 'https://images.unsplash.com/photo-1591799264318-7e6ef8ddb7ea?w=300&auto=format&fit=crop&q=80',
+                link: '/category/ram-and-ssd'
+              },
+              {
+                id: 'laptops',
+                name: 'Laptops',
+                badge: 'New & Used',
+                image: 'https://images.unsplash.com/photo-1496181133206-80ce9b88a853?w=300&auto=format&fit=crop&q=80',
+                link: '/category/laptops'
+              },
+              {
+                id: 'monitors-and-displays',
+                name: 'Monitors',
+                badge: 'HD/4K',
+                image: 'https://images.unsplash.com/photo-1527443224154-c4a3942d3acf?w=300&auto=format&fit=crop&q=80',
+                link: '/category/monitors-and-displays'
+              },
+              {
+                id: 'cctv-and-security',
+                name: 'CCTV Security',
+                badge: 'DVR/NVR',
+                image: 'https://images.unsplash.com/photo-1557597774-9d273605dfa9?w=300&auto=format&fit=crop&q=80',
+                link: '/category/cctv-and-security'
+              },
+              {
+                id: 'keyboards-and-mice',
+                name: 'Keyboards/Mice',
+                badge: 'Combos',
+                image: 'https://images.unsplash.com/photo-1587829741301-dc798b83add3?w=300&auto=format&fit=crop&q=80',
+                link: '/category/keyboards-and-mice'
+              },
+              {
+                id: 'printers-and-scanners',
+                name: 'Printers',
+                badge: 'Ink/Laser',
+                image: 'https://images.unsplash.com/photo-1612815154858-60aa4c59eaa6?w=300&auto=format&fit=crop&q=80',
+                link: '/category/printers-and-scanners'
+              }
+            ].map((cat) => (
+              <Link
+                key={cat.id}
+                to={cat.link}
+                className="group flex flex-col items-center text-center p-2 rounded-xl bg-white hover:bg-amber-50/60 border border-slate-200/80 hover:border-amber-400 transition-all shadow-2xs hover:shadow-xs"
+              >
+                <div className="relative w-14 h-14 sm:w-16 sm:h-16 rounded-full overflow-hidden bg-slate-100 mb-1.5 border border-slate-200 group-hover:scale-105 transition-transform">
+                  <img
+                    src={cat.image}
+                    alt={cat.name}
+                    className="w-full h-full object-cover object-center"
+                    loading="lazy"
+                  />
+                  {cat.badge && (
+                    <span className="absolute bottom-0 inset-x-0 bg-slate-900/80 text-amber-300 text-[8px] font-extrabold uppercase py-0.2">
+                      {cat.badge}
+                    </span>
+                  )}
+                </div>
+                <span className="text-[11px] font-extrabold text-charcoal group-hover:text-[#7b0c1e] line-clamp-1 leading-tight">
+                  {cat.name}
+                </span>
+              </Link>
+            ))}
+          </div>
+        </div>
       </section>
 
       {/* 4. Trust Badges Strip (Reference Image 2) */}
@@ -390,10 +504,10 @@ export const HomePage: React.FC = () => {
               <div className="space-y-1">
                 <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-rose-600 text-white text-[10px] font-black uppercase tracking-wider">
                   <Flame className="w-3.5 h-3.5" />
-                  <span>Deals Of The Day</span>
+                  <span>🪔 Navratri 9-Day Mega Sale 🪔</span>
                 </div>
-                <h2 className="text-2xl sm:text-3xl font-black text-white">
-                  Trending Electronics & Genuine Price Cuts
+                <h2 className="text-xl sm:text-3xl font-black text-white">
+                  Navratri 9 Days Festive Deals & Price Cuts
                 </h2>
               </div>
 

@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import {
   Search,
@@ -37,6 +37,13 @@ export const Navbar: React.FC = () => {
 
   const [searchQuery, setSearchQuery] = useState('');
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+  const [categoryDrawerOpen, setCategoryDrawerOpen] = useState(false);
+
+  useEffect(() => {
+    const handleOpenDrawer = () => setCategoryDrawerOpen(true);
+    window.addEventListener('open-category-drawer', handleOpenDrawer);
+    return () => window.removeEventListener('open-category-drawer', handleOpenDrawer);
+  }, []);
 
   const handleSearchSubmit = (e: React.FormEvent) => {
     e.preventDefault();
@@ -337,7 +344,18 @@ export const Navbar: React.FC = () => {
 
         {/* Desktop Category Navigation Sub-bar */}
         <nav className="bg-[#fffdfa] border-t border-slate-200/80 text-xs font-semibold">
-          <div className="container mx-auto px-4 flex items-center gap-1 overflow-x-auto py-1">
+          <div className="container mx-auto px-4 flex items-center gap-1.5 overflow-x-auto py-1">
+            {/* Desktop "Shop by Category" Drawer Trigger Button */}
+            <button
+              type="button"
+              onClick={() => setCategoryDrawerOpen(true)}
+              className="px-3 py-1.5 rounded-lg bg-[#4a1525] hover:bg-[#6b0b1a] text-amber-300 transition-all flex items-center gap-1.5 font-bold text-xs uppercase tracking-wider shrink-0 cursor-pointer shadow-xs border border-amber-400/40 mr-1"
+              title="Browse all categories & sub-categories"
+            >
+              <Menu className="w-3.5 h-3.5 text-amber-300" />
+              <span>Shop by Category</span>
+            </button>
+
             <Link
               to="/products"
               className="px-3 py-1.5 rounded-lg text-slate-800 hover:text-amber-700 hover:bg-white transition-colors shrink-0"
@@ -451,6 +469,57 @@ export const Navbar: React.FC = () => {
             >
               Shop Owner Login
             </Link>
+          </div>
+        </div>
+      )}
+
+      {/* =========================================================================
+          GLOBAL / DESKTOP SLIDE-OUT CATEGORY DRAWER (Reference Images 1 & 2)
+          ========================================================================= */}
+      {categoryDrawerOpen && (
+        <div className="fixed inset-0 z-50 flex animate-fade-in">
+          {/* Backdrop */}
+          <div
+            className="fixed inset-0 bg-black/60 backdrop-blur-xs transition-opacity cursor-pointer"
+            onClick={() => setCategoryDrawerOpen(false)}
+          />
+
+          {/* Slide-out Drawer Panel */}
+          <div className="relative w-full max-w-sm sm:max-w-md bg-[#fcf9f2] h-full shadow-2xl z-10 flex flex-col border-r border-[#ebdcc6] overflow-hidden">
+            {/* Drawer Top Header with Close [X] button */}
+            <div className="p-3.5 bg-[#7b0c1e] text-white flex items-center justify-between border-b border-[#540d18] shadow-sm">
+              <div className="flex items-center gap-2">
+                <div className="w-7 h-7 rounded-lg bg-amber-400 text-slate-950 flex items-center justify-center font-black text-xs">
+                  DW
+                </div>
+                <div>
+                  <span className="font-black text-sm tracking-wide block leading-none">
+                    DIGITAL <span className="text-amber-400">WORLD</span>
+                  </span>
+                  <span className="text-[9px] text-amber-200 tracking-wider uppercase font-semibold">
+                    Category Catalogue
+                  </span>
+                </div>
+              </div>
+              <button
+                type="button"
+                onClick={() => setCategoryDrawerOpen(false)}
+                className="p-1.5 rounded-lg text-white hover:text-amber-300 hover:bg-white/10 transition-colors cursor-pointer"
+                aria-label="Close category menu"
+              >
+                <X className="w-5 h-5" />
+              </button>
+            </div>
+
+            {/* Scrollable Content: ShopByCategoryAccordion */}
+            <div className="flex-1 overflow-y-auto p-4 space-y-3">
+              <ShopByCategoryAccordion
+                onSelectCategory={() => setCategoryDrawerOpen(false)}
+                showHeader={true}
+                defaultExpandedId="desktop"
+                className="shadow-none border-0 p-0 bg-transparent"
+              />
+            </div>
           </div>
         </div>
       )}
