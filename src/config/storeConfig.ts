@@ -139,9 +139,9 @@ export const STORE_CONFIG: StoreConfigType = {
   googleMapsUrl: 'https://www.google.com/maps/search/?api=1&query=Digital+World+Near+SBI+Bank+Sabji+Mandi+Road+Purani+Abadi+Sri+Ganganagar+Rajasthan+335001',
 
   // ---------------------------------------------------------------------------
-  // 8. BRANDING LOGO (Optional image URL, leave blank to use typography logo)
+  // 8. BRANDING LOGO (Official DW 3D Metallic Emblem)
   // ---------------------------------------------------------------------------
-  logoUrl: '',
+  logoUrl: '/logo.png',
 
   // ---------------------------------------------------------------------------
   // 9. ADMIN LOGIN EMAIL (For Vishal Soni)
@@ -151,7 +151,7 @@ export const STORE_CONFIG: StoreConfigType = {
   // ---------------------------------------------------------------------------
   // 10. CONFIG VERSION (Change this number whenever you update this file!)
   // ---------------------------------------------------------------------------
-  version: '2.0.0'
+  version: '2.1.0'
 };
 
 /**

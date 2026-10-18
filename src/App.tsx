@@ -1,4 +1,4 @@
-import React from 'react';
+ import React from 'react';
 import { BrowserRouter as Router, Routes, Route, Outlet } from 'react-router-dom';
 import { LanguageProvider } from './context/LanguageContext';
 import { StoreSettingsProvider } from './context/StoreSettingsContext';

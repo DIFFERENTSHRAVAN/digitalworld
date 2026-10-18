@@ -23,23 +23,6 @@ export const initialCategories: Category[] = [
     ]
   },
   {
-    id: 'c2',
-    name: 'Laptops',
-    slug: 'new-laptops',
-    description: 'Factory sealed brand-new laptops with 1-Year Brand Warranty',
-    icon: 'Laptop',
-    image_url: 'https://images.unsplash.com/photo-1517336714731-489689fd1ca8?w=500&auto=format&fit=crop&q=80',
-    display_order: 2,
-    is_active: true,
-    subcategories: [
-      'Brand New Sealed Laptops',
-      'Thin & Light Ultrabooks',
-      'Student & Office Laptops',
-      'High-End Gaming Rigs',
-      'Official Brand Warranty Laptops'
-    ]
-  },
-  {
     id: 'c3',
     name: 'Desktop Computers',
     slug: 'desktop-computers',

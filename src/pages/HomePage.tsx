@@ -358,7 +358,7 @@ export const HomePage: React.FC = () => {
       {/* 3. Product Categories Section (Reference Image 1 & 5) */}
       <section className="container mx-auto px-4">
         <div className="bg-[#fffdf9] rounded-2xl sm:rounded-3xl p-4 sm:p-6 border border-amber-200/80 shadow-xs space-y-4">
-          <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 pb-3 border-b border-amber-200/60">
+          <div className="flex items-center justify-between pb-3 border-b border-amber-200/60">
             <div>
               <div className="flex items-center gap-1.5 text-xs font-black uppercase tracking-wider text-[#7b0c1e]">
                 <span>🪔</span>
@@ -369,16 +369,13 @@ export const HomePage: React.FC = () => {
               </h2>
             </div>
 
-            <button
-              type="button"
-              onClick={() => window.dispatchEvent(new CustomEvent('open-category-drawer'))}
-              className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-xl bg-[#4a1525] hover:bg-[#6b0b1a] text-amber-300 font-bold text-xs uppercase tracking-wider transition-all shadow-xs cursor-pointer border border-amber-400/40"
-              title="Click to view all categories with complete sub-categories"
+            <Link
+              to="/products"
+              className="inline-flex items-center gap-1 text-xs font-bold text-amber-900 hover:text-secondary hover:underline transition-colors"
             >
-              <Menu className="w-3.5 h-3.5 text-amber-400" />
-              <span>Full Category & Sub-Parts Menu (☰)</span>
-              <ArrowRight className="w-3.5 h-3.5 ml-0.5" />
-            </button>
+              <span>View All Products</span>
+              <ArrowRight className="w-3.5 h-3.5" />
+            </Link>
           </div>
 
           {/* Quick Categories 8 Grid */}
@@ -406,11 +403,11 @@ export const HomePage: React.FC = () => {
                 link: '/category/ram-and-ssd'
               },
               {
-                id: 'laptops',
-                name: 'Laptops',
-                badge: 'New & Used',
-                image: 'https://images.unsplash.com/photo-1496181133206-80ce9b88a853?w=300&auto=format&fit=crop&q=80',
-                link: '/category/laptops'
+                id: 'storage-devices',
+                name: 'Storage',
+                badge: 'NVMe/SATA',
+                image: 'https://images.unsplash.com/photo-1597872200969-2b65d56bd16b?w=300&auto=format&fit=crop&q=80',
+                link: '/category/storage-devices'
               },
               {
                 id: 'monitors-and-displays',

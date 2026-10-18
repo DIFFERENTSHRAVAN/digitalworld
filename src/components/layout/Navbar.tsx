@@ -36,8 +36,22 @@ import { formatINR, getCategories, getPopularBrands } from '../../services/api';
 
 const DESKTOP_NAV_CATEGORIES = [
   {
+    id: 'refurbished-laptops',
+    name: 'Refurbished Laptops',
+    slug: 'refurbished-laptops',
+    subcategories: [
+      'Certified Refurbished Laptops (Tested)',
+      'Commercial / Business Laptops (ThinkPad, Latitude)',
+      'Gaming Laptops (High Performance)',
+      'Laptop RAM (DDR4 / DDR5)',
+      'Laptop NVMe SSD Storage',
+      'Laptop Adapters & Original Chargers',
+      'Laptop Keyboards & Batteries'
+    ]
+  },
+  {
     id: 'desktop',
-    name: 'Desktop',
+    name: 'Desktops',
     slug: 'desktop-computers',
     subcategories: [
       'Barebone Desktop',
@@ -52,17 +66,15 @@ const DESKTOP_NAV_CATEGORIES = [
     ]
   },
   {
-    id: 'laptop',
-    name: 'Laptop',
-    slug: 'laptops',
+    id: 'ram-ssd',
+    name: 'RAM & SSD',
+    slug: 'ram-and-ssd',
     subcategories: [
-      'Certified Second-Hand Laptops',
-      'Business Laptops (ThinkPad, Latitude)',
-      'Brand New Laptops',
-      'Laptop RAM (DDR4 / DDR5)',
-      'Laptop NVMe & SATA SSD',
-      'Laptop Battery & Adapters',
-      'Laptop Screen & Keyboards'
+      'DDR4 High-Speed RAM',
+      'DDR5 Next-Gen RAM',
+      'M.2 NVMe Gen3 & Gen4 SSD',
+      '2.5" SATA SSD',
+      'DDR3 Desktop & Laptop RAM'
     ]
   },
   {
@@ -80,7 +92,7 @@ const DESKTOP_NAV_CATEGORIES = [
   },
   {
     id: 'display',
-    name: 'Display',
+    name: 'Monitors',
     slug: 'monitors-and-displays',
     subcategories: [
       'Gaming Monitors (144Hz+)',
@@ -92,8 +104,22 @@ const DESKTOP_NAV_CATEGORIES = [
     ]
   },
   {
+    id: 'security',
+    name: 'CCTV Security',
+    slug: 'cctv-and-security',
+    subcategories: [
+      'Dome CCTV Cameras (Indoor)',
+      'Bullet CCTV Cameras (Outdoor IP67)',
+      '4 / 8 / 16 Channel DVR & NVR',
+      'CCTV Power Supply (SMPS)',
+      '3+1 CCTV Cable Rolls (90m, 180m)',
+      'BNC & DC Connectors',
+      'Biometric Fingerprint & Face Machines'
+    ]
+  },
+  {
     id: 'peripherals',
-    name: 'Peripherals',
+    name: 'Keyboards/Mice',
     slug: 'keyboards-and-mice',
     subcategories: [
       'Mechanical Gaming Keyboards',
@@ -106,7 +132,7 @@ const DESKTOP_NAV_CATEGORIES = [
   },
   {
     id: 'printers',
-    name: 'Printers & Scanners',
+    name: 'Printers',
     slug: 'printers-and-scanners',
     subcategories: [
       'All-in-One Ink Tank Printers',
@@ -115,20 +141,6 @@ const DESKTOP_NAV_CATEGORIES = [
       'Thermal Receipt Printers',
       'Flatbed Document Scanners',
       'Barcode Scanners & Ribbons'
-    ]
-  },
-  {
-    id: 'security',
-    name: 'Security',
-    slug: 'cctv-and-security',
-    subcategories: [
-      'Dome CCTV Cameras (Indoor)',
-      'Bullet CCTV Cameras (Outdoor IP67)',
-      '4 / 8 / 16 Channel DVR & NVR',
-      'CCTV Power Supply (SMPS)',
-      '3+1 CCTV Cable Rolls (90m, 180m)',
-      'BNC & DC Connectors',
-      'Biometric Fingerprint & Face Machines'
     ]
   },
   {
@@ -145,20 +157,8 @@ const DESKTOP_NAV_CATEGORIES = [
     ]
   },
   {
-    id: 'software',
-    name: 'Software',
-    slug: 'other-electronics',
-    subcategories: [
-      'Quick Heal Total Security',
-      'Kaspersky Antivirus',
-      'Net Protector Total Security',
-      'Windows 11 Pro License',
-      'MS Office Professional'
-    ]
-  },
-  {
     id: 'mobility',
-    name: 'Mobility',
+    name: 'Mobile Acc',
     slug: 'mobile-accessories',
     subcategories: [
       'Fast Charging Power Banks',
@@ -169,63 +169,29 @@ const DESKTOP_NAV_CATEGORIES = [
     ]
   },
   {
-    id: 'cables',
-    name: 'Cables',
-    slug: 'computer-accessories',
-    subcategories: [
-      'HDMI 4K High Speed Cables',
-      'DisplayPort to HDMI',
-      'VGA to VGA Monitor Cables',
-      'USB 3.0 Extension Cables',
-      'Printer USB Cables',
-      'Heavy Duty Power Cords'
-    ]
-  },
-  {
-    id: 'connectors',
-    name: 'Connector & Converter',
-    slug: 'computer-accessories',
-    subcategories: [
-      'HDMI to VGA with Audio',
-      'Type-C Multi-port Hub',
-      'SATA to USB 3.0 Adapter',
-      'DisplayPort to VGA Converter',
-      'OTG Type-C & Micro USB'
-    ]
-  },
-  {
     id: 'accessories',
-    name: 'Accessories',
+    name: 'PC Accessories',
     slug: 'computer-accessories',
     subcategories: [
       'Thermal Paste (Cooler Master, Arctic)',
       'PC Cleaning Kits & Blower',
       'Spike Guards & Surge Protectors',
       'Cable Management Ties',
-      'Anti-Static Screen Cleaners'
+      'Anti-Static Screen Cleaners',
+      'HDMI to VGA Converters',
+      'SATA to USB 3.0 Adapter'
     ]
   },
   {
-    id: 'cctv-networking',
-    name: 'CCTV & Networking',
-    slug: 'cctv-and-security',
-    subcategories: [
-      'CP PLUS 4-Camera Complete Sets',
-      'HIKVISION HD Camera Combos',
-      'Waterproof Camera Junction Boxes',
-      'PoE Switches for IP Cameras',
-      'Video Baluns & Power Splitters'
-    ]
-  },
-  {
-    id: 'telecom',
-    name: 'Telecom',
+    id: 'software',
+    name: 'Software',
     slug: 'other-electronics',
     subcategories: [
-      'EPABX Intercom Systems',
-      'Landline Caller ID Phones',
-      'Telephone Line Cables & RJ11 Plugs',
-      'Wireless Walkie Talkies'
+      'Quick Heal Total Security',
+      'Kaspersky Antivirus',
+      'Net Protector Total Security',
+      'Windows 11 Pro License',
+      'MS Office Professional'
     ]
   }
 ];
@@ -250,6 +216,7 @@ export const Navbar: React.FC = () => {
   const [categoryDrawerOpen, setCategoryDrawerOpen] = useState(false);
   const [activeDropdown, setActiveDropdown] = useState<string | null>(null);
   const [brandDropdownOpen, setBrandDropdownOpen] = useState(false);
+  const [moreDropdownOpen, setMoreDropdownOpen] = useState(false);
   const [navCategories, setNavCategories] = useState(DESKTOP_NAV_CATEGORIES);
   const [navBrands, setNavBrands] = useState(POPULAR_BRANDS);
   const closeTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
@@ -257,11 +224,17 @@ export const Navbar: React.FC = () => {
   useEffect(() => {
     getCategories().then(cats => {
       if (cats && cats.length > 0) {
-        setNavCategories(cats.map(c => ({
+        const cleanCats = cats.filter(c =>
+          c.slug !== 'laptops' &&
+          c.slug !== 'new-laptops' &&
+          c.id !== 'c2' &&
+          !c.name.toLowerCase().includes('new laptop')
+        );
+        setNavCategories(cleanCats.map(c => ({
           id: c.id,
           name: c.name,
           slug: c.slug,
-          subcategories: c.subcategories || []
+          subcategories: (c.subcategories || []).filter(sub => !sub.toLowerCase().includes('brand new'))
         })));
       }
     });
@@ -277,6 +250,7 @@ export const Navbar: React.FC = () => {
     closeTimerRef.current = setTimeout(() => {
       setActiveDropdown(null);
       setBrandDropdownOpen(false);
+      setMoreDropdownOpen(false);
     }, 200);
   };
 
@@ -284,15 +258,26 @@ export const Navbar: React.FC = () => {
     if (closeTimerRef.current) clearTimeout(closeTimerRef.current);
     setActiveDropdown(catId);
     setBrandDropdownOpen(false);
+    setMoreDropdownOpen(false);
   };
 
   const handleBrandMouseEnter = () => {
     if (closeTimerRef.current) clearTimeout(closeTimerRef.current);
     setBrandDropdownOpen(true);
     setActiveDropdown(null);
+    setMoreDropdownOpen(false);
+  };
+
+  const handleMoreMouseEnter = () => {
+    if (closeTimerRef.current) clearTimeout(closeTimerRef.current);
+    setMoreDropdownOpen(true);
+    setActiveDropdown(null);
+    setBrandDropdownOpen(false);
   };
 
   const activeCategoryData = navCategories.find(c => c.id === activeDropdown);
+  const primaryRibbonCats = navCategories.slice(0, 8);
+  const moreRibbonCats = navCategories.slice(8);
 
   useEffect(() => {
     return () => {
@@ -353,9 +338,11 @@ export const Navbar: React.FC = () => {
             </button>
 
             <Link to="/" className="flex items-center gap-1.5">
-              <div className="w-7 h-7 rounded-lg bg-amber-400 text-slate-950 flex items-center justify-center font-black text-xs shadow-xs">
-                DW
-              </div>
+              <img
+                src="/logo.png"
+                alt="Digital World"
+                className="w-8 h-8 rounded-full object-contain shrink-0 shadow-xs border border-cyan-400/50 bg-slate-950 p-0.5"
+              />
               <div className="leading-none">
                 <span className="font-black text-sm tracking-wide text-white block">
                   DIGITAL <span className="text-amber-400">WORLD</span>
@@ -685,21 +672,35 @@ export const Navbar: React.FC = () => {
           className="bg-[#5a0a16] text-white text-[11px] font-bold relative shadow-md z-40 select-none"
           onMouseLeave={handleNavMouseLeave}
         >
-          {/* Scrollable ribbon buttons */}
-          <div className="container mx-auto px-4 flex items-center gap-0.5 overflow-x-auto py-1 scrollbar-none">
-            {/* Shop By Brand Button (White Pill in Maroon Strip) */}
-            <div className="shrink-0">
+          {/* Desktop ribbon buttons - Fits cleanly without horizontal scroll */}
+          <div className="container mx-auto px-4 flex items-center justify-between gap-1 overflow-visible py-1">
+            {/* Left corner: All Categories & Brand */}
+            <div className="flex items-center gap-1.5 shrink-0">
+              {/* 1. FAR LEFT: [☰ ALL CATEGORIES ▾] */}
+              <button
+                type="button"
+                onClick={() => setCategoryDrawerOpen(true)}
+                className="px-3 py-1.5 rounded uppercase tracking-wider flex items-center gap-1.5 shrink-0 cursor-pointer transition-all bg-amber-400 hover:bg-amber-300 text-slate-950 font-black shadow-xs text-[11px]"
+                title="Browse Full Category Catalogue"
+              >
+                <Menu className="w-3.5 h-3.5 stroke-[2.5]" />
+                <span>All Categories</span>
+                <ChevronDown className="w-2.5 h-2.5" />
+              </button>
+
+              {/* 2. Shop By Brand Button */}
               <button
                 type="button"
                 onMouseEnter={handleBrandMouseEnter}
                 onClick={() => {
                   setBrandDropdownOpen(!brandDropdownOpen);
                   setActiveDropdown(null);
+                  setMoreDropdownOpen(false);
                 }}
-                className={`px-3 py-1.5 rounded uppercase tracking-wider flex items-center gap-1.5 shrink-0 cursor-pointer transition-all mr-1 text-[11px] font-black ${
+                className={`px-3 py-1.5 rounded uppercase tracking-wider flex items-center gap-1.5 shrink-0 cursor-pointer transition-all text-[11px] font-black ${
                   brandDropdownOpen
-                    ? 'bg-amber-400 text-slate-950 shadow-md'
-                    : 'bg-white hover:bg-amber-50 text-[#5a0a16] shadow-xs'
+                    ? 'bg-white text-[#5a0a16] shadow-md'
+                    : 'bg-white/10 hover:bg-white hover:text-[#5a0a16] text-white'
                 }`}
                 title="Browse by OEM Brand"
               >
@@ -709,34 +710,60 @@ export const Navbar: React.FC = () => {
               </button>
             </div>
 
-            {/* Category Items (Dynamically managed from Admin Dashboard) */}
-            {navCategories.map((cat) => {
-              const isOpen = activeDropdown === cat.id;
-              return (
-                <div key={cat.id} className="shrink-0">
+            {/* Primary Categories + More dropdown */}
+            <div className="flex items-center gap-0.5 shrink-0">
+              {primaryRibbonCats.map((cat) => {
+                const isOpen = activeDropdown === cat.id;
+                return (
+                  <div key={cat.id} className="shrink-0">
+                    <button
+                      type="button"
+                      onMouseEnter={() => handleCategoryMouseEnter(cat.id)}
+                      onClick={() => {
+                        if (activeDropdown === cat.id) {
+                          navigate(`/category/${cat.slug}`);
+                          setActiveDropdown(null);
+                        } else {
+                          handleCategoryMouseEnter(cat.id);
+                        }
+                      }}
+                      className={`px-2 py-1.5 rounded transition-all whitespace-nowrap cursor-pointer flex items-center gap-0.5 text-[11px] font-bold ${
+                        isOpen
+                          ? 'bg-white text-[#5a0a16] font-black shadow-md'
+                          : 'text-white hover:bg-white/15 hover:text-amber-200'
+                      }`}
+                    >
+                      <span>{cat.name}</span>
+                      <ChevronDown className={`w-2 h-2 transition-transform ${isOpen ? 'rotate-180 text-[#5a0a16]' : 'opacity-60'}`} />
+                    </button>
+                  </div>
+                );
+              })}
+
+              {/* More Categories Dropdown Button */}
+              {moreRibbonCats.length > 0 && (
+                <div className="shrink-0">
                   <button
                     type="button"
-                    onMouseEnter={() => handleCategoryMouseEnter(cat.id)}
+                    onMouseEnter={handleMoreMouseEnter}
                     onClick={() => {
-                      if (activeDropdown === cat.id) {
-                        navigate(`/category/${cat.slug}`);
-                        setActiveDropdown(null);
-                      } else {
-                        handleCategoryMouseEnter(cat.id);
-                      }
+                      setMoreDropdownOpen(!moreDropdownOpen);
+                      setActiveDropdown(null);
+                      setBrandDropdownOpen(false);
                     }}
-                    className={`px-2.5 py-1.5 rounded transition-all whitespace-nowrap cursor-pointer flex items-center gap-1 ${
-                      isOpen
-                        ? 'bg-white text-[#5a0a16] font-black shadow-md'
-                        : 'text-white hover:bg-white/15 hover:text-amber-200'
+                    className={`px-2.5 py-1.5 rounded transition-all whitespace-nowrap cursor-pointer flex items-center gap-1 text-[11px] font-black ${
+                      moreDropdownOpen
+                        ? 'bg-amber-400 text-slate-950 shadow-md'
+                        : 'text-amber-300 hover:bg-white/15 hover:text-white'
                     }`}
+                    title="More Electronics Categories"
                   >
-                    <span>{cat.name}</span>
-                    <ChevronDown className={`w-2.5 h-2.5 transition-transform ${isOpen ? 'rotate-180 text-[#5a0a16]' : 'opacity-60'}`} />
+                    <span>More</span>
+                    <ChevronDown className={`w-2.5 h-2.5 transition-transform ${moreDropdownOpen ? 'rotate-180' : ''}`} />
                   </button>
                 </div>
-              );
-            })}
+              )}
+            </div>
           </div>
 
           {/* =========================================================================
@@ -869,6 +896,71 @@ export const Navbar: React.FC = () => {
               </div>
             </div>
           )}
+
+          {/* 3. More Categories Mega Dropdown */}
+          {moreDropdownOpen && (
+            <div
+              className="absolute left-0 right-0 top-full bg-white text-slate-900 shadow-2xl border-b-4 border-[#7b0c1e] border-t border-amber-300 z-50 animate-fade-in"
+              onMouseEnter={() => {
+                if (closeTimerRef.current) clearTimeout(closeTimerRef.current);
+                setMoreDropdownOpen(true);
+              }}
+              onMouseLeave={handleNavMouseLeave}
+            >
+              <div className="container mx-auto px-6 py-5">
+                <div className="flex items-center justify-between pb-2.5 mb-3.5 border-b border-slate-100">
+                  <div className="flex items-center gap-2">
+                    <Store className="w-5 h-5 text-[#7b0c1e]" />
+                    <span className="text-base font-black text-[#5a0a16]">Additional Electronics & Accessories</span>
+                    <span className="text-[11px] font-bold bg-amber-100 text-amber-900 px-2.5 py-0.5 rounded-full border border-amber-300">
+                      {moreRibbonCats.length} Categories
+                    </span>
+                  </div>
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setMoreDropdownOpen(false);
+                      setCategoryDrawerOpen(true);
+                    }}
+                    className="text-xs font-bold text-amber-800 hover:text-[#5a0a16] flex items-center gap-1 hover:underline cursor-pointer"
+                  >
+                    <span>Open Full Category Catalogue (☰)</span>
+                    <ArrowRight className="w-3.5 h-3.5" />
+                  </button>
+                </div>
+
+                <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+                  {moreRibbonCats.map(cat => (
+                    <div key={cat.id} className="space-y-2 p-3.5 rounded-xl bg-slate-50 border border-slate-200/80 hover:border-amber-400 transition-colors">
+                      <Link
+                        to={`/category/${cat.slug}`}
+                        onClick={() => setMoreDropdownOpen(false)}
+                        className="font-black text-xs text-[#5a0a16] hover:underline flex items-center justify-between group"
+                      >
+                        <span className="group-hover:text-amber-800">{cat.name}</span>
+                        <ArrowRight className="w-3.5 h-3.5 text-amber-600 group-hover:translate-x-0.5 transition-transform" />
+                      </Link>
+                      <div className="space-y-1">
+                        {(cat.subcategories || []).slice(0, 5).map(sub => (
+                          <button
+                            key={sub}
+                            type="button"
+                            onClick={() => {
+                              navigate(`/products?category=${cat.slug}&subcategory=${encodeURIComponent(sub)}`);
+                              setMoreDropdownOpen(false);
+                            }}
+                            className="text-left block text-[11px] text-slate-600 hover:text-[#7b0c1e] hover:font-bold truncate w-full cursor-pointer"
+                          >
+                            • {sub}
+                          </button>
+                        ))}
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            </div>
+          )}
         </nav>
       </div>
 
@@ -961,9 +1053,11 @@ export const Navbar: React.FC = () => {
             {/* Drawer Top Header with Close [X] button */}
             <div className="p-3.5 bg-[#7b0c1e] text-white flex items-center justify-between border-b border-[#540d18] shadow-sm">
               <div className="flex items-center gap-2">
-                <div className="w-7 h-7 rounded-lg bg-amber-400 text-slate-950 flex items-center justify-center font-black text-xs">
-                  DW
-                </div>
+                <img
+                  src="/logo.png"
+                  alt="Digital World"
+                  className="w-8 h-8 rounded-full object-contain shrink-0 shadow-xs border border-cyan-400/50 bg-slate-950 p-0.5"
+                />
                 <div>
                   <span className="font-black text-sm tracking-wide block leading-none">
                     DIGITAL <span className="text-amber-400">WORLD</span>

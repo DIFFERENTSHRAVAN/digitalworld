@@ -52,9 +52,9 @@ export const CATEGORIES_WITH_SUBCATEGORIES: CategoryItemData[] = [
     ]
   },
   {
-    id: 'laptop',
-    name: 'Laptop',
-    slug: 'second-hand-laptops',
+    id: 'refurbished-laptops',
+    name: 'Refurbished Laptops',
+    slug: 'refurbished-laptops',
     icon: 'Laptop',
     subcategories: [
       'Refurbished Laptops (Tested)',
@@ -261,12 +261,18 @@ export const ShopByCategoryAccordion: React.FC<ShopByCategoryAccordionProps> = (
   useEffect(() => {
     getCategories().then(cats => {
       if (cats && cats.length > 0) {
-        setCategoriesList(cats.map(c => ({
+        const cleanCats = cats.filter(c =>
+          c.slug !== 'laptops' &&
+          c.slug !== 'new-laptops' &&
+          c.id !== 'c2' &&
+          !c.name.toLowerCase().includes('new laptop')
+        );
+        setCategoriesList(cleanCats.map(c => ({
           id: c.id,
           name: c.name,
           slug: c.slug,
           icon: c.icon || 'Monitor',
-          subcategories: c.subcategories || []
+          subcategories: (c.subcategories || []).filter(sub => !sub.toLowerCase().includes('brand new'))
         })));
       }
     });

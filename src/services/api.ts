@@ -141,7 +141,12 @@ const getLocalCategories = (): Category[] => {
       }
     });
 
-    cats.forEach(c => {
+    let finalCats = cats.filter(c => c.slug !== 'new-laptops' && c.id !== 'c2' && c.name.toLowerCase() !== 'new laptops' && c.name.toLowerCase() !== 'laptops');
+    if (finalCats.length !== cats.length) {
+      updated = true;
+    }
+
+    finalCats.forEach(c => {
       if (c.name === 'Second-Hand Laptops' || c.slug === 'second-hand-laptops') {
         c.name = 'Refurbished Laptops';
         c.slug = 'refurbished-laptops';
@@ -151,9 +156,9 @@ const getLocalCategories = (): Category[] => {
     });
 
     if (updated) {
-      localStorage.setItem(STORAGE_CATEGORIES, JSON.stringify(cats));
+      localStorage.setItem(STORAGE_CATEGORIES, JSON.stringify(finalCats));
     }
-    return cats;
+    return finalCats;
   } catch {
     return initialCategories;
   }

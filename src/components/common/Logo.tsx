@@ -1,5 +1,4 @@
 import React from 'react';
-import { Cpu } from 'lucide-react';
 import { useStoreSettings } from '../../context/StoreSettingsContext';
 
 interface LogoProps {
@@ -9,26 +8,19 @@ interface LogoProps {
 
 export const Logo: React.FC<LogoProps> = ({ className = '', isLight = false }) => {
   const { settings } = useStoreSettings();
-
-  if (settings.logo_url && settings.logo_url.trim() !== '') {
-    return (
-      <img
-        src={settings.logo_url}
-        alt={settings.shop_name}
-        className={`h-10 object-contain ${className}`}
-      />
-    );
-  }
+  const logoSrc = settings.logo_url && settings.logo_url.trim() !== '' 
+    ? settings.logo_url 
+    : '/logo.png';
 
   return (
     <div className={`flex items-center gap-2.5 font-bold tracking-tight select-none ${className}`}>
-      <div className={`p-2 rounded-xl flex items-center justify-center transition-transform hover:scale-105 shadow-sm ${
-        isLight ? 'bg-white text-primary' : 'bg-primary text-white'
-      }`}>
-        <Cpu className="w-5 h-5 text-secondary-light" />
-      </div>
+      <img
+        src={logoSrc}
+        alt={settings.shop_name || 'Digital World'}
+        className="w-10 h-10 sm:w-11 sm:h-11 rounded-full object-contain shrink-0 shadow-md border-2 border-cyan-400/50 hover:scale-105 transition-transform bg-slate-950 p-0.5"
+      />
       <div className="flex flex-col leading-none">
-        <span className={`text-xl sm:text-2xl font-extrabold tracking-tight ${
+        <span className={`text-xl sm:text-2xl font-black tracking-tight ${
           isLight ? 'text-white' : 'text-primary'
         }`}>
           DIGITAL<span className="text-secondary ml-1.5">WORLD</span>
