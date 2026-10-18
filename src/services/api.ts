@@ -215,6 +215,14 @@ const getLocalProducts = (): Product[] => {
         p.category_name = 'Refurbished Laptops';
         updated = true;
       }
+      if (p.slug && p.slug.endsWith('-demo')) {
+        p.slug = p.slug.replace(/-demo$/, '');
+        updated = true;
+      }
+      if (p.is_demo_product) {
+        p.is_demo_product = false;
+        updated = true;
+      }
     });
     if (updated) {
       localStorage.setItem(STORAGE_PRODUCTS, JSON.stringify(prods));
@@ -228,19 +236,26 @@ const getLocalProducts = (): Product[] => {
 const getLocalOrders = (): Order[] => {
   const data = localStorage.getItem(STORAGE_ORDERS);
   if (!data) {
-    localStorage.setItem(STORAGE_ORDERS, JSON.stringify(initialOrders));
-    return initialOrders;
+    localStorage.setItem(STORAGE_ORDERS, JSON.stringify([]));
+    return [];
   }
   try {
     const parsed: Order[] = JSON.parse(data);
-    // If empty or missing initial orders, ensure demo orders exist
-    if (parsed.length === 0) {
-      localStorage.setItem(STORAGE_ORDERS, JSON.stringify(initialOrders));
-      return initialOrders;
+    // Purge any legacy demo orders (DW-DEMO-1001, B2B-1001, o_dlr_1, o1)
+    const cleaned = parsed.filter(o =>
+      o.id !== 'o_dlr_1' &&
+      o.id !== 'o1' &&
+      o.order_number !== 'DW-DEMO-1001' &&
+      o.order_number !== 'B2B-1001' &&
+      o.dealer_id !== 'dlr_1001' &&
+      o.dealer_id !== 'dlr_1002'
+    );
+    if (cleaned.length !== parsed.length) {
+      localStorage.setItem(STORAGE_ORDERS, JSON.stringify(cleaned));
     }
-    return parsed;
+    return cleaned;
   } catch {
-    return initialOrders;
+    return [];
   }
 };
 
@@ -1520,56 +1535,29 @@ export interface StoredDealerAccount extends DealerUser {
   passwordHash: string;
 }
 
-const initialDealers: StoredDealerAccount[] = [
-  {
-    id: 'dlr_1001',
-    dealer_code: 'DLR-1001',
-    business_name: 'Jaipur IT Solutions',
-    contact_person: 'Sunil Sharma',
-    phone: '9829012345',
-    email: 'sunil@jaipurit.com',
-    gst_number: '08AAAAA0000A1Z5',
-    business_type: 'Computer Hardware Retailer',
-    address: 'Plot 42, MI Road, Near Raj Mandir',
-    city: 'Jaipur',
-    state: 'Rajasthan',
-    pincode: '302001',
-    status: 'approved',
-    passwordHash: btoa('dealer123'),
-    created_at: new Date(Date.now() - 86400000 * 30).toISOString(),
-    approved_at: new Date(Date.now() - 86400000 * 29).toISOString(),
-    admin_notes: 'Verified wholesale partner with physical showroom in Jaipur.'
-  },
-  {
-    id: 'dlr_1002',
-    dealer_code: 'DLR-1002',
-    business_name: 'Marwar Electronics & Laptop Care',
-    contact_person: 'Rahul Jain',
-    phone: '9414056789',
-    email: 'rahul@marwarelectronics.com',
-    gst_number: '08BBBBB1111B1Z6',
-    business_type: 'Laptop Repair & Resale',
-    address: 'Shop 12, Station Road',
-    city: 'Jodhpur',
-    state: 'Rajasthan',
-    pincode: '342001',
-    status: 'pending',
-    passwordHash: btoa('dealer123'),
-    created_at: new Date(Date.now() - 86400000 * 2).toISOString(),
-    admin_notes: 'New dealer application submitted online. Verification pending.'
-  }
-];
+const initialDealers: StoredDealerAccount[] = [];
 
 export const getStoredDealers = (): StoredDealerAccount[] => {
   const raw = localStorage.getItem(STORAGE_DEALERS);
   if (!raw) {
-    localStorage.setItem(STORAGE_DEALERS, JSON.stringify(initialDealers));
-    return initialDealers;
+    localStorage.setItem(STORAGE_DEALERS, JSON.stringify([]));
+    return [];
   }
   try {
-    return JSON.parse(raw);
+    const list: StoredDealerAccount[] = JSON.parse(raw);
+    // Purge any legacy demo dealers (DLR-1001, DLR-1002, dlr_1001, dlr_1002)
+    const cleaned = list.filter(d => 
+      d.id !== 'dlr_1001' && 
+      d.id !== 'dlr_1002' && 
+      d.dealer_code !== 'DLR-1001' && 
+      d.dealer_code !== 'DLR-1002'
+    );
+    if (cleaned.length !== list.length) {
+      localStorage.setItem(STORAGE_DEALERS, JSON.stringify(cleaned));
+    }
+    return cleaned;
   } catch {
-    return initialDealers;
+    return [];
   }
 };
 
@@ -1581,7 +1569,13 @@ export function getCurrentDealer(): DealerUser | null {
   const raw = localStorage.getItem(STORAGE_DEALER_SESSION);
   if (!raw) return null;
   try {
-    return JSON.parse(raw);
+    const parsed: DealerUser = JSON.parse(raw);
+    // Purge demo dealer session immediately
+    if (parsed.id === 'dlr_1001' || parsed.id === 'dlr_1002' || parsed.dealer_code === 'DLR-1001' || parsed.dealer_code === 'DLR-1002') {
+      localStorage.removeItem(STORAGE_DEALER_SESSION);
+      return null;
+    }
+    return parsed;
   } catch {
     return null;
   }

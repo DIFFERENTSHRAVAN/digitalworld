@@ -54,13 +54,6 @@ export const DealerLoginPage: React.FC = () => {
     }
   };
 
-  const fillDemoAccount = (code: string, pass: string) => {
-    setIdentifier(code);
-    setPassword(pass);
-    setError(null);
-    setErrorStatus(null);
-  };
-
   const cleanWhatsapp = STORE_CONFIG.whatsappNumber.replace(/\D/g, '');
 
   return (
@@ -79,39 +72,6 @@ export const DealerLoginPage: React.FC = () => {
 
       <div className="mt-8 sm:mx-auto sm:w-full sm:max-w-md relative z-10 px-4 sm:px-0">
         <div className="bg-white text-charcoal py-8 px-6 sm:px-10 shadow-2xl rounded-3xl border border-slate-200">
-          {/* Quick Demo Credentials Autofill Banner */}
-          <div className="mb-6 p-3 bg-blue-50 border border-blue-200 rounded-2xl text-xs space-y-2">
-            <div className="flex items-center gap-2 text-primary font-bold">
-              <ShieldCheck className="w-4 h-4 text-secondary" />
-              <span>Demo Dealer Credentials (One-Click Fill)</span>
-            </div>
-            <div className="grid grid-cols-2 gap-2 pt-1">
-              <button
-                type="button"
-                onClick={() => fillDemoAccount('DLR-1001', 'dealer123')}
-                className="px-2.5 py-1.5 bg-white border border-blue-300 hover:border-blue-500 hover:bg-blue-100/60 rounded-xl font-medium text-left transition-all"
-              >
-                <div className="font-bold text-emerald-700 flex items-center gap-1">
-                  <span className="w-2 h-2 rounded-full bg-emerald-500"></span>
-                  Approved Dealer
-                </div>
-                <div className="text-[11px] text-slate-600">DLR-1001 • dealer123</div>
-              </button>
-
-              <button
-                type="button"
-                onClick={() => fillDemoAccount('DLR-1002', 'dealer123')}
-                className="px-2.5 py-1.5 bg-white border border-amber-300 hover:border-amber-500 hover:bg-amber-100/60 rounded-xl font-medium text-left transition-all"
-              >
-                <div className="font-bold text-amber-700 flex items-center gap-1">
-                  <span className="w-2 h-2 rounded-full bg-amber-500"></span>
-                  Pending Review
-                </div>
-                <div className="text-[11px] text-slate-600">DLR-1002 • dealer123</div>
-              </button>
-            </div>
-          </div>
-
           {/* Account Status / Error Alerts */}
           {error && (
             <div

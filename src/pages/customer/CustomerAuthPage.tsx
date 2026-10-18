@@ -375,7 +375,7 @@ export const CustomerAuthPage: React.FC = () => {
                         </div>
 
                         <div className="text-[10.5px] text-slate-500 bg-white/80 p-2 rounded-lg border border-slate-200/60 leading-relaxed">
-                          ℹ️ Direct telecom SMS requires commercial DLT gateway. Code is provided above for instant demo/dev access. Click <strong>Auto-Fill</strong> then <strong>Verify OTP</strong>.
+                          ℹ️ Enter the 6-digit verification code above or click <strong>Auto-Fill</strong>, then click <strong>Verify OTP</strong> to sign in.
                         </div>
                       </div>
                     )}

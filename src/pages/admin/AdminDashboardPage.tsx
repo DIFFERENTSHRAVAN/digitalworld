@@ -985,22 +985,6 @@ export const AdminDashboardPage: React.FC = () => {
                   <FileSpreadsheet className="w-4 h-4 text-emerald-700" />
                   <span>Export Inventory CSV</span>
                 </button>
-
-                <button
-                  onClick={handleClearDemoProducts}
-                  className="px-3.5 py-2 bg-rose-50 hover:bg-rose-100 text-rose-800 font-semibold rounded-xl border border-rose-200 cursor-pointer"
-                  title="Remove all demo products before shop launch"
-                >
-                  Purge Demo Inventory
-                </button>
-
-                <button
-                  onClick={handleResetDemoData}
-                  className="px-3.5 py-2 bg-slate-100 hover:bg-slate-200 text-charcoal-muted font-semibold rounded-xl border border-slate-300 cursor-pointer"
-                  title="Re-populate with test sample data"
-                >
-                  <RotateCcw className="w-3.5 h-3.5" />
-                </button>
               </div>
             </div>
 

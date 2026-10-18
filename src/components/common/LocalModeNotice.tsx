@@ -81,7 +81,7 @@ export const LocalModeNotice: React.FC = () => {
               <div className="flex items-start gap-2 text-xs text-emerald-800 bg-emerald-50 p-2.5 rounded-lg border border-emerald-200">
                 <CheckCircle2 className="w-4 h-4 text-emerald-600 shrink-0 mt-0.5" />
                 <span>
-                  Admin Demo Login: <strong>admin@digitalworld.com</strong> (Password: <strong>admin123</strong>)
+                  Store Admin Access: <strong>admin@digitalworld.com</strong>
                 </span>
               </div>
             </div>

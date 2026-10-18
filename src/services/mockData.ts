@@ -300,7 +300,7 @@ export const initialProducts: Product[] = [
     category_id: 'c1',
     category_name: 'Second-Hand Laptops',
     name: 'Lenovo ThinkPad T480 (Core i5 8th Gen / 16GB / 512GB NVMe SSD)',
-    slug: 'lenovo-thinkpad-t480-i5-8th-gen-demo',
+    slug: 'lenovo-thinkpad-t480-i5-8th-gen',
     brand: 'Lenovo',
     model: 'ThinkPad T480',
     condition: 'second_hand',
@@ -340,7 +340,7 @@ export const initialProducts: Product[] = [
     is_reserved: false,
     min_dealer_qty: 1,
     dealer_price: 18500,
-    is_demo_product: true,
+    is_demo_product: false,
     created_at: new Date(Date.now() - 86400000 * 2).toISOString()
   },
   {
@@ -350,7 +350,7 @@ export const initialProducts: Product[] = [
     category_id: 'c1',
     category_name: 'Second-Hand Laptops',
     name: 'Dell Latitude 5400 (Core i7 8th Gen / 16GB / 256GB SSD)',
-    slug: 'dell-latitude-5400-i7-8th-gen-demo',
+    slug: 'dell-latitude-5400-i7-8th-gen',
     brand: 'Dell',
     model: 'Latitude 5400',
     condition: 'second_hand',
@@ -387,7 +387,7 @@ export const initialProducts: Product[] = [
     known_defects: 'Minor hairline scratch on outer edge corner, cosmetic only.',
     included_accessories: 'Original Dell 65W AC Adapter and Laptop Bag',
     is_reserved: false,
-    is_demo_product: true,
+    is_demo_product: false,
     created_at: new Date(Date.now() - 86400000 * 3).toISOString()
   },
   {
@@ -397,7 +397,7 @@ export const initialProducts: Product[] = [
     category_id: 'c1',
     category_name: 'Second-Hand Laptops',
     name: 'HP EliteBook 840 G6 Ultrabook (Aluminum Silver / i5 8th / 8GB / 256GB SSD)',
-    slug: 'hp-elitebook-840-g6-demo',
+    slug: 'hp-elitebook-840-g6',
     brand: 'HP',
     model: 'EliteBook 840 G6',
     condition: 'second_hand',
@@ -434,7 +434,7 @@ export const initialProducts: Product[] = [
     known_defects: 'None. Fully inspected by Digital World.',
     included_accessories: 'Original HP Smart Blue-pin 45W Charger & Power Cord',
     is_reserved: false,
-    is_demo_product: true,
+    is_demo_product: false,
     created_at: new Date(Date.now() - 86400000 * 4).toISOString()
   },
   {
@@ -444,7 +444,7 @@ export const initialProducts: Product[] = [
     category_id: 'c4',
     category_name: 'Storage Devices',
     name: 'Kingston NV2 500GB PCIe 4.0 NVMe M.2 Internal SSD',
-    slug: 'kingston-nv2-500gb-nvme-ssd-demo',
+    slug: 'kingston-nv2-500gb-nvme-ssd',
     brand: 'Kingston',
     model: 'NV2 SNV2S/500G',
     condition: 'new',
@@ -471,7 +471,7 @@ export const initialProducts: Product[] = [
       'Write Speed': 'Up to 2,100 MB/s',
       'Form Factor': 'M.2 2280'
     },
-    is_demo_product: true,
+    is_demo_product: false,
     created_at: new Date(Date.now() - 86400000 * 5).toISOString()
   },
   {
@@ -481,7 +481,7 @@ export const initialProducts: Product[] = [
     category_id: 'c7',
     category_name: 'Keyboards and Mice',
     name: 'Logitech MK270 Wireless Keyboard and Mouse Combo',
-    slug: 'logitech-mk270-wireless-combo-demo',
+    slug: 'logitech-mk270-wireless-combo',
     brand: 'Logitech',
     model: 'MK270',
     condition: 'new',
@@ -508,7 +508,7 @@ export const initialProducts: Product[] = [
       'Keyboard Battery': 'Up to 36 months',
       'Mouse Battery': 'Up to 12 months'
     },
-    is_demo_product: true,
+    is_demo_product: false,
     created_at: new Date(Date.now() - 86400000 * 6).toISOString()
   },
   {
@@ -518,7 +518,7 @@ export const initialProducts: Product[] = [
     category_id: 'c11',
     category_name: 'Networking Devices',
     name: 'TP-Link Archer C6 AC1200 Gigabit Dual-Band Wi-Fi Router',
-    slug: 'tp-link-archer-c6-ac1200-router-demo',
+    slug: 'tp-link-archer-c6-ac1200-router',
     brand: 'TP-Link',
     model: 'Archer C6',
     condition: 'new',
@@ -544,7 +544,7 @@ export const initialProducts: Product[] = [
       'Ethernet Ports': '1x Gigabit WAN, 4x Gigabit LAN',
       'Antennas': '4 Fixed High-Gain Omnidirectional'
     },
-    is_demo_product: true,
+    is_demo_product: false,
     created_at: new Date(Date.now() - 86400000 * 7).toISOString()
   },
   {
@@ -554,7 +554,7 @@ export const initialProducts: Product[] = [
     category_id: 'c6',
     category_name: 'Computer Accessories',
     name: '65W GaN Fast Type-C Laptop Power Adapter with Detachable Cable',
-    slug: 'universal-65w-type-c-laptop-charger-demo',
+    slug: 'universal-65w-type-c-laptop-charger',
     brand: 'Digital World Pro',
     model: 'DW-65W-GAN',
     condition: 'new',
@@ -581,7 +581,7 @@ export const initialProducts: Product[] = [
       'Protection': 'Over-voltage, short-circuit, and overheating protection',
       'Cable': 'Includes 1.8M Braided Type-C to Type-C Cable'
     },
-    is_demo_product: true,
+    is_demo_product: false,
     created_at: new Date(Date.now() - 86400000 * 8).toISOString()
   },
   {
@@ -591,7 +591,7 @@ export const initialProducts: Product[] = [
     category_id: 'c9',
     category_name: 'Monitors and Displays',
     name: 'Dell 24-Inch Full HD IPS Monitor (75Hz / AMD FreeSync / HDMI & VGA)',
-    slug: 'dell-24-inch-fhd-ips-monitor-demo',
+    slug: 'dell-24-inch-fhd-ips-monitor',
     brand: 'Dell',
     model: 'SE2422HX',
     condition: 'new',
@@ -618,7 +618,7 @@ export const initialProducts: Product[] = [
       'Resolution': '1920 x 1080 FHD',
       'Connectivity': '1x HDMI 1.4, 1x VGA'
     },
-    is_demo_product: true,
+    is_demo_product: false,
     created_at: new Date(Date.now() - 86400000 * 9).toISOString()
   },
   // Reference Image 5 Products (Authentic Electronics Data)
@@ -656,7 +656,7 @@ export const initialProducts: Product[] = [
       'Speed': '1333 MHz (PC3-10600)',
       'Voltage': '1.5V / 1.35V Dual Voltage'
     },
-    is_demo_product: true,
+    is_demo_product: false,
     created_at: new Date(Date.now() - 86400000 * 1).toISOString()
   },
   {
@@ -692,7 +692,7 @@ export const initialProducts: Product[] = [
       'Cable Length': '15 cm',
       'Compatibility': 'Windows, Mac, Linux, Smart TV'
     },
-    is_demo_product: true,
+    is_demo_product: false,
     created_at: new Date(Date.now() - 86400000 * 1).toISOString()
   },
   {
@@ -729,7 +729,7 @@ export const initialProducts: Product[] = [
       'Base': 'Non-slip Textured Rubber',
       'Print': 'Windows & Office Shortcuts'
     },
-    is_demo_product: true,
+    is_demo_product: false,
     created_at: new Date().toISOString()
   },
   {
@@ -765,7 +765,7 @@ export const initialProducts: Product[] = [
       'PoE Standard': 'IEEE 802.3af/at (Max 30W per port)',
       'Total Power Budget': '96 Watts'
     },
-    is_demo_product: true,
+    is_demo_product: false,
     created_at: new Date().toISOString()
   },
   // Reference Image 1 Hero & Audio Products
@@ -806,7 +806,7 @@ export const initialProducts: Product[] = [
       'Battery Life': 'Up to 40 Hours Playback',
       'Connectivity': 'Bluetooth 5.3 + 3.5mm AUX Cable'
     },
-    is_demo_product: true,
+    is_demo_product: false,
     created_at: new Date().toISOString()
   },
   {
@@ -842,7 +842,7 @@ export const initialProducts: Product[] = [
       'Waterproof Rating': 'IPX6 Splash & Dustproof',
       'Battery': '12 Hours Playtime'
     },
-    is_demo_product: true,
+    is_demo_product: false,
     created_at: new Date(Date.now() - 86400000 * 2).toISOString()
   },
   {
@@ -880,7 +880,7 @@ export const initialProducts: Product[] = [
       'Storage': '512 GB SATA III High Speed SSD',
       'Cabinet': 'Premium Mesh Airflow Case with Front USB 3.0 & Audio'
     },
-    is_demo_product: true,
+    is_demo_product: false,
     created_at: new Date().toISOString()
   },
   {
@@ -916,7 +916,7 @@ export const initialProducts: Product[] = [
       'Output': '22.5W Max (2x USB-A QC 3.0, 1x Type-C PD)',
       'Safety': 'Multi-layer short-circuit and overheat protection'
     },
-    is_demo_product: true,
+    is_demo_product: false,
     created_at: new Date(Date.now() - 86400000 * 3).toISOString()
   },
   {
@@ -952,7 +952,7 @@ export const initialProducts: Product[] = [
       'Print Speed': 'Up to 20 ppm (A4)',
       'Connectivity': 'Hi-Speed USB 2.0, Fast Ethernet, Wi-Fi 802.11b/g/n'
     },
-    is_demo_product: true,
+    is_demo_product: false,
     created_at: new Date().toISOString()
   },
   {
@@ -987,7 +987,7 @@ export const initialProducts: Product[] = [
       'Condition Grade': 'Grade A Tested & Benchmarked',
       'Target Profit Margin': '₹20,000 - ₹25,000 Retail Resale Profit'
     },
-    is_demo_product: true,
+    is_demo_product: false,
     created_at: new Date(Date.now() - 86400000 * 1).toISOString()
   },
   {
@@ -1020,116 +1020,9 @@ export const initialProducts: Product[] = [
       'Pack Quantity': '10 Units Sealed in Master Box',
       'Warranty': '3 Years National Kingston Support'
     },
-    is_demo_product: true,
+    is_demo_product: false,
     created_at: new Date(Date.now() - 86400000 * 1).toISOString()
   }
 ];
 
-export const initialOrders: Order[] = [
-  {
-    id: 'o_dlr_1',
-    order_number: 'B2B-1001',
-    order_type: 'dealer',
-    dealer_id: 'dlr_1001',
-    dealer_code: 'DLR-1001',
-    dealer_business_name: 'Jaipur IT Solutions',
-    gst_number: '08AAAAA0000A1Z5',
-    customer_name: 'Sunil Sharma (Jaipur IT)',
-    customer_phone: '9829012345',
-    customer_whatsapp: '9829012345',
-    customer_email: 'sunil@jaipurit.com',
-    delivery_type: 'store_pickup',
-    delivery_address: 'Plot 42, MI Road',
-    city: 'Jaipur',
-    state: 'Rajasthan',
-    pincode: '302001',
-    order_notes: 'Urgent dealer lot pickup. Prepared for in-store handover.',
-    subtotal: 37000,
-    delivery_charge: 0,
-    total_amount: 37000,
-    payment_method: 'pay_on_delivery',
-    payment_status: 'collected',
-    order_status: 'delivered',
-    created_at: new Date(Date.now() - 86400000 * 2).toISOString(),
-    items: [
-      {
-        product_id: 'p1',
-        product_name: 'Lenovo ThinkPad T480 (Core i5 8th Gen / 16GB / 512GB NVMe SSD)',
-        product_brand: 'Lenovo',
-        product_model: 'ThinkPad T480',
-        product_image: 'https://images.unsplash.com/photo-1588872657578-7efd1f1555ed?w=800&auto=format&fit=crop&q=80',
-        condition: 'second_hand',
-        unit_price: 18500,
-        quantity: 2,
-        total_price: 37000
-      }
-    ],
-    status_history: [
-      {
-        order_id: 'o_dlr_1',
-        status: 'pending',
-        note: 'Dealer wholesale order placed',
-        created_at: new Date(Date.now() - 86400000 * 2).toISOString(),
-        updated_by: 'dealer_portal'
-      },
-      {
-        order_id: 'o_dlr_1',
-        status: 'delivered',
-        note: 'Picked up from shop & payment collected in cash/UPI',
-        created_at: new Date(Date.now() - 86400000 * 1).toISOString(),
-        updated_by: 'Vishal Soni'
-      }
-    ]
-  },
-  {
-    id: 'o1',
-    order_number: 'DW-DEMO-1001',
-    order_type: 'retail',
-    customer_name: 'Rahul Sharma',
-    customer_phone: '9876543210',
-    customer_whatsapp: '9876543210',
-    customer_email: 'rahul.demo@example.com',
-    delivery_type: 'home_delivery',
-    delivery_address: 'Flat 402, Sai Residency, Near Civil Hospital',
-    city: 'Jaipur',
-    state: 'Rajasthan',
-    pincode: '302001',
-    order_notes: 'Please call before delivery. Testing purpose sample order.',
-    subtotal: 21999,
-    delivery_charge: 0,
-    total_amount: 21999,
-    payment_method: 'cod',
-    payment_status: 'pending',
-    order_status: 'confirmed',
-    created_at: new Date(Date.now() - 86400000 * 1).toISOString(),
-    items: [
-      {
-        product_id: 'p1',
-        product_name: 'Lenovo ThinkPad T480 (Core i5 8th Gen / 16GB / 512GB NVMe SSD)',
-        product_brand: 'Lenovo',
-        product_model: 'ThinkPad T480',
-        product_image: 'https://images.unsplash.com/photo-1588872657578-7efd1f1555ed?w=800&auto=format&fit=crop&q=80',
-        condition: 'second_hand',
-        unit_price: 21999,
-        quantity: 1,
-        total_price: 21999
-      }
-    ],
-    status_history: [
-      {
-        order_id: 'o1',
-        status: 'pending',
-        note: 'Order submitted by customer',
-        created_at: new Date(Date.now() - 86400000 * 1).toISOString(),
-        updated_by: 'system'
-      },
-      {
-        order_id: 'o1',
-        status: 'confirmed',
-        note: 'Confirmed with customer by Vishal Soni',
-        created_at: new Date(Date.now() - 43200000).toISOString(),
-        updated_by: 'Vishal Soni'
-      }
-    ]
-  }
-];
+export const initialOrders: Order[] = [];
