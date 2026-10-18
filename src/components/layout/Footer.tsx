@@ -251,9 +251,6 @@ export const Footer: React.FC = () => {
             <Link to="/policies#privacy" className="hover:text-amber-400 transition-colors">
               Privacy
             </Link>
-            <Link to="/admin/login" className="text-slate-500 hover:text-slate-300 transition-colors">
-              Admin Login
-            </Link>
           </div>
         </div>
       </div>

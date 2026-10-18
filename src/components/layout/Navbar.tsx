@@ -275,9 +275,43 @@ export const Navbar: React.FC = () => {
     setBrandDropdownOpen(false);
   };
 
+  // Dynamically calculate how many categories can comfortably fit in the ribbon without cutting off at any zoom level
+  const [visibleCatCount, setVisibleCatCount] = useState<number>(() => {
+    if (typeof window !== 'undefined') {
+      const w = window.innerWidth;
+      if (w >= 1650) return 8;
+      if (w >= 1440) return 6;
+      if (w >= 1200) return 5;
+      if (w >= 1024) return 4;
+      return 3;
+    }
+    return 6;
+  });
+
+  useEffect(() => {
+    const handleResize = () => {
+      const w = window.innerWidth;
+      if (w >= 1650) {
+        setVisibleCatCount(8);
+      } else if (w >= 1440) {
+        setVisibleCatCount(6);
+      } else if (w >= 1200) {
+        setVisibleCatCount(5);
+      } else if (w >= 1024) {
+        setVisibleCatCount(4);
+      } else {
+        setVisibleCatCount(3);
+      }
+    };
+
+    window.addEventListener('resize', handleResize);
+    handleResize();
+    return () => window.removeEventListener('resize', handleResize);
+  }, []);
+
   const activeCategoryData = navCategories.find(c => c.id === activeDropdown);
-  const primaryRibbonCats = navCategories.slice(0, 8);
-  const moreRibbonCats = navCategories.slice(8);
+  const primaryRibbonCats = navCategories.slice(0, visibleCatCount);
+  const moreRibbonCats = navCategories.slice(visibleCatCount);
 
   useEffect(() => {
     return () => {
@@ -673,14 +707,14 @@ export const Navbar: React.FC = () => {
           onMouseLeave={handleNavMouseLeave}
         >
           {/* Desktop ribbon buttons - Fits cleanly without horizontal scroll */}
-          <div className="container mx-auto px-4 flex items-center justify-between gap-1 overflow-visible py-1">
+          <div className="w-full max-w-[1850px] mx-auto px-2 lg:px-4 flex items-center justify-between gap-1 overflow-visible py-1">
             {/* Left corner: All Categories & Brand */}
             <div className="flex items-center gap-1.5 shrink-0">
               {/* 1. FAR LEFT: [☰ ALL CATEGORIES ▾] */}
               <button
                 type="button"
                 onClick={() => setCategoryDrawerOpen(true)}
-                className="px-3 py-1.5 rounded uppercase tracking-wider flex items-center gap-1.5 shrink-0 cursor-pointer transition-all bg-amber-400 hover:bg-amber-300 text-slate-950 font-black shadow-xs text-[11px]"
+                className="px-2.5 xl:px-3 py-1.5 rounded uppercase tracking-wider flex items-center gap-1.5 shrink-0 cursor-pointer transition-all bg-amber-400 hover:bg-amber-300 text-slate-950 font-black shadow-xs text-[10.5px] xl:text-[11px]"
                 title="Browse Full Category Catalogue"
               >
                 <Menu className="w-3.5 h-3.5 stroke-[2.5]" />
@@ -697,7 +731,7 @@ export const Navbar: React.FC = () => {
                   setActiveDropdown(null);
                   setMoreDropdownOpen(false);
                 }}
-                className={`px-3 py-1.5 rounded uppercase tracking-wider flex items-center gap-1.5 shrink-0 cursor-pointer transition-all text-[11px] font-black ${
+                className={`px-2.5 xl:px-3 py-1.5 rounded uppercase tracking-wider flex items-center gap-1.5 shrink-0 cursor-pointer transition-all text-[10.5px] xl:text-[11px] font-black ${
                   brandDropdownOpen
                     ? 'bg-white text-[#5a0a16] shadow-md'
                     : 'bg-white/10 hover:bg-white hover:text-[#5a0a16] text-white'
@@ -727,7 +761,7 @@ export const Navbar: React.FC = () => {
                           handleCategoryMouseEnter(cat.id);
                         }
                       }}
-                      className={`px-2 py-1.5 rounded transition-all whitespace-nowrap cursor-pointer flex items-center gap-0.5 text-[11px] font-bold ${
+                      className={`px-1.5 xl:px-2 py-1.5 rounded transition-all whitespace-nowrap cursor-pointer flex items-center gap-0.5 text-[10.5px] xl:text-[11px] font-bold ${
                         isOpen
                           ? 'bg-white text-[#5a0a16] font-black shadow-md'
                           : 'text-white hover:bg-white/15 hover:text-amber-200'
@@ -751,7 +785,7 @@ export const Navbar: React.FC = () => {
                       setActiveDropdown(null);
                       setBrandDropdownOpen(false);
                     }}
-                    className={`px-2.5 py-1.5 rounded transition-all whitespace-nowrap cursor-pointer flex items-center gap-1 text-[11px] font-black ${
+                    className={`px-2 xl:px-2.5 py-1.5 rounded transition-all whitespace-nowrap cursor-pointer flex items-center gap-1 text-[10.5px] xl:text-[11px] font-black ${
                       moreDropdownOpen
                         ? 'bg-amber-400 text-slate-950 shadow-md'
                         : 'text-amber-300 hover:bg-white/15 hover:text-white'
@@ -759,6 +793,9 @@ export const Navbar: React.FC = () => {
                     title="More Electronics Categories"
                   >
                     <span>More</span>
+                    <span className="text-[9px] bg-amber-500/40 text-amber-100 px-1 py-0.2 rounded-full font-bold">
+                      +{moreRibbonCats.length}
+                    </span>
                     <ChevronDown className={`w-2.5 h-2.5 transition-transform ${moreDropdownOpen ? 'rotate-180' : ''}`} />
                   </button>
                 </div>
@@ -780,7 +817,7 @@ export const Navbar: React.FC = () => {
               }}
               onMouseLeave={handleNavMouseLeave}
             >
-              <div className="container mx-auto px-6 py-5">
+              <div className="w-full max-w-[1850px] mx-auto px-4 lg:px-6 py-5">
                 <div className="flex items-center justify-between pb-2.5 mb-3.5 border-b border-slate-100">
                   <div className="flex items-center gap-2">
                     <Store className="w-5 h-5 text-[#7b0c1e]" />
@@ -829,7 +866,7 @@ export const Navbar: React.FC = () => {
               }}
               onMouseLeave={handleNavMouseLeave}
             >
-              <div className="container mx-auto px-6 py-5">
+              <div className="w-full max-w-[1850px] mx-auto px-4 lg:px-6 py-5">
                 <div className="flex items-center justify-between pb-2.5 mb-3.5 border-b border-slate-100">
                   <div className="flex items-center gap-2.5">
                     <span className="w-2.5 h-2.5 rounded-full bg-amber-500 shadow-xs" />
@@ -907,7 +944,7 @@ export const Navbar: React.FC = () => {
               }}
               onMouseLeave={handleNavMouseLeave}
             >
-              <div className="container mx-auto px-6 py-5">
+              <div className="w-full max-w-[1850px] mx-auto px-4 lg:px-6 py-5">
                 <div className="flex items-center justify-between pb-2.5 mb-3.5 border-b border-slate-100">
                   <div className="flex items-center gap-2">
                     <Store className="w-5 h-5 text-[#7b0c1e]" />
@@ -1027,11 +1064,11 @@ export const Navbar: React.FC = () => {
               Track Order Status
             </Link>
             <Link
-              to="/admin/login"
+              to="/policies#warranty"
               onClick={() => setMobileMenuOpen(false)}
-              className="text-slate-400 hover:text-slate-600"
+              className="text-slate-500 hover:text-slate-700"
             >
-              Shop Owner Login
+              Store Policies & Warranty
             </Link>
           </div>
         </div>
