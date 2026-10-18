@@ -275,10 +275,46 @@ export const Navbar: React.FC = () => {
     setBrandDropdownOpen(false);
   };
 
+  // Dynamically calculate how many categories can comfortably fit in the ribbon without cutting off at any zoom level
+  const [visibleCatCount, setVisibleCatCount] = useState<number>(() => {
+    if (typeof window !== 'undefined') {
+      const w = window.innerWidth;
+      if (w >= 1550) return 10;
+      if (w >= 1400) return 8;
+      if (w >= 1250) return 7;
+      if (w >= 1100) return 6;
+      if (w >= 950) return 5;
+      return 4;
+    }
+    return 8;
+  });
+
+  useEffect(() => {
+    const handleResize = () => {
+      const w = window.innerWidth;
+      if (w >= 1550) {
+        setVisibleCatCount(10);
+      } else if (w >= 1400) {
+        setVisibleCatCount(8);
+      } else if (w >= 1250) {
+        setVisibleCatCount(7);
+      } else if (w >= 1100) {
+        setVisibleCatCount(6);
+      } else if (w >= 950) {
+        setVisibleCatCount(5);
+      } else {
+        setVisibleCatCount(4);
+      }
+    };
+
+    window.addEventListener('resize', handleResize);
+    handleResize();
+    return () => window.removeEventListener('resize', handleResize);
+  }, []);
+
   const activeCategoryData = navCategories.find(c => c.id === activeDropdown);
-  // Show all store categories directly in the ribbon to fill the entire bar without empty gaps
-  const primaryRibbonCats = navCategories.slice(0, 10);
-  const moreRibbonCats = navCategories.slice(10);
+  const primaryRibbonCats = navCategories.slice(0, visibleCatCount);
+  const moreRibbonCats = navCategories.slice(visibleCatCount);
 
   useEffect(() => {
     return () => {
@@ -673,8 +709,9 @@ export const Navbar: React.FC = () => {
           className="bg-[#5a0a16] text-white text-[11px] font-bold relative shadow-md z-40 select-none"
           onMouseLeave={handleNavMouseLeave}
         >
-          {/* Desktop ribbon buttons - Continuous flow, filling the ribbon without middle empty gap */}
-          <div className="w-full max-w-[1920px] mx-auto px-2 lg:px-4 flex items-center justify-start gap-1 lg:gap-1.5 overflow-x-auto scrollbar-none py-1">
+          {/* Desktop ribbon buttons - Fits cleanly without horizontal scroll */}
+          {/* Desktop ribbon buttons - Packed from the left with NO empty gap */}
+          <div className="w-full max-w-[1850px] mx-auto px-2 lg:px-4 flex items-center justify-start gap-1 overflow-visible py-1">
             {/* 1. FAR LEFT: [☰ ALL CATEGORIES ▾] */}
             <button
               type="button"
@@ -708,7 +745,10 @@ export const Navbar: React.FC = () => {
               <ChevronDown className={`w-3 h-3 transition-transform ${brandDropdownOpen ? 'rotate-180' : ''}`} />
             </button>
 
-            {/* 3. All Category Buttons right after Shop By Brand - Fills the entire ribbon continuously */}
+            {/* Subtle Divider */}
+            <div className="h-4 w-px bg-white/20 mx-0.5 shrink-0" />
+
+            {/* Primary Categories (Starting immediately from the left, no middle gap) */}
             {primaryRibbonCats.map((cat) => {
               const isOpen = activeDropdown === cat.id;
               return (
@@ -737,7 +777,7 @@ export const Navbar: React.FC = () => {
               );
             })}
 
-            {/* More Categories Dropdown Button (Only if extra categories exist beyond primary) */}
+            {/* More Categories Dropdown Button (Only if extra categories remain) */}
             {moreRibbonCats.length > 0 && (
               <div className="shrink-0">
                 <button
