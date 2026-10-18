@@ -13,7 +13,6 @@ import {
   ArrowRight,
   ArrowLeft
 } from 'lucide-react';
-import { Logo } from '../../components/common/Logo';
 
 export const CustomerAuthPage: React.FC = () => {
   const navigate = useNavigate();
@@ -162,12 +161,11 @@ export const CustomerAuthPage: React.FC = () => {
     <div className="min-h-[80vh] flex items-center justify-center px-4 py-12 bg-surface-muted/40">
       <div className="w-full max-w-md bg-white rounded-3xl border border-slate-200 p-6 sm:p-8 shadow-card space-y-6 text-left">
         {/* Header */}
-        <div className="text-center space-y-2">
-          <Logo className="justify-center" />
-          <h1 className="text-xl font-extrabold text-primary pt-1">
+        <div className="text-center space-y-1.5">
+          <h1 className="text-xl sm:text-2xl font-black text-slate-900">
             {authMode === 'login' ? 'Customer Sign In' : 'Create Customer Account'}
           </h1>
-          <p className="text-xs text-charcoal-muted">
+          <p className="text-xs text-slate-500">
             {authMode === 'login' 
               ? 'Sign in to view your orders, saved addresses, and express checkout'
               : 'Join Digital World for fast order tracking and warranty service'}

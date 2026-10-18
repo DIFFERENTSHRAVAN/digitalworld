@@ -1,7 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import { adminLogin, getCurrentAdmin, requestAdminPasswordResetOtp, verifyOtpAndChangeAdminPassword } from '../../services/api';
-import { Logo } from '../../components/common/Logo';
 import { Lock, Mail, ShieldAlert, ArrowLeft, CheckCircle2, ShieldCheck, KeyRound, Phone, User } from 'lucide-react';
 
 export const AdminLoginPage: React.FC = () => {
@@ -103,12 +102,11 @@ export const AdminLoginPage: React.FC = () => {
   return (
     <div className="min-h-[80vh] flex items-center justify-center px-4 py-12">
       <div className="w-full max-w-md bg-white rounded-3xl border border-slate-200 p-8 shadow-card space-y-6 text-left">
-        <div className="text-center space-y-2">
-          <Logo className="justify-center" />
-          <h1 className="text-xl font-extrabold text-primary pt-2">
+        <div className="text-center space-y-1.5">
+          <h1 className="text-xl sm:text-2xl font-black text-slate-900">
             {isForgotPassword ? 'Reset Admin Password' : 'Shop Owner Portal'}
           </h1>
-          <p className="text-xs text-charcoal-muted">
+          <p className="text-xs text-slate-500">
             {isForgotPassword 
               ? 'Receive a 6-digit verification OTP on your registered email to reset password'
               : 'Authorized administrative access for Vishal Soni'}

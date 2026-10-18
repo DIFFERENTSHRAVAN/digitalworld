@@ -18,7 +18,6 @@ import {
   ShieldCheck,
   FileText
 } from 'lucide-react';
-import { Logo } from '../../components/common/Logo';
 import { STORE_CONFIG } from '../../config/storeConfig';
 import { DealerUser } from '../../types';
 
@@ -190,17 +189,9 @@ export const DealerRegisterPage: React.FC = () => {
   return (
     <div className="min-h-screen bg-gradient-to-br from-slate-900 via-primary-dark to-slate-900 py-12 px-4 sm:px-6 lg:px-8 text-white relative">
       <div className="max-w-2xl mx-auto relative z-10">
-        {/* Brand Header */}
+        {/* Header */}
         <div className="text-center mb-8">
-          <Link to="/" className="inline-block hover:opacity-90 transition-opacity">
-            <div className="bg-white/10 backdrop-blur-md px-6 py-2.5 rounded-2xl border border-white/20 inline-flex items-center gap-3 shadow-xl">
-              <Logo />
-              <span className="text-xs font-bold uppercase tracking-widest bg-amber-400 text-slate-950 px-2 py-0.5 rounded">
-                B2B Registration
-              </span>
-            </div>
-          </Link>
-          <h2 className="mt-6 text-2xl sm:text-3xl font-extrabold text-white">
+          <h2 className="text-2xl sm:text-3xl font-extrabold text-white">
             Apply for B2B Dealer Wholesale Account
           </h2>
           <p className="mt-2 text-xs sm:text-sm text-slate-300">

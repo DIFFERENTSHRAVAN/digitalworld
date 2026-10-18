@@ -17,7 +17,6 @@ import {
   Eye,
   EyeOff
 } from 'lucide-react';
-import { Logo } from '../../components/common/Logo';
 import { STORE_CONFIG } from '../../config/storeConfig';
 
 export const DealerLoginPage: React.FC = () => {
@@ -68,17 +67,9 @@ export const DealerLoginPage: React.FC = () => {
     <div className="min-h-screen bg-gradient-to-br from-slate-900 via-primary-dark to-slate-900 flex flex-col justify-center py-12 sm:px-6 lg:px-8 text-white relative">
       <div className="absolute inset-0 bg-[radial-gradient(#2563eb_1px,transparent_1px)] [background-size:24px_24px] opacity-20 pointer-events-none" />
 
-      {/* Top Brand Bar */}
+      {/* Top Header */}
       <div className="sm:mx-auto sm:w-full sm:max-w-md relative z-10 text-center">
-        <Link to="/" className="inline-block hover:opacity-90 transition-opacity">
-          <div className="bg-white/10 backdrop-blur-md px-6 py-2.5 rounded-2xl border border-white/20 inline-flex items-center gap-3 shadow-xl">
-            <Logo />
-            <span className="text-xs font-bold uppercase tracking-widest bg-amber-400 text-slate-950 px-2 py-0.5 rounded">
-              B2B Portal
-            </span>
-          </div>
-        </Link>
-        <h2 className="mt-6 text-2xl sm:text-3xl font-extrabold tracking-tight text-white">
+        <h2 className="text-2xl sm:text-3xl font-extrabold tracking-tight text-white">
           Authorized Dealer Portal
         </h2>
         <p className="mt-2 text-xs sm:text-sm text-slate-300">

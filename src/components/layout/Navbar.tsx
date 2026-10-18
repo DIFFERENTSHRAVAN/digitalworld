@@ -341,7 +341,7 @@ export const Navbar: React.FC = () => {
               <img
                 src="/logo.png"
                 alt="Digital World"
-                className="w-8 h-8 rounded-full object-contain shrink-0 shadow-xs border border-cyan-400/50 bg-slate-950 p-0.5"
+                className="w-8 h-8 rounded-full object-cover shrink-0 shadow-xs border border-amber-400/60"
               />
               <div className="leading-none">
                 <span className="font-black text-sm tracking-wide text-white block">
@@ -1056,7 +1056,7 @@ export const Navbar: React.FC = () => {
                 <img
                   src="/logo.png"
                   alt="Digital World"
-                  className="w-8 h-8 rounded-full object-contain shrink-0 shadow-xs border border-cyan-400/50 bg-slate-950 p-0.5"
+                  className="w-8 h-8 rounded-full object-cover shrink-0 shadow-xs border border-amber-400/60"
                 />
                 <div>
                   <span className="font-black text-sm tracking-wide block leading-none">
