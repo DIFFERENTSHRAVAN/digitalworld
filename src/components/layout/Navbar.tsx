@@ -275,43 +275,10 @@ export const Navbar: React.FC = () => {
     setBrandDropdownOpen(false);
   };
 
-  // Dynamically calculate how many categories can comfortably fit in the ribbon without cutting off at any zoom level
-  const [visibleCatCount, setVisibleCatCount] = useState<number>(() => {
-    if (typeof window !== 'undefined') {
-      const w = window.innerWidth;
-      if (w >= 1650) return 8;
-      if (w >= 1440) return 6;
-      if (w >= 1200) return 5;
-      if (w >= 1024) return 4;
-      return 3;
-    }
-    return 6;
-  });
-
-  useEffect(() => {
-    const handleResize = () => {
-      const w = window.innerWidth;
-      if (w >= 1650) {
-        setVisibleCatCount(8);
-      } else if (w >= 1440) {
-        setVisibleCatCount(6);
-      } else if (w >= 1200) {
-        setVisibleCatCount(5);
-      } else if (w >= 1024) {
-        setVisibleCatCount(4);
-      } else {
-        setVisibleCatCount(3);
-      }
-    };
-
-    window.addEventListener('resize', handleResize);
-    handleResize();
-    return () => window.removeEventListener('resize', handleResize);
-  }, []);
-
   const activeCategoryData = navCategories.find(c => c.id === activeDropdown);
-  const primaryRibbonCats = navCategories.slice(0, visibleCatCount);
-  const moreRibbonCats = navCategories.slice(visibleCatCount);
+  // Show all store categories directly in the ribbon to fill the entire bar without empty gaps
+  const primaryRibbonCats = navCategories.slice(0, 10);
+  const moreRibbonCats = navCategories.slice(10);
 
   useEffect(() => {
     return () => {
@@ -706,101 +673,96 @@ export const Navbar: React.FC = () => {
           className="bg-[#5a0a16] text-white text-[11px] font-bold relative shadow-md z-40 select-none"
           onMouseLeave={handleNavMouseLeave}
         >
-          {/* Desktop ribbon buttons - Fits cleanly without horizontal scroll */}
-          <div className="w-full max-w-[1850px] mx-auto px-2 lg:px-4 flex items-center justify-between gap-1 overflow-visible py-1">
-            {/* Left corner: All Categories & Brand */}
-            <div className="flex items-center gap-1.5 shrink-0">
-              {/* 1. FAR LEFT: [☰ ALL CATEGORIES ▾] */}
-              <button
-                type="button"
-                onClick={() => setCategoryDrawerOpen(true)}
-                className="px-2.5 xl:px-3 py-1.5 rounded uppercase tracking-wider flex items-center gap-1.5 shrink-0 cursor-pointer transition-all bg-amber-400 hover:bg-amber-300 text-slate-950 font-black shadow-xs text-[10.5px] xl:text-[11px]"
-                title="Browse Full Category Catalogue"
-              >
-                <Menu className="w-3.5 h-3.5 stroke-[2.5]" />
-                <span>All Categories</span>
-                <ChevronDown className="w-2.5 h-2.5" />
-              </button>
+          {/* Desktop ribbon buttons - Continuous flow, filling the ribbon without middle empty gap */}
+          <div className="w-full max-w-[1920px] mx-auto px-2 lg:px-4 flex items-center justify-start gap-1 lg:gap-1.5 overflow-x-auto scrollbar-none py-1">
+            {/* 1. FAR LEFT: [☰ ALL CATEGORIES ▾] */}
+            <button
+              type="button"
+              onClick={() => setCategoryDrawerOpen(true)}
+              className="px-2.5 xl:px-3 py-1.5 rounded uppercase tracking-wider flex items-center gap-1.5 shrink-0 cursor-pointer transition-all bg-amber-400 hover:bg-amber-300 text-slate-950 font-black shadow-xs text-[10.5px] xl:text-[11px]"
+              title="Browse Full Category Catalogue"
+            >
+              <Menu className="w-3.5 h-3.5 stroke-[2.5]" />
+              <span>All Categories</span>
+              <ChevronDown className="w-2.5 h-2.5" />
+            </button>
 
-              {/* 2. Shop By Brand Button */}
-              <button
-                type="button"
-                onMouseEnter={handleBrandMouseEnter}
-                onClick={() => {
-                  setBrandDropdownOpen(!brandDropdownOpen);
-                  setActiveDropdown(null);
-                  setMoreDropdownOpen(false);
-                }}
-                className={`px-2.5 xl:px-3 py-1.5 rounded uppercase tracking-wider flex items-center gap-1.5 shrink-0 cursor-pointer transition-all text-[10.5px] xl:text-[11px] font-black ${
-                  brandDropdownOpen
-                    ? 'bg-white text-[#5a0a16] shadow-md'
-                    : 'bg-white/10 hover:bg-white hover:text-[#5a0a16] text-white'
-                }`}
-                title="Browse by OEM Brand"
-              >
-                <Store className="w-3.5 h-3.5" />
-                <span>Shop By Brand</span>
-                <ChevronDown className={`w-3 h-3 transition-transform ${brandDropdownOpen ? 'rotate-180' : ''}`} />
-              </button>
-            </div>
+            {/* 2. Shop By Brand Button */}
+            <button
+              type="button"
+              onMouseEnter={handleBrandMouseEnter}
+              onClick={() => {
+                setBrandDropdownOpen(!brandDropdownOpen);
+                setActiveDropdown(null);
+                setMoreDropdownOpen(false);
+              }}
+              className={`px-2.5 xl:px-3 py-1.5 rounded uppercase tracking-wider flex items-center gap-1.5 shrink-0 cursor-pointer transition-all text-[10.5px] xl:text-[11px] font-black ${
+                brandDropdownOpen
+                  ? 'bg-white text-[#5a0a16] shadow-md'
+                  : 'bg-white/10 hover:bg-white hover:text-[#5a0a16] text-white'
+              }`}
+              title="Browse by OEM Brand"
+            >
+              <Store className="w-3.5 h-3.5" />
+              <span>Shop By Brand</span>
+              <ChevronDown className={`w-3 h-3 transition-transform ${brandDropdownOpen ? 'rotate-180' : ''}`} />
+            </button>
 
-            {/* Primary Categories + More dropdown */}
-            <div className="flex items-center gap-0.5 shrink-0">
-              {primaryRibbonCats.map((cat) => {
-                const isOpen = activeDropdown === cat.id;
-                return (
-                  <div key={cat.id} className="shrink-0">
-                    <button
-                      type="button"
-                      onMouseEnter={() => handleCategoryMouseEnter(cat.id)}
-                      onClick={() => {
-                        if (activeDropdown === cat.id) {
-                          navigate(`/category/${cat.slug}`);
-                          setActiveDropdown(null);
-                        } else {
-                          handleCategoryMouseEnter(cat.id);
-                        }
-                      }}
-                      className={`px-1.5 xl:px-2 py-1.5 rounded transition-all whitespace-nowrap cursor-pointer flex items-center gap-0.5 text-[10.5px] xl:text-[11px] font-bold ${
-                        isOpen
-                          ? 'bg-white text-[#5a0a16] font-black shadow-md'
-                          : 'text-white hover:bg-white/15 hover:text-amber-200'
-                      }`}
-                    >
-                      <span>{cat.name}</span>
-                      <ChevronDown className={`w-2 h-2 transition-transform ${isOpen ? 'rotate-180 text-[#5a0a16]' : 'opacity-60'}`} />
-                    </button>
-                  </div>
-                );
-              })}
-
-              {/* More Categories Dropdown Button */}
-              {moreRibbonCats.length > 0 && (
-                <div className="shrink-0">
+            {/* 3. All Category Buttons right after Shop By Brand - Fills the entire ribbon continuously */}
+            {primaryRibbonCats.map((cat) => {
+              const isOpen = activeDropdown === cat.id;
+              return (
+                <div key={cat.id} className="shrink-0">
                   <button
                     type="button"
-                    onMouseEnter={handleMoreMouseEnter}
+                    onMouseEnter={() => handleCategoryMouseEnter(cat.id)}
                     onClick={() => {
-                      setMoreDropdownOpen(!moreDropdownOpen);
-                      setActiveDropdown(null);
-                      setBrandDropdownOpen(false);
+                      if (activeDropdown === cat.id) {
+                        navigate(`/category/${cat.slug}`);
+                        setActiveDropdown(null);
+                      } else {
+                        handleCategoryMouseEnter(cat.id);
+                      }
                     }}
-                    className={`px-2 xl:px-2.5 py-1.5 rounded transition-all whitespace-nowrap cursor-pointer flex items-center gap-1 text-[10.5px] xl:text-[11px] font-black ${
-                      moreDropdownOpen
-                        ? 'bg-amber-400 text-slate-950 shadow-md'
-                        : 'text-amber-300 hover:bg-white/15 hover:text-white'
+                    className={`px-1.5 xl:px-2 py-1.5 rounded transition-all whitespace-nowrap cursor-pointer flex items-center gap-0.5 text-[10.5px] xl:text-[11px] font-bold ${
+                      isOpen
+                        ? 'bg-white text-[#5a0a16] font-black shadow-md'
+                        : 'text-white hover:bg-white/15 hover:text-amber-200'
                     }`}
-                    title="More Electronics Categories"
                   >
-                    <span>More</span>
-                    <span className="text-[9px] bg-amber-500/40 text-amber-100 px-1 py-0.2 rounded-full font-bold">
-                      +{moreRibbonCats.length}
-                    </span>
-                    <ChevronDown className={`w-2.5 h-2.5 transition-transform ${moreDropdownOpen ? 'rotate-180' : ''}`} />
+                    <span>{cat.name}</span>
+                    <ChevronDown className={`w-2 h-2 transition-transform ${isOpen ? 'rotate-180 text-[#5a0a16]' : 'opacity-60'}`} />
                   </button>
                 </div>
-              )}
-            </div>
+              );
+            })}
+
+            {/* More Categories Dropdown Button (Only if extra categories exist beyond primary) */}
+            {moreRibbonCats.length > 0 && (
+              <div className="shrink-0">
+                <button
+                  type="button"
+                  onMouseEnter={handleMoreMouseEnter}
+                  onClick={() => {
+                    setMoreDropdownOpen(!moreDropdownOpen);
+                    setActiveDropdown(null);
+                    setBrandDropdownOpen(false);
+                  }}
+                  className={`px-2 xl:px-2.5 py-1.5 rounded transition-all whitespace-nowrap cursor-pointer flex items-center gap-1 text-[10.5px] xl:text-[11px] font-black ${
+                    moreDropdownOpen
+                      ? 'bg-amber-400 text-slate-950 shadow-md'
+                      : 'text-amber-300 hover:bg-white/15 hover:text-white'
+                  }`}
+                  title="More Electronics Categories"
+                >
+                  <span>More</span>
+                  <span className="text-[9px] bg-amber-500/40 text-amber-100 px-1 py-0.2 rounded-full font-bold">
+                    +{moreRibbonCats.length}
+                  </span>
+                  <ChevronDown className={`w-2.5 h-2.5 transition-transform ${moreDropdownOpen ? 'rotate-180' : ''}`} />
+                </button>
+              </div>
+            )}
           </div>
 
           {/* =========================================================================
