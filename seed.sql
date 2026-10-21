@@ -1,11 +1,9 @@
 -- ====================================================================
 -- Digital World - Seed Data Script
--- Includes default categories, store settings, and demo products.
--- Demo products are explicitly marked with `is_demo_product = true`
--- so the shop owner (Vishal Soni) can purge or replace them with 1 click.
+-- Includes default categories, store settings, and genuine products.
 -- ====================================================================
 
--- 1. Insert Default Store Settings (Fields left un-invented for owner to configure)
+-- 1. Insert Default Store Settings
 INSERT INTO public.store_settings (
     id,
     shop_name,
@@ -30,41 +28,44 @@ INSERT INTO public.store_settings (
     'default',
     'Digital World',
     'Vishal Soni',
-    '6377123270', -- Shop WhatsApp Number
-    '6377123270', -- Shop Calling Number
-    'Digital World, Main Market, Station Road, Rajasthan, India',
-    'vishal@digitalworld.in',
+    '8384957548',
+    '8384957548',
+    'Near SBI Bank, Sabji Mandi Road, Purani Abadi, Sri Ganganagar, Rajasthan - 335001, India',
+    'digitalworld0813@gmail.com',
     '10:00 AM - 08:30 PM (Monday to Saturday)',
-    NULL,
+    '/logo.png',
     99.00,
     1999.00,
     'Immediate in-store pickup available. Local doorstep delivery within 24 hours. Reliable courier shipping across India in 3-5 business days.',
     100.00,
     true,
     true,
-    false, -- Disabled until genuine payment gateway credentials are added
+    false,
     true,
     '7 Days testing and replacement window for computer accessories. 15 Days hardware replacement policy on certified refurbished laptops if technical issues arise.',
     'All certified refurbished laptops undergo a 28-point hardware & thermal stress test by Vishal Soni and include a 30-Day In-Shop Testing Warranty with receipt.'
 )
 ON CONFLICT (id) DO UPDATE SET
     shop_name = EXCLUDED.shop_name,
-    owner_name = EXCLUDED.owner_name;
+    owner_name = EXCLUDED.owner_name,
+    whatsapp_number = EXCLUDED.whatsapp_number,
+    contact_number = EXCLUDED.contact_number,
+    business_address = EXCLUDED.business_address,
+    email_address = EXCLUDED.email_address;
 
 -- 2. Insert Core Electronics Categories
 INSERT INTO public.categories (id, name, slug, description, icon, display_order, is_active) VALUES
     ('c1111111-1111-1111-1111-111111111111', 'Refurbished Laptops', 'refurbished-laptops', 'Tested and verified certified refurbished laptops with testing warranty', 'Laptop', 1, true),
-    ('c2222222-2222-2222-2222-222222222222', 'New Laptops', 'new-laptops', 'Brand new boxed laptops with manufacturer warranty', 'Sparkles', 2, true),
-    ('c3333333-3333-3333-3333-333333333333', 'Computer Accessories', 'computer-accessories', 'Cables, adapters, laptop chargers, stands and docks', 'Cpu', 3, true),
-    ('c4444444-4444-4444-4444-444444444444', 'Keyboards and Mice', 'keyboards-and-mice', 'Ergonomic wireless and gaming input peripherals', 'Keyboard', 4, true),
-    ('c5555555-5555-5555-5555-555555555555', 'Monitors and Displays', 'monitors-and-displays', 'IPS, LED and gaming computer monitors', 'Monitor', 5, true),
-    ('c6666666-6666-6666-6666-666666666666', 'Storage Devices', 'storage-devices', 'High-speed NVMe SSDs, SATA drives and flash storage', 'HardDrive', 6, true),
-    ('c7777777-7777-7777-7777-777777777777', 'Networking Devices', 'networking-devices', 'Wi-Fi routers, extenders, ethernet cables and switches', 'Wifi', 7, true),
-    ('c8888888-8888-8888-8888-888888888888', 'Mobile Accessories', 'mobile-accessories', 'Fast chargers, OTG adapters, earphones and power banks', 'Smartphone', 8, true),
-    ('c9999999-9999-9999-9999-999999999999', 'Other Electronics', 'other-electronics', 'Speakers, power strips, electronic repair components', 'Sliders', 9, true)
+    ('c3333333-3333-3333-3333-333333333333', 'Computer Accessories', 'computer-accessories', 'Cables, adapters, laptop chargers, stands and docks', 'Cpu', 2, true),
+    ('c4444444-4444-4444-4444-444444444444', 'Keyboards and Mice', 'keyboards-and-mice', 'Ergonomic wireless and gaming input peripherals', 'Keyboard', 3, true),
+    ('c5555555-5555-5555-5555-555555555555', 'Monitors and Displays', 'monitors-and-displays', 'IPS, LED and gaming computer monitors', 'Monitor', 4, true),
+    ('c6666666-6666-6666-6666-666666666666', 'Storage Devices', 'storage-devices', 'High-speed NVMe SSDs, SATA drives and flash storage', 'HardDrive', 5, true),
+    ('c7777777-7777-7777-7777-777777777777', 'Networking Devices', 'networking-devices', 'Wi-Fi routers, extenders, ethernet cables and switches', 'Wifi', 6, true),
+    ('c8888888-8888-8888-8888-888888888888', 'Mobile Accessories', 'mobile-accessories', 'Fast chargers, OTG adapters, earphones and power banks', 'Smartphone', 7, true),
+    ('c9999999-9999-9999-9999-999999999999', 'Other Electronics', 'other-electronics', 'Speakers, power strips, electronic repair components', 'Sliders', 8, true)
 ON CONFLICT (slug) DO NOTHING;
 
--- 3. Insert Demo Products (Explicitly labelled with is_demo_product = true)
+-- 3. Insert Genuine Electronics Products
 INSERT INTO public.products (
     id, category_id, name, slug, brand, model, condition, price, original_price,
     stock_quantity, is_featured, is_published, is_sold_out, is_special_offer, offer_badge_text,
@@ -72,12 +73,12 @@ INSERT INTO public.products (
     processor, ram, storage_type_capacity, screen_size, graphics, battery_health,
     physical_condition_grade, known_defects, included_accessories, is_reserved, is_demo_product
 ) VALUES
--- Product 1: ThinkPad T480 (Demo Second-hand laptop)
+-- Product 1: ThinkPad T480
 (
     'd1111111-1111-1111-1111-111111111111',
     'c1111111-1111-1111-1111-111111111111',
     'Lenovo ThinkPad T480 (Core i5 8th Gen / 16GB / 512GB SSD)',
-    'lenovo-thinkpad-t480-i5-8th-gen-demo',
+    'lenovo-thinkpad-t480-i5-8th-gen',
     'Lenovo',
     'ThinkPad T480',
     'second_hand',
@@ -109,14 +110,14 @@ INSERT INTO public.products (
     'None. Motherboard, keyboard, ports, trackpad, and thermals rigorously benchmarked.',
     'Original Lenovo 65W Type-C Fast Charger, Brand New Power Cord, Padded Laptop Sleeve',
     false,
-    true
+    false
 ),
--- Product 2: Dell Latitude 5400 (Demo Second-hand laptop)
+-- Product 2: Dell Latitude 5400
 (
     'd2222222-2222-2222-2222-222222222222',
     'c1111111-1111-1111-1111-111111111111',
     'Dell Latitude 5400 (Core i7 8th Gen / 16GB / 256GB SSD)',
-    'dell-latitude-5400-i7-8th-gen-demo',
+    'dell-latitude-5400-i7-8th-gen',
     'Dell',
     'Latitude 5400',
     'second_hand',
@@ -147,14 +148,14 @@ INSERT INTO public.products (
     'Minor hairline scratch on outer edge corner, cosmetic only.',
     'Original Dell 65W AC Adapter and Laptop Bag',
     false,
-    true
+    false
 ),
--- Product 3: HP EliteBook 840 G6 (Demo Second-hand laptop)
+-- Product 3: HP EliteBook 840 G6
 (
     'd3333333-3333-3333-3333-333333333333',
     'c1111111-1111-1111-1111-111111111111',
     'HP EliteBook 840 G6 Ultrabook (Aluminum Silver / i5 8th / 8GB / 256GB SSD)',
-    'hp-elitebook-840-g6-demo',
+    'hp-elitebook-840-g6',
     'HP',
     'EliteBook 840 G6',
     'second_hand',
@@ -184,14 +185,14 @@ INSERT INTO public.products (
     'None. Fully inspected by Digital World.',
     'Original HP Smart Blue-pin 45W Charger & Power Cord',
     false,
-    true
+    false
 ),
--- Product 4: Kingston NV2 500GB NVMe SSD (New Accessory)
+-- Product 4: Kingston NV2 500GB NVMe SSD
 (
     'd4444444-4444-4444-4444-444444444444',
     'c6666666-6666-6666-6666-666666666666',
     'Kingston NV2 500GB PCIe 4.0 NVMe M.2 Internal SSD',
-    'kingston-nv2-500gb-nvme-ssd-demo',
+    'kingston-nv2-500gb-nvme-ssd',
     'Kingston',
     'NV2 SNV2S/500G',
     'new',
@@ -211,14 +212,14 @@ INSERT INTO public.products (
         'https://images.unsplash.com/photo-1597872200969-2b65d56bd16b?w=800&auto=format&fit=crop&q=80'
     ]::TEXT[],
     '{"Interface": "PCIe 4.0 x4 NVMe", "Read Speed": "Up to 3,500 MB/s", "Write Speed": "Up to 2,100 MB/s", "Form Factor": "M.2 2280"}'::JSONB,
-    NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, false, true
+    NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, false, false
 ),
--- Product 5: Logitech MK270 Combo (New Peripherals)
+-- Product 5: Logitech MK270 Combo
 (
     'd5555555-5555-5555-5555-555555555555',
     'c4444444-4444-4444-4444-444444444444',
     'Logitech MK270 Wireless Keyboard and Mouse Combo',
-    'logitech-mk270-wireless-combo-demo',
+    'logitech-mk270-wireless-combo',
     'Logitech',
     'MK270',
     'new',
@@ -238,14 +239,14 @@ INSERT INTO public.products (
         'https://images.unsplash.com/photo-1587829741301-dc798b83add3?w=800&auto=format&fit=crop&q=80'
     ]::TEXT[],
     '{"Wireless Range": "10 meters", "Connectivity": "2.4 GHz USB Nano Receiver", "Keyboard Battery": "Up to 36 months", "Mouse Battery": "Up to 12 months"}'::JSONB,
-    NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, false, true
+    NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, false, false
 ),
--- Product 6: TP-Link Archer C6 Gigabit Router (New Networking)
+-- Product 6: TP-Link Archer C6 Gigabit Router
 (
     'd6666666-6666-6666-6666-666666666666',
     'c7777777-7777-7777-7777-777777777777',
     'TP-Link Archer C6 AC1200 Gigabit Dual-Band Wi-Fi Router',
-    'tp-link-archer-c6-ac1200-router-demo',
+    'tp-link-archer-c6-ac1200-router',
     'TP-Link',
     'Archer C6 (V3/V4)',
     'new',
@@ -265,14 +266,14 @@ INSERT INTO public.products (
         'https://images.unsplash.com/photo-1544197150-b99a580bb7a8?w=800&auto=format&fit=crop&q=80'
     ]::TEXT[],
     '{"Wi-Fi Speeds": "867 Mbps on 5 GHz + 300 Mbps on 2.4 GHz", "Ethernet Ports": "1x Gigabit WAN, 4x Gigabit LAN", "Antennas": "4 Fixed High-Gain Omnidirectional"}'::JSONB,
-    NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, false, true
+    NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, false, false
 ),
--- Product 7: Universal 65W Type-C Laptop Charger (Computer Accessories)
+-- Product 7: Universal 65W Type-C Laptop Charger
 (
     'd7777777-7777-7777-7777-777777777777',
     'c3333333-3333-3333-3333-333333333333',
     '65W GaN Fast Type-C Laptop Power Adapter with Detachable Cable',
-    'universal-65w-type-c-laptop-charger-demo',
+    'universal-65w-type-c-laptop-charger',
     'Digital World Pro',
     'DW-65W-GAN',
     'new',
@@ -292,14 +293,14 @@ INSERT INTO public.products (
         'https://images.unsplash.com/photo-1618755788416-0ef24483750d?w=800&auto=format&fit=crop&q=80'
     ]::TEXT[],
     '{"Power Output": "65W Max (20V/3.25A, 15V/3A, 9V/3A, 5V/3A)", "Protection": "Over-voltage, short-circuit, and overheating protection", "Cable": "Includes 1.8M Braided Type-C to Type-C Cable"}'::JSONB,
-    NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, false, true
+    NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, false, false
 ),
--- Product 8: Dell 24-inch FHD IPS Monitor (Monitors and Displays)
+-- Product 8: Dell 24-inch FHD IPS Monitor
 (
     'd8888888-8888-8888-8888-888888888888',
     'c5555555-5555-5555-5555-555555555555',
     'Dell 24-Inch Full HD IPS Monitor (75Hz / AMD FreeSync / HDMI & VGA)',
-    'dell-24-inch-fhd-ips-monitor-demo',
+    'dell-24-inch-fhd-ips-monitor',
     'Dell',
     'SE2422HX / S2421HN',
     'new',
@@ -319,6 +320,6 @@ INSERT INTO public.products (
         'https://images.unsplash.com/photo-1527443224154-c4a3942d3acf?w=800&auto=format&fit=crop&q=80'
     ]::TEXT[],
     '{"Display Size": "23.8 Inches", "Panel": "IPS (In-Plane Switching)", "Refresh Rate": "75 Hz", "Resolution": "1920 x 1080 FHD", "Connectivity": "2x HDMI 1.4, 1x Audio-out"}'::JSONB,
-    NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, false, true
+    NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, false, false
 )
 ON CONFLICT (slug) DO NOTHING;
