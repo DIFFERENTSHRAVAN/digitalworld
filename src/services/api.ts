@@ -172,63 +172,9 @@ const getLocalProducts = (): Product[] => {
   }
   try {
     const prods: Product[] = JSON.parse(data);
-    let updated = false;
-
-    // Auto-sync initialProducts fields (images, PIDs, item codes, tags)
-    initialProducts.forEach(initP => {
-      const existing = prods.find(p => p.id === initP.id);
-      if (!existing) {
-        prods.push(initP);
-        updated = true;
-      } else {
-        if (!existing.primary_image || existing.primary_image !== initP.primary_image) {
-          existing.primary_image = initP.primary_image;
-          updated = true;
-        }
-        if (!existing.pid && initP.pid) {
-          existing.pid = initP.pid;
-          updated = true;
-        }
-        if (!existing.item_code && initP.item_code) {
-          existing.item_code = initP.item_code;
-          updated = true;
-        }
-        if (initP.is_updated_product && !existing.is_updated_product) {
-          existing.is_updated_product = true;
-          updated = true;
-        }
-        if (initP.is_new_arrival && !existing.is_new_arrival) {
-          existing.is_new_arrival = true;
-          updated = true;
-        }
-        if (existing.dealer_price === undefined && initP.dealer_price !== undefined) {
-          existing.dealer_price = initP.dealer_price;
-          existing.min_dealer_qty = initP.min_dealer_qty;
-          existing.is_dealer_only = initP.is_dealer_only;
-          updated = true;
-        }
-      }
-    });
-
-    prods.forEach(p => {
-      if (p.category_name === 'Second-Hand Laptops') {
-        p.category_name = 'Refurbished Laptops';
-        updated = true;
-      }
-      if (p.slug && p.slug.endsWith('-demo')) {
-        p.slug = p.slug.replace(/-demo$/, '');
-        updated = true;
-      }
-      if (p.is_demo_product) {
-        p.is_demo_product = false;
-        updated = true;
-      }
-    });
-    if (updated) {
-      localStorage.setItem(STORAGE_PRODUCTS, JSON.stringify(prods));
-    }
-    return prods;
-  } catch {
+    return Array.isArray(prods) ? prods : initialProducts;
+  } catch (err) {
+    console.error('Failed to parse local products from localStorage', err);
     return initialProducts;
   }
 };
@@ -965,10 +911,12 @@ export const getAllProductsAdmin = async (): Promise<Product[]> => {
 export const addProductAdmin = async (productData: Omit<Product, 'id' | 'created_at' | 'updated_at'>): Promise<Product> => {
   const now = new Date().toISOString();
   const newId = `p_${Date.now()}`;
+  const slug = productData.slug || (productData.name.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/(^-|-$)/g, '') + `-${Date.now().toString().slice(-4)}`);
 
   const newProduct: Product = {
     ...productData,
     id: newId,
+    slug,
     created_at: now,
     updated_at: now
   };
@@ -978,6 +926,7 @@ export const addProductAdmin = async (productData: Omit<Product, 'id' | 'created
       .from('products')
       .insert({
         ...productData,
+        slug,
         images: productData.images || []
       })
       .select()
@@ -988,7 +937,11 @@ export const addProductAdmin = async (productData: Omit<Product, 'id' | 'created
 
   const products = getLocalProducts();
   products.unshift(newProduct);
-  localStorage.setItem(STORAGE_PRODUCTS, JSON.stringify(products));
+  try {
+    localStorage.setItem(STORAGE_PRODUCTS, JSON.stringify(products));
+  } catch (err) {
+    console.error('Failed to save to localStorage (storage quota may be exceeded)', err);
+  }
   return newProduct;
 };
 
