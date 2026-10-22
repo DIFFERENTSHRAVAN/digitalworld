@@ -69,27 +69,60 @@ export const HomePage: React.FC = () => {
   // Hero carousel state
   const [currentSlide, setCurrentSlide] = useState(0);
 
-  // Countdown timer for Deals of the Day (Image 1)
-  const [timeLeft, setTimeLeft] = useState({
-    hours: 14,
-    minutes: 38,
-    seconds: 45
+  // Persistent real-time countdown timer for Deals of the Day (persists across page refreshes)
+  const [timeLeft, setTimeLeft] = useState<{ hours: number; minutes: number; seconds: number }>(() => {
+    const STORAGE_KEY = 'dw_festive_deal_deadline';
+    const saved = typeof window !== 'undefined' ? localStorage.getItem(STORAGE_KEY) : null;
+    const now = Date.now();
+    let deadline = saved ? parseInt(saved, 10) : 0;
+    if (!deadline || deadline <= now) {
+      deadline = now + (14 * 3600 + 38 * 60 + 45) * 1000;
+      if (typeof window !== 'undefined') {
+        localStorage.setItem(STORAGE_KEY, deadline.toString());
+      }
+    }
+    const totalSecs = Math.max(0, Math.floor((deadline - now) / 1000));
+    return {
+      hours: Math.floor(totalSecs / 3600),
+      minutes: Math.floor((totalSecs % 3600) / 60),
+      seconds: totalSecs % 60
+    };
   });
 
   useEffect(() => {
-    const timer = setInterval(() => {
-      setTimeLeft((prev) => {
-        if (prev.seconds > 0) {
-          return { ...prev, seconds: prev.seconds - 1 };
-        } else if (prev.minutes > 0) {
-          return { ...prev, minutes: 59, seconds: 59 };
-        } else if (prev.hours > 0) {
-          return { hours: prev.hours - 1, minutes: 59, seconds: 59 };
-        }
-        return { hours: 23, minutes: 59, seconds: 59 };
+    const STORAGE_KEY = 'dw_festive_deal_deadline';
+    const getDeadline = () => {
+      const saved = localStorage.getItem(STORAGE_KEY);
+      const now = Date.now();
+      let dl = saved ? parseInt(saved, 10) : 0;
+      if (!dl || dl <= now) {
+        dl = now + (14 * 3600 + 38 * 60 + 45) * 1000;
+        localStorage.setItem(STORAGE_KEY, dl.toString());
+      }
+      return dl;
+    };
+
+    let deadline = getDeadline();
+
+    const updateTimer = () => {
+      const now = Date.now();
+      let diff = Math.floor((deadline - now) / 1000);
+      if (diff <= 0) {
+        // Roll over to next 24h cycle
+        deadline = now + 24 * 3600 * 1000;
+        localStorage.setItem(STORAGE_KEY, deadline.toString());
+        diff = 24 * 3600;
+      }
+      setTimeLeft({
+        hours: Math.floor(diff / 3600),
+        minutes: Math.floor((diff % 3600) / 60),
+        seconds: diff % 60
       });
-    }, 1000);
-    return () => clearInterval(timer);
+    };
+
+    updateTimer();
+    const interval = setInterval(updateTimer, 1000);
+    return () => clearInterval(interval);
   }, []);
 
   useEffect(() => {
