@@ -155,7 +155,7 @@ export const AdminLoginPage: React.FC = () => {
                   value={email}
                   onChange={(e) => setEmail(e.target.value)}
                   required
-                  placeholder="admin@digitalworld.com or 6377123270"
+                  placeholder="8384957548 or digitalworld0813@gmail.com"
                   className="w-full pl-9 pr-3 py-2.5 rounded-xl border border-slate-300 bg-surface-muted focus:bg-white focus:border-secondary"
                 />
                 <User className="w-4 h-4 text-slate-400 absolute left-3 top-3" />
@@ -172,7 +172,7 @@ export const AdminLoginPage: React.FC = () => {
                   onClick={() => {
                     setIsForgotPassword(true);
                     setError(null);
-                    setResetEmail(email || 'admin@digitalworld.com');
+                    setResetEmail(email.includes('@') ? email : 'digitalworld0813@gmail.com');
                   }}
                   className="text-[11px] text-secondary font-semibold hover:underline"
                 >
