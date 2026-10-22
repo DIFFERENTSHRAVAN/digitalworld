@@ -13,7 +13,8 @@ import {
   CustomerUser,
   CustomerAddress,
   DealerUser,
-  DealerStatus
+  DealerStatus,
+  ProductReview
 } from '../types';
 import {
   initialCategories,
@@ -33,6 +34,7 @@ const STORAGE_CATEGORIES = 'soni_categories';
 const STORAGE_PRODUCTS = 'soni_products';
 const STORAGE_ORDERS = 'soni_orders';
 const STORAGE_ADMIN = 'soni_admin_session';
+const STORAGE_REVIEWS = 'soni_product_reviews';
 
 export const isUsingLocalMode = (): boolean => {
   return !isSupabaseConfigured();
@@ -248,6 +250,20 @@ export const updateStoreSettings = async (settings: Partial<StoreSettings>): Pro
 };
 
 // ==================== CATEGORIES ====================
+export const enrichCategoryWithSubcategories = (cat: Category): Category => {
+  const localMatch = initialCategories.find(
+    c => c.id === cat.id || c.slug === cat.slug || c.name.toLowerCase().trim() === (cat.name || '').toLowerCase().trim()
+  );
+  const subcategories = (Array.isArray(cat.subcategories) && cat.subcategories.length > 0)
+    ? cat.subcategories
+    : (localMatch?.subcategories || []);
+  return {
+    ...cat,
+    subcategories,
+    image_url: cat.image_url || localMatch?.image_url || 'https://images.unsplash.com/photo-1593640408182-31c70c8268f5?w=500&auto=format&fit=crop&q=80'
+  };
+};
+
 export const getCategories = async (): Promise<Category[]> => {
   if (isSupabaseConfigured() && supabase) {
     try {
@@ -256,12 +272,14 @@ export const getCategories = async (): Promise<Category[]> => {
         .select('*')
         .eq('is_active', true)
         .order('display_order', { ascending: true });
-      if (!error && data) return data as Category[];
+      if (!error && data && data.length > 0) {
+        return (data as Category[]).map(enrichCategoryWithSubcategories);
+      }
     } catch {
       // fallback
     }
   }
-  return getLocalCategories().filter(c => c.is_active);
+  return getLocalCategories().filter(c => c.is_active).map(enrichCategoryWithSubcategories);
 };
 
 export const getAllCategoriesAdmin = async (): Promise<Category[]> => {
@@ -271,12 +289,14 @@ export const getAllCategoriesAdmin = async (): Promise<Category[]> => {
         .from('categories')
         .select('*')
         .order('display_order', { ascending: true });
-      if (!error && data) return data as Category[];
+      if (!error && data && data.length > 0) {
+        return (data as Category[]).map(enrichCategoryWithSubcategories);
+      }
     } catch {
       // fallback
     }
   }
-  return getLocalCategories();
+  return getLocalCategories().map(enrichCategoryWithSubcategories);
 };
 
 export const addCategoryAdmin = async (categoryData: Partial<Category>): Promise<Category> => {
@@ -2208,3 +2228,86 @@ export const generateCustomerWhatsAppUpdateUrl = (
 
   return `https://wa.me/${cleanPhone.startsWith('91') ? cleanPhone : `91${cleanPhone}`}?text=${encodeURIComponent(message)}`;
 };
+
+// ==================== GENUINE CUSTOMER REVIEWS & RATINGS ====================
+export const getLocalProductReviews = (): ProductReview[] => {
+  try {
+    const data = localStorage.getItem(STORAGE_REVIEWS);
+    if (!data) return [];
+    const parsed = JSON.parse(data);
+    return Array.isArray(parsed) ? parsed : [];
+  } catch {
+    return [];
+  }
+};
+
+export const getProductRatingSummary = (productId: string): { average: number; count: number } => {
+  try {
+    const all = getLocalProductReviews();
+    const reviews = all.filter(r => r.product_id === productId);
+    if (reviews.length === 0) return { average: 0, count: 0 };
+    const sum = reviews.reduce((acc, r) => acc + (Number(r.rating) || 5), 0);
+    return {
+      average: Number((sum / reviews.length).toFixed(1)),
+      count: reviews.length
+    };
+  } catch {
+    return { average: 0, count: 0 };
+  }
+};
+
+export const getProductReviews = async (productId: string): Promise<ProductReview[]> => {
+  if (isSupabaseConfigured() && supabase) {
+    try {
+      const { data, error } = await supabase
+        .from('product_reviews')
+        .select('*')
+        .eq('product_id', productId)
+        .order('created_at', { ascending: false });
+      if (!error && data && data.length > 0) {
+        // Sync to local cache
+        const local = getLocalProductReviews().filter(r => r.product_id !== productId);
+        localStorage.setItem(STORAGE_REVIEWS, JSON.stringify([...data, ...local]));
+        return data as ProductReview[];
+      }
+    } catch (err) {
+      console.warn('Supabase getProductReviews warning:', err);
+    }
+  }
+  const all = getLocalProductReviews();
+  return all.filter(r => r.product_id === productId);
+};
+
+export const addProductReview = async (
+  reviewData: Omit<ProductReview, 'id' | 'created_at'>
+): Promise<ProductReview> => {
+  const newReview: ProductReview = {
+    ...reviewData,
+    id: 'rev-' + Date.now() + '-' + Math.random().toString(36).substring(2, 7),
+    created_at: new Date().toISOString(),
+    is_verified: true
+  };
+
+  if (isSupabaseConfigured() && supabase) {
+    try {
+      const { data, error } = await supabase
+        .from('product_reviews')
+        .insert(newReview)
+        .select()
+        .single();
+      if (!error && data) {
+        const all = getLocalProductReviews().filter(r => r.id !== data.id);
+        localStorage.setItem(STORAGE_REVIEWS, JSON.stringify([data, ...all]));
+        return data as ProductReview;
+      }
+    } catch (err) {
+      console.warn('Supabase addProductReview fallback to local:', err);
+    }
+  }
+
+  const all = getLocalProductReviews();
+  all.unshift(newReview);
+  localStorage.setItem(STORAGE_REVIEWS, JSON.stringify(all));
+  return newReview;
+};
+

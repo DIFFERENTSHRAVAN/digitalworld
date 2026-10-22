@@ -240,3 +240,15 @@ export interface AdminUser {
   phone?: string;
   role: 'owner' | 'manager' | 'staff';
 }
+
+export interface ProductReview {
+  id: string;
+  product_id: string;
+  customer_name: string;
+  customer_phone?: string;
+  rating: number; // 1 to 5
+  comment: string;
+  created_at: string;
+  is_verified?: boolean;
+}
+

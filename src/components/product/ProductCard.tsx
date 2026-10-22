@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { Link } from 'react-router-dom';
 import { Product } from '../../types';
-import { formatINR, generateProductWhatsAppUrl } from '../../services/api';
+import { formatINR, generateProductWhatsAppUrl, getProductRatingSummary } from '../../services/api';
 import { useCart } from '../../context/CartContext';
 import { useStoreSettings } from '../../context/StoreSettingsContext';
 import { useLanguage } from '../../context/LanguageContext';
@@ -45,10 +45,8 @@ export const ProductCard: React.FC<ProductCardProps> = ({ product }) => {
     ? Math.round((discountAmount / product.original_price!) * 100)
     : 0;
 
-  // Consistent rating (4.2 - 4.8) and review count (Reference Image 2: e.g. 4.3 ★ (13))
-  const charSum = product.id.split('').reduce((acc, char) => acc + char.charCodeAt(0), 0);
-  const ratingScore = Number((4.1 + (charSum % 8) * 0.1).toFixed(1));
-  const reviewCount = 8 + (charSum % 38);
+  // Genuine customer rating summary (no false / simulated ratings)
+  const ratingSummary = getProductRatingSummary(product.id);
 
   const handleDecreaseQty = (e: React.MouseEvent) => {
     e.preventDefault();
@@ -127,12 +125,19 @@ export const ProductCard: React.FC<ProductCardProps> = ({ product }) => {
           )}
         </div>
 
-        {/* Rating Pill (Bottom Left of Image - Exactly matching Reference Image 2) */}
-        <div className="absolute bottom-1.5 left-1.5 z-10 px-1.5 py-0.5 rounded-md bg-white/95 backdrop-blur-xs border border-slate-200/90 shadow-2xs flex items-center gap-1 text-[8.5px] sm:text-[9.5px] font-bold text-slate-800">
-          <span>{ratingScore}</span>
-          <Star className="w-2.5 h-2.5 fill-emerald-600 text-emerald-600" />
-          <span className="text-slate-400 font-normal">({reviewCount})</span>
-        </div>
+        {/* Genuine Rating Pill or Authenticity Badge */}
+        {ratingSummary.count > 0 ? (
+          <div className="absolute bottom-1.5 left-1.5 z-10 px-1.5 py-0.5 rounded-md bg-white/95 backdrop-blur-xs border border-slate-200/90 shadow-2xs flex items-center gap-1 text-[8.5px] sm:text-[9.5px] font-bold text-slate-800">
+            <span>{ratingSummary.average.toFixed(1)}</span>
+            <Star className="w-2.5 h-2.5 fill-amber-400 text-amber-500" />
+            <span className="text-slate-400 font-normal">({ratingSummary.count})</span>
+          </div>
+        ) : (
+          <div className="absolute bottom-1.5 left-1.5 z-10 px-1.5 py-0.5 rounded-md bg-white/95 backdrop-blur-xs border border-slate-200/90 shadow-2xs flex items-center gap-1 text-[8px] sm:text-[9px] font-semibold text-slate-700">
+            <Shield className="w-2.5 h-2.5 text-emerald-600" />
+            <span>100% Genuine</span>
+          </div>
+        )}
 
         {/* Clickable Product Image */}
         <Link

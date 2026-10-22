@@ -230,12 +230,20 @@ export const Navbar: React.FC = () => {
           c.id !== 'c2' &&
           !c.name.toLowerCase().includes('new laptop')
         );
-        setNavCategories(cleanCats.map(c => ({
-          id: c.id,
-          name: c.name,
-          slug: c.slug,
-          subcategories: (c.subcategories || []).filter(sub => !sub.toLowerCase().includes('brand new'))
-        })));
+        setNavCategories(cleanCats.map(c => {
+          const fallback = DESKTOP_NAV_CATEGORIES.find(
+            d => d.slug === c.slug || d.id === c.id || d.name.toLowerCase().trim() === c.name.toLowerCase().trim()
+          );
+          const rawSubcats = (c.subcategories && c.subcategories.length > 0)
+            ? c.subcategories
+            : (fallback?.subcategories || []);
+          return {
+            id: c.id,
+            name: c.name,
+            slug: c.slug,
+            subcategories: rawSubcats.filter(sub => !sub.toLowerCase().includes('brand new'))
+          };
+        }));
       }
     });
     getPopularBrands().then(brnds => {
@@ -751,17 +759,27 @@ export const Navbar: React.FC = () => {
             {/* Primary Categories (Starting immediately from the left, no middle gap) */}
             {primaryRibbonCats.map((cat) => {
               const isOpen = activeDropdown === cat.id;
+              const hasSubcategories = Boolean(cat.subcategories && cat.subcategories.length > 0);
               return (
                 <div key={cat.id} className="shrink-0">
                   <button
                     type="button"
-                    onMouseEnter={() => handleCategoryMouseEnter(cat.id)}
+                    onMouseEnter={() => {
+                      if (hasSubcategories) {
+                        handleCategoryMouseEnter(cat.id);
+                      }
+                    }}
                     onClick={() => {
-                      if (activeDropdown === cat.id) {
+                      if (hasSubcategories) {
+                        if (activeDropdown === cat.id) {
+                          navigate(`/category/${cat.slug}`);
+                          setActiveDropdown(null);
+                        } else {
+                          handleCategoryMouseEnter(cat.id);
+                        }
+                      } else {
                         navigate(`/category/${cat.slug}`);
                         setActiveDropdown(null);
-                      } else {
-                        handleCategoryMouseEnter(cat.id);
                       }
                     }}
                     className={`px-1.5 xl:px-2 py-1.5 rounded transition-all whitespace-nowrap cursor-pointer flex items-center gap-0.5 text-[10.5px] xl:text-[11px] font-bold ${
@@ -771,7 +789,9 @@ export const Navbar: React.FC = () => {
                     }`}
                   >
                     <span>{cat.name}</span>
-                    <ChevronDown className={`w-2 h-2 transition-transform ${isOpen ? 'rotate-180 text-[#5a0a16]' : 'opacity-60'}`} />
+                    {hasSubcategories && (
+                      <ChevronDown className={`w-2 h-2 transition-transform ${isOpen ? 'rotate-180 text-[#5a0a16]' : 'opacity-60'}`} />
+                    )}
                   </button>
                 </div>
               );
