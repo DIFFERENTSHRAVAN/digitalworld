@@ -1089,6 +1089,22 @@ export const adminLogin = async (email: string, password: string): Promise<{ suc
         role: 'owner'
       };
       localStorage.setItem(STORAGE_ADMIN, JSON.stringify(user));
+
+      // Connect authenticated Supabase Auth session in background if Supabase is available
+      if (isSupabaseConfigured() && supabase) {
+        supabase.auth.signInWithPassword({
+          email: 'digitalworld0813@gmail.com',
+          password: password === 'admin123' ? 'admin123' : password
+        }).then(({ data: authData }) => {
+          if (authData?.user) {
+            user.id = authData.user.id;
+            localStorage.setItem(STORAGE_ADMIN, JSON.stringify(user));
+          }
+        }).catch(() => {
+          // ignore background auth errors
+        });
+      }
+
       return { success: true, user };
     } else {
       return {
