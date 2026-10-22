@@ -6,8 +6,7 @@
 
 -- 1. CONFIRM ADMIN USER IN AUTH SYSTEM
 UPDATE auth.users 
-SET email_confirmed_at = COALESCE(email_confirmed_at, NOW()), 
-    confirmed_at = COALESCE(confirmed_at, NOW())
+SET email_confirmed_at = NOW()
 WHERE email = 'digitalworld0813@gmail.com';
 
 -- 2. CREATE AND LINK ADMIN PROFILE
