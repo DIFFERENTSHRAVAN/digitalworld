@@ -45,7 +45,8 @@ import {
   removeSubcategoryAdmin,
   updateSubcategoriesAdmin,
   getPopularBrands,
-  updatePopularBrandsAdmin
+  updatePopularBrandsAdmin,
+  ensureAdminSupabaseAuth
 } from '../../services/api';
 import { useStoreSettings } from '../../context/StoreSettingsContext';
 import { Logo } from '../../components/common/Logo';
@@ -336,6 +337,9 @@ export const AdminDashboardPage: React.FC = () => {
       }
       setAdminUser(user);
 
+      // Ensure Supabase Auth session is active
+      await ensureAdminSupabaseAuth();
+
       const [prods, cats, ords, dlrs, brnds] = await Promise.all([
         getAllProductsAdmin(),
         getAllCategoriesAdmin(),
@@ -404,7 +408,7 @@ export const AdminDashboardPage: React.FC = () => {
     try {
       if (editingCategory) {
         const updated = await updateCategoryAdmin(editingCategory.id, categoryForm);
-        setCategories(categories.map(c => c.id === updated.id ? updated : c));
+        setCategories(categories.map(c => (c.id === editingCategory.id || c.slug === updated.slug || c.id === updated.id) ? updated : c));
         showToast(`Category "${updated.name}" updated successfully!`);
       } else {
         const added = await addCategoryAdmin(categoryForm);
@@ -421,7 +425,7 @@ export const AdminDashboardPage: React.FC = () => {
     if (window.confirm(`Are you sure you want to delete category "${cat.name}"? Products in this category may become unassigned.`)) {
       try {
         await deleteCategoryAdmin(cat.id);
-        setCategories(categories.filter(c => c.id !== cat.id));
+        setCategories(categories.filter(c => c.id !== cat.id && c.slug !== cat.slug));
         showToast(`Category "${cat.name}" removed from catalog.`);
       } catch (err: unknown) {
         alert('Failed to delete category: ' + (err as Error).message);
@@ -520,7 +524,7 @@ export const AdminDashboardPage: React.FC = () => {
 
     try {
       const updated = await addSubcategoryAdmin(categoryId, subName);
-      setCategories(categories.map(c => c.id === updated.id ? updated : c));
+      setCategories(categories.map(c => (c.id === categoryId || c.slug === updated.slug || c.id === updated.id) ? updated : c));
       setNewSubcategoryInputs(prev => ({ ...prev, [categoryId]: '' }));
       showToast(`Sub-category "${subName}" added!`);
     } catch (err: unknown) {
@@ -531,7 +535,7 @@ export const AdminDashboardPage: React.FC = () => {
   const handleRemoveSubcategory = async (categoryId: string, subName: string) => {
     try {
       const updated = await removeSubcategoryAdmin(categoryId, subName);
-      setCategories(categories.map(c => c.id === updated.id ? updated : c));
+      setCategories(categories.map(c => (c.id === categoryId || c.slug === updated.slug || c.id === updated.id) ? updated : c));
       showToast(`Sub-category "${subName}" removed.`);
     } catch (err: unknown) {
       alert('Failed to remove sub-category: ' + (err as Error).message);

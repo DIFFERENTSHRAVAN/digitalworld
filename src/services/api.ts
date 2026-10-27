@@ -35,6 +35,45 @@ const STORAGE_PRODUCTS = 'soni_products';
 const STORAGE_ORDERS = 'soni_orders';
 const STORAGE_ADMIN = 'soni_admin_session';
 const STORAGE_REVIEWS = 'soni_product_reviews';
+const STORAGE_SUBCATEGORIES_MAP = 'dw_subcategories_map';
+
+export const getSavedSubcategoriesMap = (): Record<string, string[]> => {
+  try {
+    const data = localStorage.getItem(STORAGE_SUBCATEGORIES_MAP);
+    return data ? JSON.parse(data) : {};
+  } catch {
+    return {};
+  }
+};
+
+export const setSavedSubcategoriesForCategory = (key: string, subcategories: string[]) => {
+  if (!key) return;
+  try {
+    const map = getSavedSubcategoriesMap();
+    map[key] = subcategories;
+    localStorage.setItem(STORAGE_SUBCATEGORIES_MAP, JSON.stringify(map));
+  } catch (err) {
+    console.warn('Failed to save subcategories map', err);
+  }
+};
+
+export const ensureAdminSupabaseAuth = async (): Promise<boolean> => {
+  if (!isSupabaseConfigured() || !supabase) return false;
+  try {
+    const { data: sessionData } = await supabase.auth.getSession();
+    if (sessionData?.session?.user) {
+      return true;
+    }
+    const { data: authData, error } = await supabase.auth.signInWithPassword({
+      email: 'digitalworld0813@gmail.com',
+      password: 'admin123'
+    });
+    return !error && !!authData?.user;
+  } catch (err) {
+    console.warn('ensureAdminSupabaseAuth error:', err);
+    return false;
+  }
+};
 
 export const isUsingLocalMode = (): boolean => {
   return !isSupabaseConfigured();
@@ -251,12 +290,17 @@ export const updateStoreSettings = async (settings: Partial<StoreSettings>): Pro
 
 // ==================== CATEGORIES ====================
 export const enrichCategoryWithSubcategories = (cat: Category): Category => {
+  const subMap = getSavedSubcategoriesMap();
+  const savedSubs = (cat.id && subMap[cat.id]) || (cat.slug && subMap[cat.slug]);
+
   const localMatch = initialCategories.find(
     c => c.id === cat.id || c.slug === cat.slug || c.name.toLowerCase().trim() === (cat.name || '').toLowerCase().trim()
   );
-  const subcategories = (Array.isArray(cat.subcategories) && cat.subcategories.length > 0)
+
+  const subcategories = savedSubs || ((Array.isArray(cat.subcategories) && cat.subcategories.length > 0)
     ? cat.subcategories
-    : (localMatch?.subcategories || []);
+    : (localMatch?.subcategories || []));
+
   return {
     ...cat,
     subcategories,
@@ -273,7 +317,22 @@ export const getCategories = async (): Promise<Category[]> => {
         .eq('is_active', true)
         .order('display_order', { ascending: true });
       if (!error && data && data.length > 0) {
-        return (data as Category[]).map(enrichCategoryWithSubcategories);
+        const enriched = (data as Category[]).map(enrichCategoryWithSubcategories);
+        try {
+          const currentLocal = getLocalCategories();
+          enriched.forEach(eCat => {
+            const idx = currentLocal.findIndex(l => l.id === eCat.id || l.slug === eCat.slug);
+            if (idx !== -1) {
+              currentLocal[idx] = { ...currentLocal[idx], ...eCat, id: eCat.id };
+            } else {
+              currentLocal.push(eCat);
+            }
+          });
+          localStorage.setItem(STORAGE_CATEGORIES, JSON.stringify(currentLocal));
+        } catch {
+          // ignore storage error
+        }
+        return enriched;
       }
     } catch {
       // fallback
@@ -290,7 +349,22 @@ export const getAllCategoriesAdmin = async (): Promise<Category[]> => {
         .select('*')
         .order('display_order', { ascending: true });
       if (!error && data && data.length > 0) {
-        return (data as Category[]).map(enrichCategoryWithSubcategories);
+        const enriched = (data as Category[]).map(enrichCategoryWithSubcategories);
+        try {
+          const currentLocal = getLocalCategories();
+          enriched.forEach(eCat => {
+            const idx = currentLocal.findIndex(l => l.id === eCat.id || l.slug === eCat.slug);
+            if (idx !== -1) {
+              currentLocal[idx] = { ...currentLocal[idx], ...eCat, id: eCat.id };
+            } else {
+              currentLocal.push(eCat);
+            }
+          });
+          localStorage.setItem(STORAGE_CATEGORIES, JSON.stringify(currentLocal));
+        } catch {
+          // ignore storage error
+        }
+        return enriched;
       }
     } catch {
       // fallback
@@ -300,7 +374,18 @@ export const getAllCategoriesAdmin = async (): Promise<Category[]> => {
 };
 
 export const addCategoryAdmin = async (categoryData: Partial<Category>): Promise<Category> => {
-  const newId = 'cat-' + Date.now();
+  const generateUUID = (): string => {
+    if (typeof crypto !== 'undefined' && crypto.randomUUID) {
+      return crypto.randomUUID();
+    }
+    return 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, (c) => {
+      const r = (Math.random() * 16) | 0;
+      const v = c === 'x' ? r : (r & 0x3) | 0x8;
+      return v.toString(16);
+    });
+  };
+
+  const newId = generateUUID();
   const slug = categoryData.slug || (categoryData.name ? categoryData.name.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/(^-|-$)/g, '') : newId);
   const newCat: Category = {
     id: newId,
@@ -315,11 +400,31 @@ export const addCategoryAdmin = async (categoryData: Partial<Category>): Promise
   };
 
   if (isSupabaseConfigured() && supabase) {
+    await ensureAdminSupabaseAuth();
     try {
-      await supabase.from('categories').insert(newCat);
+      const supabasePayload = {
+        id: newId,
+        name: newCat.name,
+        slug: newCat.slug,
+        description: newCat.description || '',
+        icon: newCat.icon || 'Monitor',
+        display_order: newCat.display_order,
+        is_active: newCat.is_active
+      };
+      const { data, error } = await supabase.from('categories').insert(supabasePayload).select().single();
+      if (!error && data) {
+        newCat.id = data.id;
+      } else if (error) {
+        console.warn('Supabase add category warning:', error.message);
+      }
     } catch (err) {
       console.warn('Supabase add category failed, saving locally', err);
     }
+  }
+
+  if (newCat.subcategories && newCat.subcategories.length > 0) {
+    setSavedSubcategoriesForCategory(newCat.id, newCat.subcategories);
+    setSavedSubcategoriesForCategory(newCat.slug, newCat.subcategories);
   }
 
   const cats = getLocalCategories();
@@ -329,59 +434,163 @@ export const addCategoryAdmin = async (categoryData: Partial<Category>): Promise
 };
 
 export const updateCategoryAdmin = async (id: string, updates: Partial<Category>): Promise<Category> => {
+  if (updates.subcategories) {
+    setSavedSubcategoriesForCategory(id, updates.subcategories);
+    if (updates.slug) {
+      setSavedSubcategoriesForCategory(updates.slug, updates.subcategories);
+    }
+  }
+
   if (isSupabaseConfigured() && supabase) {
+    await ensureAdminSupabaseAuth();
     try {
-      await supabase.from('categories').update(updates).eq('id', id);
+      const supabaseUpdates: Record<string, unknown> = {};
+      if (updates.name !== undefined) supabaseUpdates.name = updates.name;
+      if (updates.slug !== undefined) supabaseUpdates.slug = updates.slug;
+      if (updates.description !== undefined) supabaseUpdates.description = updates.description;
+      if (updates.icon !== undefined) supabaseUpdates.icon = updates.icon;
+      if (updates.display_order !== undefined) supabaseUpdates.display_order = Number(updates.display_order);
+      if (updates.is_active !== undefined) supabaseUpdates.is_active = updates.is_active;
+
+      if (Object.keys(supabaseUpdates).length > 0) {
+        const { error } = await supabase.from('categories').update(supabaseUpdates).eq('id', id);
+        if (error && updates.slug) {
+          await supabase.from('categories').update(supabaseUpdates).eq('slug', updates.slug);
+        }
+      }
     } catch (err) {
-      console.warn('Supabase update category failed, saving locally', err);
+      console.warn('Supabase update category error:', err);
     }
   }
 
   const cats = getLocalCategories();
-  const idx = cats.findIndex(c => c.id === id);
+  let idx = cats.findIndex(c => c.id === id || c.slug === id || (updates.slug && c.slug === updates.slug));
   if (idx !== -1) {
     cats[idx] = { ...cats[idx], ...updates };
+    if (updates.subcategories) {
+      cats[idx].subcategories = updates.subcategories;
+      setSavedSubcategoriesForCategory(cats[idx].id, updates.subcategories);
+      setSavedSubcategoriesForCategory(cats[idx].slug, updates.subcategories);
+    }
     localStorage.setItem(STORAGE_CATEGORIES, JSON.stringify(cats));
     return cats[idx];
   }
-  throw new Error('Category not found');
+
+  const fallback = initialCategories.find(c => c.id === id || c.slug === id || (updates.slug && c.slug === updates.slug));
+  const newCat: Category = {
+    id,
+    name: updates.name || fallback?.name || 'Category',
+    slug: updates.slug || fallback?.slug || id,
+    description: updates.description || fallback?.description || '',
+    icon: updates.icon || fallback?.icon || 'Monitor',
+    image_url: updates.image_url || fallback?.image_url || 'https://images.unsplash.com/photo-1593640408182-31c70c8268f5?w=500&auto=format&fit=crop&q=80',
+    display_order: updates.display_order !== undefined ? Number(updates.display_order) : (fallback?.display_order || 99),
+    is_active: updates.is_active !== undefined ? updates.is_active : true,
+    subcategories: updates.subcategories || fallback?.subcategories || []
+  };
+  cats.push(newCat);
+  localStorage.setItem(STORAGE_CATEGORIES, JSON.stringify(cats));
+  return newCat;
 };
 
 export const deleteCategoryAdmin = async (id: string): Promise<boolean> => {
+  const cats = getLocalCategories();
+  const target = cats.find(c => c.id === id || c.slug === id);
+
   if (isSupabaseConfigured() && supabase) {
+    await ensureAdminSupabaseAuth();
     try {
-      await supabase.from('categories').delete().eq('id', id);
+      const isUUID = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(id);
+      if (isUUID) {
+        await supabase.from('categories').delete().eq('id', id);
+      }
+      if (target?.slug) {
+        await supabase.from('categories').delete().eq('slug', target.slug);
+      }
     } catch (err) {
-      console.warn('Supabase delete category failed, deleting locally', err);
+      console.warn('Supabase delete category failed:', err);
     }
   }
 
-  const cats = getLocalCategories().filter(c => c.id !== id);
-  localStorage.setItem(STORAGE_CATEGORIES, JSON.stringify(cats));
+  const updatedCats = cats.filter(c => c.id !== id && c.slug !== id && (!target || c.slug !== target.slug));
+  localStorage.setItem(STORAGE_CATEGORIES, JSON.stringify(updatedCats));
+
+  try {
+    const subMap = getSavedSubcategoriesMap();
+    delete subMap[id];
+    if (target?.slug) delete subMap[target.slug];
+    localStorage.setItem(STORAGE_SUBCATEGORIES_MAP, JSON.stringify(subMap));
+  } catch {
+    // ignore
+  }
+
   return true;
 };
 
 export const addSubcategoryAdmin = async (categoryId: string, subcategoryName: string): Promise<Category> => {
   const cats = getLocalCategories();
-  const cat = cats.find(c => c.id === categoryId);
-  if (!cat) throw new Error('Category not found');
-  const subs = cat.subcategories ? [...cat.subcategories] : [];
+  let cat = cats.find(c => c.id === categoryId || c.slug === categoryId);
+  if (!cat) {
+    const fallback = initialCategories.find(c => c.id === categoryId || c.slug === categoryId);
+    if (fallback) {
+      cat = { ...fallback, id: categoryId };
+    } else {
+      cat = {
+        id: categoryId,
+        name: categoryId,
+        slug: categoryId,
+        display_order: 99,
+        is_active: true,
+        subcategories: []
+      };
+    }
+  }
+
+  const subMap = getSavedSubcategoriesMap();
+  const currentSubs = subMap[cat.id] || subMap[cat.slug] || cat.subcategories || [];
+  const subs = [...currentSubs];
   const trimmed = subcategoryName.trim();
-  if (trimmed && !subs.includes(trimmed)) {
+  if (trimmed && !subs.some(s => s.toLowerCase() === trimmed.toLowerCase())) {
     subs.push(trimmed);
   }
-  return updateCategoryAdmin(categoryId, { subcategories: subs });
+
+  setSavedSubcategoriesForCategory(cat.id, subs);
+  setSavedSubcategoriesForCategory(cat.slug, subs);
+
+  return updateCategoryAdmin(cat.id, { subcategories: subs });
 };
 
 export const removeSubcategoryAdmin = async (categoryId: string, subcategoryName: string): Promise<Category> => {
   const cats = getLocalCategories();
-  const cat = cats.find(c => c.id === categoryId);
-  if (!cat) throw new Error('Category not found');
-  const subs = (cat.subcategories || []).filter(s => s !== subcategoryName);
-  return updateCategoryAdmin(categoryId, { subcategories: subs });
+  let cat = cats.find(c => c.id === categoryId || c.slug === categoryId);
+  if (!cat) {
+    const fallback = initialCategories.find(c => c.id === categoryId || c.slug === categoryId);
+    if (fallback) {
+      cat = { ...fallback, id: categoryId };
+    } else {
+      cat = {
+        id: categoryId,
+        name: categoryId,
+        slug: categoryId,
+        display_order: 99,
+        is_active: true,
+        subcategories: []
+      };
+    }
+  }
+
+  const subMap = getSavedSubcategoriesMap();
+  const currentSubs = subMap[cat.id] || subMap[cat.slug] || cat.subcategories || [];
+  const subs = currentSubs.filter(s => s.trim().toLowerCase() !== subcategoryName.trim().toLowerCase());
+
+  setSavedSubcategoriesForCategory(cat.id, subs);
+  setSavedSubcategoriesForCategory(cat.slug, subs);
+
+  return updateCategoryAdmin(cat.id, { subcategories: subs });
 };
 
 export const updateSubcategoriesAdmin = async (categoryId: string, subcategories: string[]): Promise<Category> => {
+  setSavedSubcategoriesForCategory(categoryId, subcategories);
   return updateCategoryAdmin(categoryId, { subcategories });
 };
 
@@ -1110,19 +1319,20 @@ export const adminLogin = async (email: string, password: string): Promise<{ suc
       };
       localStorage.setItem(STORAGE_ADMIN, JSON.stringify(user));
 
-      // Connect authenticated Supabase Auth session in background if Supabase is available
+      // Connect authenticated Supabase Auth session if Supabase is available
       if (isSupabaseConfigured() && supabase) {
-        supabase.auth.signInWithPassword({
-          email: 'digitalworld0813@gmail.com',
-          password: password === 'admin123' ? 'admin123' : password
-        }).then(({ data: authData }) => {
+        try {
+          const { data: authData } = await supabase.auth.signInWithPassword({
+            email: 'digitalworld0813@gmail.com',
+            password: 'admin123'
+          });
           if (authData?.user) {
             user.id = authData.user.id;
             localStorage.setItem(STORAGE_ADMIN, JSON.stringify(user));
           }
-        }).catch(() => {
+        } catch {
           // ignore background auth errors
-        });
+        }
       }
 
       return { success: true, user };
